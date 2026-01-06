@@ -4,8 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
-import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.util.concurrent.ListenableFutureCallback;
+
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class KafkaProducer {
@@ -24,18 +24,14 @@ public class KafkaProducer {
     }
 
     public void sendMessageWithCallback(String topic, String message) {
-        ListenableFuture<SendResult<String, String>> future = kafkaTemplate.send(topic, message);
+        CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send(topic, message);
         
-        future.addCallback(new ListenableFutureCallback<SendResult<String, String>>() {
-            @Override
-            public void onSuccess(SendResult<String, String> result) {
+        future.whenComplete((result, throwable) -> {
+            if (throwable != null) {
+                System.err.println("Failed to send message: " + message + ", error: " + throwable.getMessage());
+            } else {
                 System.out.println("Message sent successfully: " + message + 
                     " with offset: " + result.getRecordMetadata().offset());
-            }
-
-            @Override
-            public void onFailure(Throwable ex) {
-                System.err.println("Failed to send message: " + message + ", error: " + ex.getMessage());
             }
         });
     }

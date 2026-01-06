@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(rm:*)",
-      "Bash(mvn:*)"
+      "Bash(mvn:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(javac:*)"
     ],
     "deny": []
   }
