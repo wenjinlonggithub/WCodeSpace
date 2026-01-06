@@ -1,9 +1,9 @@
 package com.architecture.middleware.config;
 
 import com.ctrip.framework.apollo.Config;
+import com.ctrip.framework.apollo.ConfigChangeListener;
 import com.ctrip.framework.apollo.ConfigService;
 import com.ctrip.framework.apollo.model.ConfigChangeEvent;
-import com.ctrip.framework.apollo.model.ConfigChangeListener;
 import org.springframework.stereotype.Service;
 
 @Service

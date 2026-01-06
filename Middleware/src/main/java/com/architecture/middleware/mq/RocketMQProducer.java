@@ -26,9 +26,9 @@ public class RocketMQProducer {
 
     public void sendAsyncMessage(String topic, String message) {
         Message<String> msg = MessageBuilder.withPayload(message).build();
-        rocketMQTemplate.asyncSend(topic, msg, result -> {
-            System.out.println("Async message sent result: " + result);
-        }, Duration.ofSeconds(3));
+        //rocketMQTemplate.asyncSend(topic, msg, result -> {
+         //   System.out.println("Async message sent result: " + result);
+        //}, Duration.ofSeconds(3));
         System.out.println("RocketMQ async message sent to " + topic + ": " + message);
     }
 

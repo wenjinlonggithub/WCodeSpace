@@ -20,11 +20,11 @@ public class KafkaConsumer {
     @KafkaListener(topics = "order-topic", groupId = "order-group")
     public void listenWithMetadata(
             @Payload String message,
-            @Header(KafkaHeaders.RECEIVED_PARTITION_ID) int partition,
+            //@Header(KafkaHeaders.RECEIVED_PARTITION_ID) int partition,
             @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
             @Header(KafkaHeaders.OFFSET) long offset) {
         System.out.println("Received message from topic: " + topic + 
-            ", partition: " + partition + 
+            //", partition: " + partition +
             ", offset: " + offset + 
             ", message: " + message);
     }
