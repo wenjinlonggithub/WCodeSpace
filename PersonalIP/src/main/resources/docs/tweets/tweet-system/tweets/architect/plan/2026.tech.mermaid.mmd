@@ -1,0 +1,94 @@
+flowchart TB
+    subgraph "2026年智能互联网医院平台组件化架构"
+        subgraph Layer1 ["🎨 用户界面层"]
+            direction LR
+            UI1["患者端<br/>挂号购药"] 
+            UI2["医生端<br/>问诊处方"]
+            UI3["药师端<br/>审核发药"] 
+            UI4["助理端<br/>医生订单"]
+            UI5["管理端<br/>运营分析"]
+            UI6["第三方<br/>API集成"]
+        end
+        
+        Layer1 --> Layer2
+        
+        subgraph Layer2 ["📡 API网关层"]
+            direction LR
+            GW1["认证鉴权"]
+            GW2["路由转发"]
+            GW3["限流控制"]
+            GW4["监控日志"]
+            GW5["负载均衡"]
+            GW6[" "]
+        end
+        
+        Layer2 --> Layer3
+        
+        subgraph Layer3 ["🎯 核心业务组件层"]
+            direction LR
+            CORE1["🏥 慢病管理<br/>档案随访监测"]
+            CORE2["💊 普药商城<br/>药店器械分销"]
+            CORE3["🏢 医院SaaS<br/>挂号复诊处方"]
+            CORE4["🤖 AI智能<br/>助手诊断"]
+            CORE5["📈 BI分析<br/>数据报表"]
+            CORE6[" "]
+        end
+        
+        Layer3 --> Layer5
+        
+        subgraph Layer5 ["🏗️ 基础设施层"]
+            direction LR
+            INFRA1["☁️ 容器编排<br/>K8s Docker"]
+            INFRA2["🔍 服务发现<br/>负载健康"]
+            INFRA3["⚙️ 配置中心<br/>动态环境"]
+            INFRA4["📡 监控告警<br/>日志链路"]
+            INFRA5["🔐 安全管控"]
+            INFRA6[" "]
+        end
+        
+        Layer5 --> Layer6
+        
+        subgraph Layer6 ["💾 数据存储层"]
+            direction LR
+            STORAGE1["🗃️ 业务数据<br/>MySQL"]
+            STORAGE2["⚡ 缓存层<br/>Redis集群"]
+            STORAGE3["📬 消息队列<br/>RocketMQ"]
+            STORAGE4["📁 文件存储<br/>OSS备份"]
+            STORAGE5["🔍 搜索引擎<br/>ElasticSearch"]
+            STORAGE6[" "]
+        end
+        
+        %% 组件治理层贯穿始终
+        subgraph Layer4 ["⚙️ 组件治理层 - 贯穿始终"]
+            direction TB
+            GOV1["📐 标准规范<br/>API数据标准"]
+            GOV2["🔧 编排组合<br/>流程组合管理"]
+            GOV3["📋 治理体系<br/>生命周期管理"]
+            GOV4["🎛️ 配置管理<br/>版本灰度发布"]
+        end
+        
+        %% 治理层对各层的治理关系
+        Layer4 -.->|治理| Layer1
+        Layer4 -.->|治理| Layer2
+        Layer4 -.->|治理| Layer3
+        Layer4 -.->|治理| Layer5
+        Layer4 -.->|治理| Layer6
+    end
+
+    %% 样式定义
+    classDef layer1Style fill:#e3f2fd,stroke:#1976d2,stroke-width:3px
+    classDef layer2Style fill:#f3e5f5,stroke:#7b1fa2,stroke-width:3px
+    classDef layer3Style fill:#e8f5e8,stroke:#388e3c,stroke-width:3px
+    classDef layer4Style fill:#fff3e0,stroke:#f57c00,stroke-width:4px
+    classDef layer5Style fill:#fce4ec,stroke:#c2185b,stroke-width:3px
+    classDef layer6Style fill:#e0f2f1,stroke:#00695c,stroke-width:3px
+    classDef spacerStyle fill:transparent,stroke:transparent
+
+    %% 应用样式
+    class Layer1,UI1,UI2,UI3,UI4,UI5,UI6 layer1Style
+    class Layer2,GW1,GW2,GW3,GW4,GW5 layer2Style
+    class Layer3,CORE1,CORE2,CORE3,CORE4,CORE5 layer3Style
+    class Layer4,GOV1,GOV2,GOV3,GOV4 layer4Style
+    class Layer5,INFRA1,INFRA2,INFRA3,INFRA4,INFRA5 layer5Style
+    class Layer6,STORAGE1,STORAGE2,STORAGE3,STORAGE4,STORAGE5 layer6Style
+    class GW6,CORE6,INFRA6,STORAGE6 spacerStyle
