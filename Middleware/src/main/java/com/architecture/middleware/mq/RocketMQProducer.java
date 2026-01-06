@@ -2,8 +2,11 @@ package com.architecture.middleware.mq;
 
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
+
+import java.time.Duration;
 
 @Service
 public class RocketMQProducer {
@@ -22,25 +25,23 @@ public class RocketMQProducer {
     }
 
     public void sendAsyncMessage(String topic, String message) {
-        rocketMQTemplate.asyncSend(topic, MessageBuilder.withPayload(message).build(), 
-            new org.apache.rocketmq.spring.core.RocketMQLocalTransactionListener() {
-                @Override
-                public org.apache.rocketmq.spring.support.RocketMQHeaders executeLocalTransaction(
-                    org.springframework.messaging.Message msg, Object arg) {
-                    System.out.println("Async message sent: " + message);
-                    return null;
-                }
-
-                @Override
-                public org.apache.rocketmq.spring.support.RocketMQHeaders checkLocalTransaction(
-                    org.springframework.messaging.Message msg) {
-                    return null;
-                }
-            });
+        Message<String> msg = MessageBuilder.withPayload(message).build();
+        rocketMQTemplate.asyncSend(topic, msg, result -> {
+            System.out.println("Async message sent result: " + result);
+        }, Duration.ofSeconds(3));
+        System.out.println("RocketMQ async message sent to " + topic + ": " + message);
     }
 
     public void sendDelayMessage(String topic, String message, int delayLevel) {
-        rocketMQTemplate.syncSend(topic, MessageBuilder.withPayload(message).build(), 3000, delayLevel);
+        Message<String> msg = MessageBuilder.withPayload(message)
+                .setHeader("DELAY", delayLevel)
+                .build();
+        rocketMQTemplate.syncSend(topic, msg);
         System.out.println("RocketMQ sent delay message to " + topic + ": " + message);
+    }
+
+    public void sendOrderlyMessage(String topic, String message, String orderId) {
+        rocketMQTemplate.syncSendOrderly(topic, message, orderId);
+        System.out.println("RocketMQ sent orderly message to " + topic + " with orderId " + orderId + ": " + message);
     }
 }

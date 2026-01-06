@@ -1,9 +1,12 @@
 spring:
+  application:
+    name: middleware-demo
+    
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     druid:
       driver-class-name: com.mysql.cj.jdbc.Driver
-      url: jdbc:mysql://localhost:3306/middleware_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+      url: jdbc:mysql://localhost:3306/middleware_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
       username: root
       password: root
       initial-size: 5
@@ -31,18 +34,19 @@ spring:
         login-username: admin
         login-password: admin
 
-  redis:
-    host: localhost
-    port: 6379
-    password:
-    database: 0
-    timeout: 3000
-    lettuce:
-      pool:
-        max-active: 8
-        max-wait: -1
-        max-idle: 8
-        min-idle: 0
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: 
+      database: 0
+      timeout: 3s
+      lettuce:
+        pool:
+          max-active: 8
+          max-wait: -1ms
+          max-idle: 8
+          min-idle: 0
 
   rabbitmq:
     host: localhost
@@ -55,6 +59,9 @@ spring:
         acknowledge-mode: auto
         concurrency: 5
         max-concurrency: 10
+        retry:
+          enabled: true
+          max-attempts: 3
 
   kafka:
     bootstrap-servers: localhost:9092
@@ -64,20 +71,86 @@ spring:
       buffer-memory: 33554432
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
     consumer:
       group-id: middleware-group
       auto-offset-reset: earliest
       enable-auto-commit: true
-      auto-commit-interval: 1000
+      auto-commit-interval: 1s
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
+  activemq:
+    broker-url: tcp://localhost:61616
+    user: admin
+    password: admin
+    pool:
+      enabled: true
+      max-connections: 50
+
+  quartz:
+    scheduler-name: middleware-scheduler
+    job-store-type: memory
+    properties:
+      org:
+        quartz:
+          scheduler:
+            instanceName: middleware-scheduler
+            instanceId: AUTO
+          threadPool:
+            threadCount: 10
+            threadPriority: 5
+            threadsInheritContextClassLoaderOfInitializingThread: true
+
+# RocketMQ Configuration
+rocketmq:
+  name-server: localhost:9876
+  producer:
+    group: middleware-producer-group
+    send-message-timeout: 3000
+    retry-times-when-send-async-failed: 0
+
+# Dubbo Configuration  
+dubbo:
+  application:
+    name: middleware-provider
+  registry:
+    address: zookeeper://localhost:2181
+  protocol:
+    name: dubbo
+    port: 20880
+
+# MyBatis Configuration
 mybatis:
   type-aliases-package: com.architecture.middleware.database.entity
   mapper-locations: classpath:mapper/*.xml
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    default-fetch-size: 100
+    default-statement-timeout: 30
 
+# Server Configuration
 server:
   port: 8080
+  servlet:
+    context-path: /middleware
+
+# Management & Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+# Logging Configuration
+logging:
+  level:
+    com.architecture.middleware: DEBUG
+    org.apache.dubbo: INFO
+    org.springframework.kafka: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n"

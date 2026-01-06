@@ -2,15 +2,20 @@ package com.architecture.middleware.scheduler;
 
 import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Service
 public class QuartzExample {
 
     @Autowired
-    private Scheduler scheduler;
+    private SchedulerFactoryBean schedulerFactoryBean;
 
     public void scheduleJob(String jobName, String jobGroup, String cronExpression) throws SchedulerException {
+        Scheduler scheduler = schedulerFactoryBean.getScheduler();
+        
         JobDetail jobDetail = JobBuilder.newJob(SampleJob.class)
                 .withIdentity(jobName, jobGroup)
                 .usingJobData("message", "Hello from " + jobName)
@@ -26,18 +31,21 @@ public class QuartzExample {
     }
 
     public void deleteJob(String jobName, String jobGroup) throws SchedulerException {
+        Scheduler scheduler = schedulerFactoryBean.getScheduler();
         JobKey jobKey = new JobKey(jobName, jobGroup);
         scheduler.deleteJob(jobKey);
         System.out.println("Deleted job: " + jobName);
     }
 
     public void pauseJob(String jobName, String jobGroup) throws SchedulerException {
+        Scheduler scheduler = schedulerFactoryBean.getScheduler();
         JobKey jobKey = new JobKey(jobName, jobGroup);
         scheduler.pauseJob(jobKey);
         System.out.println("Paused job: " + jobName);
     }
 
     public void resumeJob(String jobName, String jobGroup) throws SchedulerException {
+        Scheduler scheduler = schedulerFactoryBean.getScheduler();
         JobKey jobKey = new JobKey(jobName, jobGroup);
         scheduler.resumeJob(jobKey);
         System.out.println("Resumed job: " + jobName);
@@ -48,7 +56,7 @@ public class QuartzExample {
         public void execute(JobExecutionContext context) throws JobExecutionException {
             JobDataMap dataMap = context.getJobDetail().getJobDataMap();
             String message = dataMap.getString("message");
-            System.out.println("Quartz job executed: " + message + " at " + new java.util.Date());
+            System.out.println("Quartz job executed: " + message + " at " + LocalDateTime.now());
         }
     }
 }
