@@ -4,6 +4,10 @@
   <groupId>com.architecture</groupId>
   <artifactId>OpenSource</artifactId>
   <version>1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
   <name>Archetype - OpenSource</name>
   <url>http://maven.apache.org</url>
+  <modules>
+    <module>Spring</module>
+  </modules>
 </project>

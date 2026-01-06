@@ -1,4 +1,4 @@
-package $com.architecture;
+package com.architecture;
 
 /**
  * Hello world!
