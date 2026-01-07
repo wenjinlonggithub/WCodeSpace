@@ -19,7 +19,38 @@ public class Sun {
     }
 
     public static void main(String[] args) {
-        Sun demo = Sun.getInstance();
-        System.out.println(demo);
+        // 多线程测试案例
+        int threadCount = 10;
+        Thread[] threads = new Thread[threadCount];
+        
+        for (int i = 0; i < threadCount; i++) {
+            final int threadId = i;
+            threads[i] = new Thread(() -> {
+                Sun instance = Sun.getInstance();
+                System.out.println("Thread " + threadId + " got instance: " + instance.hashCode());
+            });
+        }
+        
+        // 启动所有线程
+        for (Thread thread : threads) {
+            thread.start();
+        }
+        
+        // 等待所有线程完成
+        for (Thread thread : threads) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        
+        // 验证单例
+        Sun demo1 = Sun.getInstance();
+        Sun demo2 = Sun.getInstance();
+        System.out.println("\n验证单例模式:");
+        System.out.println("Instance 1: " + demo1.hashCode());
+        System.out.println("Instance 2: " + demo2.hashCode());
+        System.out.println("Are they the same? " + (demo1 == demo2));
     }
 }
