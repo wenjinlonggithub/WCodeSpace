@@ -5,12 +5,23 @@ import java.nio.charset.StandardCharsets;
 
 public class Sun {
     
-    // 静态代码块：在类加载时设置编码属性
+    // 静态代码块：在类加载时设置编码属性（Windows环境下确保UTF-8编码）
     static {
-        // 设置JVM系统属性支持UTF-8
-        System.setProperty("file.encoding", "UTF-8");
-        System.setProperty("sun.stdout.encoding", "UTF-8");
-        System.setProperty("sun.stderr.encoding", "UTF-8");
+        try {
+            // 设置JVM系统属性支持UTF-8
+            System.setProperty("file.encoding", "UTF-8");
+            System.setProperty("sun.stdout.encoding", "UTF-8");
+            System.setProperty("sun.stderr.encoding", "UTF-8");
+            
+            // 检测当前环境是否为Windows，并提示设置控制台编码
+            String os = System.getProperty("os.name").toLowerCase();
+            if (os.contains("win")) {
+                // 在Windows环境下提示用户设置控制台编码
+                System.out.println("Windows环境检测: 请确保控制台已设置UTF-8编码 (chcp 65001)");
+            }
+        } catch (Exception e) {
+            System.err.println("编码设置失败: " + e.getMessage());
+        }
     }
     /**
      * ==================== volatile关键字深度解析 ====================
