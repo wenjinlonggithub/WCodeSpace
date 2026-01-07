@@ -2,6 +2,14 @@ package com.architecture.designpattern.singleton;
 
 public class SingletonExample {
 
+    public static void main(String[] args) {
+        // 设置控制台输出编码为UTF-8，支持中文显示
+        System.setProperty("file.encoding", "UTF-8");
+        System.setProperty("console.encoding", "UTF-8");
+
+        new SingletonExample().demonstratePatterns();
+    }
+
     public void demonstratePatterns() {
         System.out.println("=== 单例模式演示 ===");
         

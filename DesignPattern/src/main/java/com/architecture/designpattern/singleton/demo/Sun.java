@@ -1,6 +1,17 @@
 package com.architecture.designpattern.singleton.demo;
 
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+
 public class Sun {
+    
+    // 静态代码块：在类加载时设置编码属性
+    static {
+        // 设置JVM系统属性支持UTF-8
+        System.setProperty("file.encoding", "UTF-8");
+        System.setProperty("sun.stdout.encoding", "UTF-8");
+        System.setProperty("sun.stderr.encoding", "UTF-8");
+    }
     /**
      * ==================== volatile关键字深度解析 ====================
      * 
@@ -77,6 +88,8 @@ public class Sun {
     }
 
     public static void main(String[] args) {
+        System.out.println("========== 单例模式多线程测试 ==========");
+        
         // 多线程测试案例
         int threadCount = 10000;
         Thread[] threads = new Thread[threadCount];
@@ -90,8 +103,8 @@ public class Sun {
                 Sun instance = Sun.getInstance();
                 long threadEndTime = System.nanoTime();
                 long executionTime = threadEndTime - threadStartTime;
-                System.out.println("Thread " + threadId + " got instance: " + instance.hashCode() + 
-                    ", execution time: " + (executionTime / 1000) + " us");
+                System.out.println("线程 " + threadId + " 获取实例: " + instance.hashCode() + 
+                    ", 执行时间: " + (executionTime / 1000) + " 微秒");
             });
         }
         
@@ -115,12 +128,12 @@ public class Sun {
         // 验证单例
         Sun demo1 = Sun.getInstance();
         Sun demo2 = Sun.getInstance();
-        System.out.println("\nSingleton Verification:");
-        System.out.println("Instance 1: " + demo1.hashCode());
-        System.out.println("Instance 2: " + demo2.hashCode());
-        System.out.println("Are they the same? " + (demo1 == demo2));
-        System.out.println("\nPerformance Statistics:");
-        System.out.println("Total execution time: " + (totalTime / 1_000_000) + " ms");
-        System.out.println("Average thread execution time: " + (totalTime / threadCount / 1000) + " us");
+        System.out.println("\n单例模式验证:");
+        System.out.println("实例1哈希码: " + demo1.hashCode());
+        System.out.println("实例2哈希码: " + demo2.hashCode());
+        System.out.println("是否为同一实例? " + (demo1 == demo2));
+        System.out.println("\n性能统计:");
+        System.out.println("总执行时间: " + (totalTime / 1_000_000) + " 毫秒");
+        System.out.println("平均每线程执行时间: " + (totalTime / threadCount / 1000) + " 微秒");
     }
 }
