@@ -1,17 +1,21 @@
 package com.architecture.designpattern.singleton.demo;
 
 public class Sun {
-    private static final Sun sun = new Sun(); //自有永有的单例
-    private Sun(){ //构造方法私有化
+    private static Sun sun; //自有永有的单例
+
+    private Sun() { //构造方法私有化
 
     }
 
-    public static Sun getInstance(){ //阳光普照，方法公开化
+    public static synchronized Sun getInstance() { //阳光普照，方法公开化
+        if (sun == null) { //无日才造日
+            sun = new Sun();
+        }
         return sun;
     }
 
     public static void main(String[] args) {
-        Sun demo = new Sun();
+        Sun demo = Sun.getInstance();
         System.out.println(demo);
     }
 }

@@ -10,7 +10,10 @@
       "Bash(for pattern in interpreter iterator mediator memento visitor)",
       "Bash(do for suffix in InterviewQuestions SourceCodeAnalysis)",
       "Bash(do touch \"D:\\develop\\20\\WCodeSpace\\DesignPattern\\src\\main\\java\\com\\architecture\\designpattern\\$pattern\\$pattern^$suffix.java\")",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(for pattern in builder command composite decorator facade factory observer prototype proxy state strategy templatemethod)",
+      "Bash(do echo \"Creating files for $pattern\")",
+      "Bash(touch:*)"
     ],
     "deny": []
   }

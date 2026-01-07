@@ -47,14 +47,14 @@ public class BridgeExample {
         Device radio = new Radio();
         
         // 创建不同的遥控器
-        RemoteControl basicRemote = new BasicRemoteControl(tv);
-        RemoteControl advancedRemote = new AdvancedRemoteControl(radio);
+        //RemoteControl basicRemote = new BasicRemoteControl(tv);
+        //RemoteControl advancedRemote = new AdvancedRemoteControl(radio);
         
-        basicRemote.turnOn();
-        basicRemote.setVolume(50);
+        //basicRemote.turnOn();
+        //basicRemote.setVolume(50);
         
-        ((AdvancedRemoteControl) advancedRemote).setChannel(5);
-        advancedRemote.turnOff();
+        //((AdvancedRemoteControl) advancedRemote).setChannel(5);
+        //advancedRemote.turnOff();
     }
 }
 
