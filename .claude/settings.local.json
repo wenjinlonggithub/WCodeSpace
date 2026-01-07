@@ -5,7 +5,8 @@
       "Bash(mvn:*)",
       "Bash(ls:*)",
       "Bash(find:*)",
-      "Bash(javac:*)"
+      "Bash(javac:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": []
   }
