@@ -23,11 +23,17 @@ public class Sun {
         int threadCount = 10000;
         Thread[] threads = new Thread[threadCount];
         
+        long startTime = System.nanoTime();
+        
         for (int i = 0; i < threadCount; i++) {
             final int threadId = i;
             threads[i] = new Thread(() -> {
+                long threadStartTime = System.nanoTime();
                 Sun instance = Sun.getInstance();
-                System.out.println("Thread " + threadId + " got instance: " + instance.hashCode());
+                long threadEndTime = System.nanoTime();
+                long executionTime = threadEndTime - threadStartTime;
+                System.out.println("Thread " + threadId + " got instance: " + instance.hashCode() + 
+                    ", execution time: " + (executionTime / 1000) + " μs");
             });
         }
         
@@ -45,6 +51,9 @@ public class Sun {
             }
         }
         
+        long endTime = System.nanoTime();
+        long totalTime = endTime - startTime;
+        
         // 验证单例
         Sun demo1 = Sun.getInstance();
         Sun demo2 = Sun.getInstance();
@@ -52,5 +61,8 @@ public class Sun {
         System.out.println("Instance 1: " + demo1.hashCode());
         System.out.println("Instance 2: " + demo2.hashCode());
         System.out.println("Are they the same? " + (demo1 == demo2));
+        System.out.println("\n性能统计:");
+        System.out.println("总执行时间: " + (totalTime / 1_000_000) + " ms");
+        System.out.println("平均每线程执行时间: " + (totalTime / threadCount / 1000) + " μs");
     }
 }
