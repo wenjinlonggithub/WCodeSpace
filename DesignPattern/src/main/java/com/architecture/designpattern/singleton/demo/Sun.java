@@ -9,7 +9,23 @@ public class Sun {
 
     public static Sun getInstance() { //阳光普照，方法公开化
         if (sun == null) { //无日才造日
-            synchronized (Sun.class) {
+            /**
+             * ● synchronized (Sun.class) 这行代码的作用是：
+             *
+             *   1. 类级别锁定 - 获取 Sun 类的 Class
+             *   对象作为同步锁，确保整个类只有一个线程能进入该代码块
+             *   2. 防止重复创建实例 -
+             *   在双重检查锁定模式中，第二层检查确保即使多个线程同时通过第一个 if
+             *   检查，也只有一个线程能创建实例
+             *   3. 线程安全保障 - 当多个线程同时调用 getInstance()
+             *   时，synchronized 块确保只有一个线程能执行实例创建逻辑
+             *   4. 性能优化 - 相比在整个方法上加
+             *   synchronized，这种方式只在需要创建实例时才加锁，减少了锁竞争
+             *
+             *   这是单例模式中经典的"双重检查锁定"实现，既保证了线程安全又提高了性
+             *   能。
+             */
+            synchronized (Sun.class) { //类级别锁定，防止重复创建实例，确保线程安全的双重检查锁定
                 if (sun == null) {
                     sun = new Sun();
                 }
