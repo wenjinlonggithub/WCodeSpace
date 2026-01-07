@@ -221,6 +221,50 @@ public class SpringSingletonSourceCode {
          *    - 用户服务需要订单服务，订单服务也需要用户服务
          *    - 如果不妥善处理，会导致无限循环，最终栈溢出
          *    
+         * =================== 无限循环和栈溢出原理详解 ===================
+         * 
+         * 3. 栈溢出原理分析：
+         *    
+         *    假设没有三级缓存机制，Spring容器创建Bean的简化流程：
+         *    
+         *    createBean(ServiceA) {
+         *        1. 实例化 ServiceA
+         *        2. 发现依赖 ServiceB，调用 getBean(ServiceB)
+         *           -> createBean(ServiceB) {
+         *                1. 实例化 ServiceB  
+         *                2. 发现依赖 ServiceA，调用 getBean(ServiceA)
+         *                   -> createBean(ServiceA) {  // 递归调用！
+         *                        1. 实例化 ServiceA
+         *                        2. 发现依赖 ServiceB，调用 getBean(ServiceB)
+         *                           -> createBean(ServiceB) {  // 又是递归调用！
+         *                                ...无限循环...
+         *                           }
+         *                   }
+         *           }
+         *    }
+         *    
+         *    调用栈会无限增长：
+         *    createBean(ServiceA)
+         *      -> getBean(ServiceB) 
+         *        -> createBean(ServiceB)
+         *          -> getBean(ServiceA)
+         *            -> createBean(ServiceA)  // 重复！
+         *              -> getBean(ServiceB)
+         *                -> createBean(ServiceB) // 重复！
+         *                  -> ...直到栈溢出
+         *    
+         * 4. 栈溢出的技术细节：
+         *    - 每次方法调用都会在栈帧中分配内存
+         *    - Java虚拟机栈的大小有限（默认1MB左右）
+         *    - 递归调用深度超过栈容量时抛出StackOverflowError
+         *    - 典型错误信息：java.lang.StackOverflowError
+         *    
+         * 5. 实际影响：
+         *    - 应用启动失败
+         *    - 容器初始化异常
+         *    - 资源泄漏和内存问题
+         *    - 难以调试和定位问题
+         *    
          * 3. 传统解决方案的问题：
          *    - 懒加载：延迟到使用时再注入，但可能造成NPE
          *    - 接口隔离：增加代码复杂度，破坏设计
@@ -296,8 +340,23 @@ public class SpringSingletonSourceCode {
          * 3. 保持AOP功能的完整性
          */
         
-        System.out.println("   =================== 循环依赖解决过程详解 ===================");
+        System.out.println("   =================== 栈溢出演示 ===================");
         
+        // 首先演示没有三级缓存时的栈溢出问题
+        System.out.println("   【1. 演示传统方式的栈溢出问题】");
+        NaiveCircularDependencyResolver naiveResolver = new NaiveCircularDependencyResolver();
+        try {
+            naiveResolver.createBeanWithoutCache("serviceA");
+        } catch (StackOverflowError e) {
+            System.out.println("   ❌ 发生栈溢出: " + e.getClass().getSimpleName());
+            System.out.println("   ❌ 调用深度过大，超出JVM栈限制");
+        } catch (RuntimeException e) {
+            System.out.println("   ❌ 检测到无限递归: " + e.getMessage());
+        }
+        
+        System.out.println("\n   =================== 循环依赖解决过程详解 ===================");
+        
+        System.out.println("   【2. Spring三级缓存解决方案】");
         EnhancedCircularDependencyResolver resolver = new EnhancedCircularDependencyResolver();
         
         System.out.println("   模拟复杂循环依赖场景: ServiceA -> ServiceB -> ServiceC -> ServiceA");
@@ -305,7 +364,7 @@ public class SpringSingletonSourceCode {
         // 开始创建ServiceA，这会触发完整的循环依赖解决机制
         Object serviceA = resolver.createBeanWithCircularDependency("serviceA");
         
-        System.out.println("   ServiceA创建完成: " + serviceA.hashCode());
+        System.out.println("   ✅ ServiceA创建完成: " + serviceA.hashCode());
         System.out.println("\n   三级缓存最终状态:");
         resolver.printDetailedCacheStatus();
         
@@ -486,6 +545,56 @@ class MockBeanDefinitionRegistry {
     
     public MockBeanDefinition getBeanDefinition(String beanName) {
         return beanDefinitions.get(beanName);
+    }
+}
+
+/**
+ * 朴素的循环依赖解决器 - 演示没有缓存机制时的栈溢出问题
+ */
+class NaiveCircularDependencyResolver {
+    private int recursionDepth = 0;
+    private static final int MAX_SAFE_DEPTH = 100; // 安全递归深度限制
+    
+    public Object createBeanWithoutCache(String beanName) {
+        recursionDepth++;
+        
+        // 为了演示目的，设置一个递归深度限制来避免真正的栈溢出
+        if (recursionDepth > MAX_SAFE_DEPTH) {
+            throw new RuntimeException("检测到循环依赖导致的无限递归，已达到安全深度限制: " + MAX_SAFE_DEPTH);
+        }
+        
+        System.out.println("   递归深度: " + recursionDepth + " - 创建Bean: " + beanName);
+        
+        // 模拟Bean实例化
+        Object bean = new Object();
+        
+        // 模拟依赖注入 - 这里会触发循环依赖
+        if ("serviceA".equals(beanName)) {
+            System.out.println("   serviceA需要依赖serviceB，开始创建serviceB...");
+            Object serviceB = createBeanWithoutCache("serviceB"); // 递归调用
+            
+        } else if ("serviceB".equals(beanName)) {
+            System.out.println("   serviceB需要依赖serviceA，开始创建serviceA...");
+            Object serviceA = createBeanWithoutCache("serviceA"); // 递归调用 - 形成循环！
+        }
+        
+        System.out.println("   完成创建Bean: " + beanName + " (递归深度: " + recursionDepth + ")");
+        recursionDepth--;
+        return bean;
+    }
+    
+    /**
+     * 演示真正的栈溢出（谨慎使用，会导致JVM崩溃）
+     */
+    public Object createBeanWithRealStackOverflow(String beanName) {
+        System.out.println("正在创建Bean: " + beanName);
+        
+        // 无限递归 - 会导致真正的StackOverflowError
+        if ("serviceA".equals(beanName)) {
+            return createBeanWithRealStackOverflow("serviceB");
+        } else {
+            return createBeanWithRealStackOverflow("serviceA");
+        }
     }
 }
 
