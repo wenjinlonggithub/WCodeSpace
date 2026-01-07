@@ -7,7 +7,7 @@ public class Sun {
 
     }
 
-    public static synchronized Sun getInstance() { //阳光普照，方法公开化
+    public static Sun getInstance() { //阳光普照，方法公开化
         if (sun == null) { //无日才造日
             synchronized (Sun.class) {
                 if (sun == null) {
