@@ -6,7 +6,11 @@
       "Bash(ls:*)",
       "Bash(find:*)",
       "Bash(javac:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(for pattern in interpreter iterator mediator memento visitor)",
+      "Bash(do for suffix in InterviewQuestions SourceCodeAnalysis)",
+      "Bash(do touch \"D:\\develop\\20\\WCodeSpace\\DesignPattern\\src\\main\\java\\com\\architecture\\designpattern\\$pattern\\$pattern^$suffix.java\")",
+      "Bash(done)"
     ],
     "deny": []
   }
