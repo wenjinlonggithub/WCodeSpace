@@ -205,27 +205,73 @@ public class SpringSingletonSourceCode {
      * 这是Spring单例模式实现中最复杂和精巧的部分
      */
     private static void demonstrateCircularDependencyResolution() {
-        System.out.println("4. 【循环依赖解决机制 - 三级缓存】");
+        System.out.println("4. 【循环依赖解决机制 - 三级缓存详解】");
         System.out.println("   Spring通过三级缓存巧妙解决单例Bean之间的循环依赖问题\n");
+        
+        /*
+         * =================== 循环依赖背景和问题 ===================
+         * 
+         * 1. 什么是循环依赖？
+         *    - ServiceA依赖ServiceB，ServiceB又依赖ServiceA
+         *    - 在创建ServiceA时需要注入ServiceB，但ServiceB还没创建
+         *    - 在创建ServiceB时需要注入ServiceA，但ServiceA还没初始化完成
+         *    
+         * 2. 为什么会出现循环依赖？
+         *    - 复杂业务场景中，服务间相互调用很常见
+         *    - 用户服务需要订单服务，订单服务也需要用户服务
+         *    - 如果不妥善处理，会导致无限循环，最终栈溢出
+         *    
+         * 3. 传统解决方案的问题：
+         *    - 懒加载：延迟到使用时再注入，但可能造成NPE
+         *    - 接口隔离：增加代码复杂度，破坏设计
+         *    - setter注入：破坏不可变性原则
+         *
+         * =================== Spring三级缓存原理 ===================
+         * 
+         * Spring通过"分层缓存 + 早期暴露"的巧妙设计解决循环依赖：
+         * 
+         * 1. 一级缓存 (singletonObjects)：
+         *    - 存储完全初始化的单例Bean
+         *    - 这些Bean已经完成所有依赖注入和初始化回调
+         *    - 线程安全，使用ConcurrentHashMap
+         *    - 这是最终状态的Bean缓存
+         *    
+         * 2. 二级缓存 (earlySingletonObjects)：
+         *    - 存储早期暴露的Bean引用
+         *    - Bean实例已创建，但还未完成依赖注入
+         *    - 用于打破循环依赖的关键环节
+         *    - 避免重复从三级缓存获取
+         *    
+         * 3. 三级缓存 (singletonFactories)：
+         *    - 存储Bean的工厂函数(ObjectFactory)
+         *    - 在Bean实例化后立即放入
+         *    - 支持AOP代理的延迟创建
+         *    - 真正解决循环依赖的核心机制
+         * 
+         * =================== 核心算法分析 ===================
+         */
         
         /*
          * Spring循环依赖解决核心算法：
          * 
          * protected Object getSingleton(String beanName, boolean allowEarlyReference) {
-         *     // 1. 从一级缓存获取完全初始化的Bean
+         *     // 第一步：从一级缓存获取完全初始化的Bean
          *     Object singletonObject = this.singletonObjects.get(beanName);
          *     
+         *     // 关键判断：Bean为空且正在创建中
          *     if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) {
          *         synchronized (this.singletonObjects) {
-         *             // 2. 从二级缓存获取早期暴露的Bean
+         *             // 第二步：从二级缓存获取早期暴露的Bean
          *             singletonObject = this.earlySingletonObjects.get(beanName);
          *             
+         *             // 二级缓存也没有，且允许早期引用
          *             if (singletonObject == null && allowEarlyReference) {
-         *                 // 3. 从三级缓存获取Bean工厂
+         *                 // 第三步：从三级缓存获取Bean工厂
          *                 ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
          *                 if (singletonFactory != null) {
+         *                     // 通过工厂创建Bean（可能是代理对象）
          *                     singletonObject = singletonFactory.getObject();
-         *                     // 将Bean从三级缓存移动到二级缓存
+         *                     // 升级：将Bean从三级缓存移动到二级缓存
          *                     this.earlySingletonObjects.put(beanName, singletonObject);
          *                     this.singletonFactories.remove(beanName);
          *                 }
@@ -234,18 +280,38 @@ public class SpringSingletonSourceCode {
          *     }
          *     return singletonObject;
          * }
+         * 
+         * =================== 缓存升级机制 ===================
+         * 
+         * 三级缓存的设计体现了"按需升级"的思想：
+         * 1. 三级缓存 -> 二级缓存：当首次被依赖时
+         * 2. 二级缓存 -> 一级缓存：当完全初始化后
+         * 3. 每个级别都有特定的职责和时机
+         * 
+         * =================== AOP与循环依赖 ===================
+         * 
+         * 三级缓存还解决了AOP代理与循环依赖的复杂情况：
+         * 1. 如果Bean需要AOP代理，三级缓存中的ObjectFactory会创建代理对象
+         * 2. 确保循环依赖注入的是代理对象，而不是原始对象
+         * 3. 保持AOP功能的完整性
          */
         
-        MockCircularDependencyResolver resolver = new MockCircularDependencyResolver();
+        System.out.println("   =================== 循环依赖解决过程详解 ===================");
         
-        System.out.println("   模拟循环依赖场景: ServiceA -> ServiceB -> ServiceA");
+        EnhancedCircularDependencyResolver resolver = new EnhancedCircularDependencyResolver();
         
-        // 开始创建ServiceA，这会触发循环依赖解决机制
+        System.out.println("   模拟复杂循环依赖场景: ServiceA -> ServiceB -> ServiceC -> ServiceA");
+        
+        // 开始创建ServiceA，这会触发完整的循环依赖解决机制
         Object serviceA = resolver.createBeanWithCircularDependency("serviceA");
         
         System.out.println("   ServiceA创建完成: " + serviceA.hashCode());
-        System.out.println("   三级缓存使用情况:");
-        resolver.printCacheStatus();
+        System.out.println("\n   三级缓存最终状态:");
+        resolver.printDetailedCacheStatus();
+        
+        System.out.println("\n   =================== 关键时间点分析 ===================");
+        resolver.printCreationTimeline();
+        
         System.out.println();
     }
 
@@ -459,6 +525,239 @@ class MockCircularDependencyResolver {
         System.out.println("   一级缓存Bean数量: " + singletonObjects.size());
         System.out.println("   二级缓存Bean数量: " + earlySingletonObjects.size());
         System.out.println("   三级缓存Bean数量: " + singletonFactories.size());
+    }
+}
+
+/**
+ * 增强版循环依赖解决器 - 完整模拟Spring的三级缓存机制
+ */
+class EnhancedCircularDependencyResolver {
+    private final Map<String, Object> singletonObjects = new ConcurrentHashMap<>();
+    private final Map<String, Object> earlySingletonObjects = new ConcurrentHashMap<>();
+    private final Map<String, MockObjectFactory<?>> singletonFactories = new ConcurrentHashMap<>();
+    private final Map<String, String> creationTimeline = new ConcurrentHashMap<>();
+    private final java.util.Set<String> singletonsCurrentlyInCreation = ConcurrentHashMap.newKeySet();
+    
+    private int stepCounter = 0;
+    
+    public Object createBeanWithCircularDependency(String beanName) {
+        logStep("开始创建Bean: " + beanName);
+        
+        // 标记Bean正在创建中
+        singletonsCurrentlyInCreation.add(beanName);
+        
+        // 1. 实例化Bean（构造函数调用）
+        MockServiceBean bean = createBeanInstance(beanName);
+        logStep("实例化完成: " + beanName + " (实例ID: " + bean.hashCode() + ")");
+        
+        // 2. 立即将Bean工厂放入三级缓存（关键步骤）
+        singletonFactories.put(beanName, () -> {
+            logStep("从三级缓存工厂获取早期引用: " + beanName);
+            // 这里可以进行AOP代理处理
+            return getEarlyBeanReference(beanName, bean);
+        });
+        logStep("Bean工厂已放入三级缓存: " + beanName);
+        
+        // 3. 模拟依赖注入过程（可能触发循环依赖）
+        populateBean(beanName, bean);
+        
+        // 4. 完成初始化回调
+        initializeBean(beanName, bean);
+        
+        // 5. 将完全初始化的Bean放入一级缓存
+        singletonObjects.put(beanName, bean);
+        earlySingletonObjects.remove(beanName);
+        singletonFactories.remove(beanName);
+        singletonsCurrentlyInCreation.remove(beanName);
+        
+        logStep("Bean完全初始化并放入一级缓存: " + beanName);
+        
+        return bean;
+    }
+    
+    private MockServiceBean createBeanInstance(String beanName) {
+        return new MockServiceBean(beanName);
+    }
+    
+    private Object getEarlyBeanReference(String beanName, Object bean) {
+        // 模拟AOP代理创建逻辑
+        if (needsProxy(beanName)) {
+            logStep("为Bean创建AOP代理: " + beanName);
+            return new MockProxyBean(bean, beanName);
+        }
+        return bean;
+    }
+    
+    private boolean needsProxy(String beanName) {
+        // 模拟某些Bean需要代理
+        return beanName.equals("serviceA") || beanName.equals("serviceC");
+    }
+    
+    private void populateBean(String beanName, MockServiceBean bean) {
+        logStep("开始依赖注入: " + beanName);
+        
+        // 模拟复杂的循环依赖关系
+        if ("serviceA".equals(beanName)) {
+            // serviceA依赖serviceB
+            Object serviceB = getSingleton("serviceB", true);
+            if (serviceB == null) {
+                serviceB = createBeanWithCircularDependency("serviceB");
+            }
+            bean.setDependency("serviceB", serviceB);
+            logStep("serviceA注入依赖serviceB完成");
+            
+        } else if ("serviceB".equals(beanName)) {
+            // serviceB依赖serviceC
+            Object serviceC = getSingleton("serviceC", true);
+            if (serviceC == null) {
+                serviceC = createBeanWithCircularDependency("serviceC");
+            }
+            bean.setDependency("serviceC", serviceC);
+            logStep("serviceB注入依赖serviceC完成");
+            
+        } else if ("serviceC".equals(beanName)) {
+            // serviceC依赖serviceA（形成循环）
+            Object serviceA = getSingleton("serviceA", true);
+            if (serviceA == null) {
+                // 这里不会再次创建，而是从缓存获取
+                serviceA = getSingleton("serviceA", true);
+            }
+            bean.setDependency("serviceA", serviceA);
+            logStep("serviceC注入依赖serviceA完成（循环依赖解决）");
+        }
+    }
+    
+    private void initializeBean(String beanName, MockServiceBean bean) {
+        logStep("执行初始化回调: " + beanName);
+        bean.afterPropertiesSet();
+    }
+    
+    /**
+     * 核心方法：模拟Spring的getSingleton方法
+     * 这是三级缓存机制的核心实现
+     */
+    protected Object getSingleton(String beanName, boolean allowEarlyReference) {
+        logStep("尝试获取单例Bean: " + beanName);
+        
+        // 第一级：从完全初始化的单例缓存中获取
+        Object singletonObject = singletonObjects.get(beanName);
+        if (singletonObject != null) {
+            logStep("从一级缓存获取Bean: " + beanName);
+            return singletonObject;
+        }
+        
+        // 检查Bean是否正在创建中
+        if (singletonsCurrentlyInCreation.contains(beanName)) {
+            logStep("Bean正在创建中，尝试从二三级缓存获取: " + beanName);
+            
+            synchronized (this.singletonObjects) {
+                // 再次检查一级缓存（双重检查）
+                singletonObject = this.singletonObjects.get(beanName);
+                if (singletonObject == null) {
+                    
+                    // 第二级：从早期暴露的单例缓存中获取
+                    singletonObject = this.earlySingletonObjects.get(beanName);
+                    if (singletonObject != null) {
+                        logStep("从二级缓存获取早期Bean: " + beanName);
+                        return singletonObject;
+                    }
+                    
+                    if (allowEarlyReference) {
+                        // 第三级：从单例工厂缓存中获取
+                        MockObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
+                        if (singletonFactory != null) {
+                            logStep("从三级缓存获取Bean工厂: " + beanName);
+                            singletonObject = singletonFactory.getObject();
+                            
+                            // 关键操作：将Bean从三级缓存升级到二级缓存
+                            this.earlySingletonObjects.put(beanName, singletonObject);
+                            this.singletonFactories.remove(beanName);
+                            logStep("Bean从三级缓存升级到二级缓存: " + beanName);
+                        }
+                    }
+                }
+            }
+        }
+        
+        return singletonObject;
+    }
+    
+    private void logStep(String message) {
+        stepCounter++;
+        String step = String.format("步骤%02d", stepCounter);
+        System.out.println("   " + step + ": " + message);
+        creationTimeline.put(step, message);
+    }
+    
+    public void printDetailedCacheStatus() {
+        System.out.println("   一级缓存(singletonObjects): " + singletonObjects.size() + " 个Bean");
+        singletonObjects.forEach((name, bean) -> {
+            System.out.println("     - " + name + ": " + bean.getClass().getSimpleName() + "@" + bean.hashCode());
+        });
+        
+        System.out.println("   二级缓存(earlySingletonObjects): " + earlySingletonObjects.size() + " 个Bean");
+        earlySingletonObjects.forEach((name, bean) -> {
+            System.out.println("     - " + name + ": " + bean.getClass().getSimpleName() + "@" + bean.hashCode());
+        });
+        
+        System.out.println("   三级缓存(singletonFactories): " + singletonFactories.size() + " 个工厂");
+        singletonFactories.forEach((name, factory) -> {
+            System.out.println("     - " + name + ": " + factory.getClass().getSimpleName());
+        });
+        
+        System.out.println("   正在创建中的Bean: " + singletonsCurrentlyInCreation);
+    }
+    
+    public void printCreationTimeline() {
+        creationTimeline.forEach((step, message) -> {
+            System.out.println("   " + step + ": " + message);
+        });
+    }
+}
+
+/**
+ * 模拟业务服务Bean
+ */
+class MockServiceBean {
+    private final String name;
+    private final Map<String, Object> dependencies = new ConcurrentHashMap<>();
+    private boolean initialized = false;
+    
+    public MockServiceBean(String name) {
+        this.name = name;
+    }
+    
+    public void setDependency(String depName, Object dependency) {
+        dependencies.put(depName, dependency);
+    }
+    
+    public void afterPropertiesSet() {
+        initialized = true;
+    }
+    
+    public String getName() { return name; }
+    public boolean isInitialized() { return initialized; }
+    public Map<String, Object> getDependencies() { return dependencies; }
+}
+
+/**
+ * 模拟AOP代理Bean
+ */
+class MockProxyBean {
+    private final Object target;
+    private final String targetName;
+    
+    public MockProxyBean(Object target, String targetName) {
+        this.target = target;
+        this.targetName = targetName;
+    }
+    
+    public Object getTarget() { return target; }
+    public String getTargetName() { return targetName; }
+    
+    @Override
+    public String toString() {
+        return "ProxyFor[" + targetName + "]@" + target.hashCode();
     }
 }
 
