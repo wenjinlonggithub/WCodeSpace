@@ -20,7 +20,7 @@ public class Sun {
 
     public static void main(String[] args) {
         // 多线程测试案例
-        int threadCount = 10;
+        int threadCount = 10000;
         Thread[] threads = new Thread[threadCount];
         
         for (int i = 0; i < threadCount; i++) {
