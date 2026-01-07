@@ -1,6 +1,48 @@
 package com.architecture.designpattern.singleton.demo;
 
 public class Sun {
+    /**
+     * ==================== volatile关键字深度解析 ====================
+     * 
+     * 【背景故事】
+     * 在多核CPU时代，每个CPU核心都有自己的缓存(L1/L2/L3)，为了性能优化，
+     * 变量可能被缓存在CPU缓存中而不是主内存中。这就产生了缓存一致性问题。
+     * 
+     * 【核心原理】
+     * 1. 可见性问题的本质
+     *    - 线程A在CPU1上修改变量x=1，写入CPU1的缓存
+     *    - 线程B在CPU2上读取变量x，从CPU2的缓存读取，仍然是旧值0
+     *    - volatile强制所有读写操作直接作用于主内存
+     * 
+     * 2. 指令重排序的危险
+     *    CPU和编译器为了优化性能，可能会重新排列指令执行顺序：
+     *    原始代码：a = 1; b = 2; c = a + b;
+     *    重排后：  b = 2; a = 1; c = a + b; (不影响单线程结果)
+     *    但在多线程环境下可能导致其他线程看到不一致的状态
+     * 
+     * 3. 对象创建的三个步骤（关键！）
+     *    sun = new Sun(); 实际分解为：
+     *    ① memory = allocate();   // 分配内存空间
+     *    ② ctorInstance(memory);  // 初始化对象
+     *    ③ sun = memory;          // 设置引用指向内存地址
+     *    
+     *    如果发生指令重排序变成 ①③②，其他线程可能看到sun != null但对象未初始化！
+     * 
+     * 4. 内存屏障机制
+     *    volatile在JVM层面会插入4种内存屏障：
+     *    - LoadLoad屏障：  确保volatile读之前的所有读操作先完成
+     *    - LoadStore屏障： 确保volatile读之前的所有读操作在任何写操作前完成
+     *    - StoreStore屏障：确保volatile写之前的所有写操作先完成
+     *    - StoreLoad屏障： 确保volatile写在任何后续读写操作前完成
+     * 
+     * 【为什么单例模式需要volatile】
+     * 如果没有volatile，可能出现：
+     * 1. 线程A执行到sun = new Sun()，但只完成了内存分配和引用赋值，对象未初始化
+     * 2. 线程B看到sun != null，直接返回这个半初始化的对象
+     * 3. 线程B使用这个对象时可能出现空指针或不一致状态
+     * 
+     * volatile确保对象完全构造完成后，引用才对其他线程可见
+     */
     private volatile static Sun sun; //自有永有的单例
 
     private Sun() { //构造方法私有化
