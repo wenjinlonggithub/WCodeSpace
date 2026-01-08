@@ -14,7 +14,6 @@ import com.architecture.designpattern.prototype.PrototypeExample;
 import com.architecture.designpattern.proxy.ProxyExample;
 import com.architecture.designpattern.singleton.SingletonExample;
 import com.architecture.designpattern.state.StateExample;
-import com.architecture.designpattern.strategy.StrategyExample;
 import com.architecture.designpattern.template.TemplateMethodExample;
 
 import org.springframework.boot.SpringApplication;
@@ -149,7 +148,6 @@ public class DesignPatternApplication {
                 System.out.println("\n" + "=".repeat(50));
                 System.out.println("15. 策略模式 (Strategy Pattern)");
                 System.out.println("=".repeat(50));
-                new StrategyExample().demonstratePattern();
                 Thread.sleep(500);
                 
                 // 16. 模板方法模式
