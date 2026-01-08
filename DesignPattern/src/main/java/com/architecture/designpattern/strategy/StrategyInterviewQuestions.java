@@ -1015,6 +1015,7 @@ class ReactiveStrategyDemo {
         
         return new OrderProcessResult(event.getOrderId(), discountedAmount, 
                                     event.getCustomerType() + "_DISCOUNT");*/
+        return null;
     }
 }
 
