@@ -1,9 +1,5 @@
 package com.architecture.designpattern.strategy;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -50,26 +46,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * - 代码结构清晰，便于团队协作开发
  * - 符合开闭原则和依赖倒置原则
  */
-@Component
 public class SpringStrategyExamples {
     
-    @Autowired
-    private PaymentStrategyFactory paymentFactory;
-    
-    @Autowired
-    private MessageStrategyManager messageManager;
-    
-    @Autowired
-    private ExportStrategyRegistry exportRegistry;
-    
-    @Autowired
-    private AuthenticationStrategyManager authManager;
-    
-    @Autowired
-    private CacheStrategyManager cacheManager;
-    
-    @Autowired
-    private RateLimitStrategyManager rateLimitManager;
+    private PaymentStrategyFactory paymentFactory = new PaymentStrategyFactory();
+    private MessageStrategyManager messageManager = new MessageStrategyManager();
+    private ExportStrategyRegistry exportRegistry = new ExportStrategyRegistry();
+    private AuthenticationStrategyManager authManager = new AuthenticationStrategyManager();
+    private CacheStrategyManager cacheManager = new CacheStrategyManager();
+    private RateLimitStrategyManager rateLimitManager = new RateLimitStrategyManager();
     
     public void demonstrateSpringStrategy() {
         System.out.println("=== Spring策略模式全面演示 ===");
@@ -94,6 +78,100 @@ public class SpringStrategyExamples {
         
         // 7. 策略组合演示
         demonstrateStrategyComposition();
+    }
+    
+    private void demonstrateAuthenticationStrategy() {
+        System.out.println("\n4. 认证策略演示：");
+        
+        // 用户名密码认证
+        AuthenticationRequest request1 = new AuthenticationRequest();
+        request1.setIdentifier("admin@example.com");
+        request1.setCredential("password123");
+        request1.setType("USERNAME_PASSWORD");
+        
+        AuthenticationResult result1 = authManager.authenticate(request1);
+        System.out.println("用户名密码认证结果：" + result1);
+        
+        // 手机验证码认证
+        AuthenticationRequest request2 = new AuthenticationRequest();
+        request2.setIdentifier("13800138000");
+        request2.setCredential("123456");
+        request2.setType("SMS_CODE");
+        
+        AuthenticationResult result2 = authManager.authenticate(request2);
+        System.out.println("短信验证码认证结果：" + result2);
+        
+        // 第三方OAuth认证
+        AuthenticationRequest request3 = new AuthenticationRequest();
+        request3.setIdentifier("oauth_token_12345");
+        request3.setType("OAUTH");
+        
+        AuthenticationResult result3 = authManager.authenticate(request3);
+        System.out.println("OAuth认证结果：" + result3);
+    }
+    
+    private void demonstrateCacheStrategy() {
+        System.out.println("\n5. 缓存策略演示：");
+        
+        CacheRequest request = new CacheRequest();
+        request.setKey("user:1001");
+        request.setValue("用户信息数据");
+        request.setTtl(300);
+        
+        // 本地缓存
+        cacheManager.put("LOCAL", request);
+        String value1 = cacheManager.get("LOCAL", "user:1001");
+        System.out.println("本地缓存获取：" + value1);
+        
+        // Redis缓存
+        cacheManager.put("REDIS", request);
+        String value2 = cacheManager.get("REDIS", "user:1001");
+        System.out.println("Redis缓存获取：" + value2);
+        
+        // 多级缓存
+        cacheManager.put("MULTI_LEVEL", request);
+        String value3 = cacheManager.get("MULTI_LEVEL", "user:1001");
+        System.out.println("多级缓存获取：" + value3);
+    }
+    
+    private void demonstrateRateLimitStrategy() {
+        System.out.println("\n6. 限流策略演示：");
+        
+        String clientId = "client_001";
+        
+        // 令牌桶限流
+        boolean allowed1 = rateLimitManager.isAllowed("TOKEN_BUCKET", clientId);
+        System.out.println("令牌桶限流结果：" + (allowed1 ? "允许访问" : "限流"));
+        
+        // 滑动窗口限流
+        boolean allowed2 = rateLimitManager.isAllowed("SLIDING_WINDOW", clientId);
+        System.out.println("滑动窗口限流结果：" + (allowed2 ? "允许访问" : "限流"));
+        
+        // 计数器限流
+        boolean allowed3 = rateLimitManager.isAllowed("COUNTER", clientId);
+        System.out.println("计数器限流结果：" + (allowed3 ? "允许访问" : "限流"));
+    }
+    
+    private void demonstrateStrategyComposition() {
+        System.out.println("\n7. 策略组合演示（订单处理流程）：");
+        
+        OrderProcessingContext context = new OrderProcessingContext();
+        context.setOrderId("ORDER_2024001");
+        context.setUserId("user_001");
+        context.setAmount(1500.0);
+        context.setPaymentType("ALIPAY");
+        
+        OrderProcessingPipeline pipeline = new OrderProcessingPipeline();
+        
+        // 组合多个策略：风控检查 -> 优惠计算 -> 支付处理 -> 库存扣减 -> 消息通知
+        OrderProcessingResult result = pipeline.process(context);
+        System.out.println("订单处理结果：" + result);
+        
+        System.out.println("\n策略组合的优势：");
+        System.out.println("- 每个策略专注于单一职责");
+        System.out.println("- 策略之间可以灵活组合");
+        System.out.println("- 支持策略链的动态调整");
+        System.out.println("- 便于扩展新的处理步骤");
     }
     
     private void demonstratePaymentStrategy() {
@@ -168,7 +246,6 @@ interface PaymentStrategy {
 /**
  * 支付宝支付策略
  */
-@Service
 @PaymentType("ALIPAY")
 class AlipayPaymentStrategy implements PaymentStrategy {
     
@@ -201,7 +278,6 @@ class AlipayPaymentStrategy implements PaymentStrategy {
 /**
  * 微信支付策略
  */
-@Service
 @PaymentType("WECHAT")
 class WechatPaymentStrategy implements PaymentStrategy {
     
@@ -234,7 +310,6 @@ class WechatPaymentStrategy implements PaymentStrategy {
 /**
  * 银行卡支付策略
  */
-@Service
 @PaymentType("BANK_CARD")
 class BankCardPaymentStrategy implements PaymentStrategy {
     
@@ -267,22 +342,21 @@ class BankCardPaymentStrategy implements PaymentStrategy {
 /**
  * 支付策略工厂
  */
-@Component
 class PaymentStrategyFactory {
     
-    @Autowired
-    private ApplicationContext applicationContext;
-    
     private final Map<String, PaymentStrategy> strategyCache = new ConcurrentHashMap<>();
+    private final java.util.List<PaymentStrategy> strategies = java.util.Arrays.asList(
+        new AlipayPaymentStrategy(),
+        new WechatPaymentStrategy(),
+        new BankCardPaymentStrategy()
+    );
     
     public PaymentStrategy getStrategy(String paymentType) {
         return strategyCache.computeIfAbsent(paymentType, this::findStrategy);
     }
     
     private PaymentStrategy findStrategy(String paymentType) {
-        Map<String, PaymentStrategy> strategies = applicationContext.getBeansOfType(PaymentStrategy.class);
-        
-        for (PaymentStrategy strategy : strategies.values()) {
+        for (PaymentStrategy strategy : strategies) {
             if (strategy.supports(paymentType)) {
                 return strategy;
             }
@@ -305,7 +379,6 @@ interface MessageStrategy {
 /**
  * 短信推送策略
  */
-@Service("SMS")
 class SmsMessageStrategy implements MessageStrategy {
     
     @Override
@@ -323,7 +396,6 @@ class SmsMessageStrategy implements MessageStrategy {
 /**
  * 邮件推送策略
  */
-@Service("EMAIL")
 class EmailMessageStrategy implements MessageStrategy {
     
     @Override
@@ -341,7 +413,6 @@ class EmailMessageStrategy implements MessageStrategy {
 /**
  * APP推送策略
  */
-@Service("APP")
 class AppMessageStrategy implements MessageStrategy {
     
     @Override
@@ -359,15 +430,23 @@ class AppMessageStrategy implements MessageStrategy {
 /**
  * 消息策略管理器
  */
-@Component
 class MessageStrategyManager {
     
-    @Autowired
-    private ApplicationContext applicationContext;
+    private final Map<String, MessageStrategy> strategies = new java.util.HashMap<>();
+    
+    public MessageStrategyManager() {
+        strategies.put("SMS", new SmsMessageStrategy());
+        strategies.put("EMAIL", new EmailMessageStrategy());
+        strategies.put("APP", new AppMessageStrategy());
+    }
     
     public void sendMessage(String type, MessageContext context) {
-        MessageStrategy strategy = applicationContext.getBean(type, MessageStrategy.class);
-        strategy.sendMessage(context);
+        MessageStrategy strategy = strategies.get(type);
+        if (strategy != null) {
+            strategy.sendMessage(context);
+        } else {
+            throw new IllegalArgumentException("不支持的消息类型：" + type);
+        }
     }
 }
 
@@ -384,7 +463,6 @@ interface ExportStrategy {
 /**
  * Excel导出策略
  */
-@Service
 class ExcelExportStrategy implements ExportStrategy {
     
     @Override
@@ -402,7 +480,6 @@ class ExcelExportStrategy implements ExportStrategy {
 /**
  * PDF导出策略
  */
-@Service
 class PdfExportStrategy implements ExportStrategy {
     
     @Override
@@ -420,7 +497,6 @@ class PdfExportStrategy implements ExportStrategy {
 /**
  * CSV导出策略
  */
-@Service
 class CsvExportStrategy implements ExportStrategy {
     
     @Override
@@ -438,18 +514,21 @@ class CsvExportStrategy implements ExportStrategy {
 /**
  * 导出策略注册中心
  */
-@Component
 class ExportStrategyRegistry {
-    
-    @Autowired
-    private ApplicationContext applicationContext;
     
     private final Map<String, ExportStrategy> strategyMap = new ConcurrentHashMap<>();
     
-    @Autowired
+    public ExportStrategyRegistry() {
+        initStrategies();
+    }
+    
     public void initStrategies() {
-        Map<String, ExportStrategy> strategies = applicationContext.getBeansOfType(ExportStrategy.class);
-        for (ExportStrategy strategy : strategies.values()) {
+        java.util.List<ExportStrategy> strategies = java.util.Arrays.asList(
+            new ExcelExportStrategy(),
+            new PdfExportStrategy(),
+            new CsvExportStrategy()
+        );
+        for (ExportStrategy strategy : strategies) {
             strategyMap.put(strategy.getFormat(), strategy);
         }
     }
@@ -529,100 +608,6 @@ class ExportData {
 
 // ============== 新增策略实现 ==============
 
-private void demonstrateAuthenticationStrategy() {
-    System.out.println("\n4. 认证策略演示：");
-    
-    // 用户名密码认证
-    AuthenticationRequest request1 = new AuthenticationRequest();
-    request1.setIdentifier("admin@example.com");
-    request1.setCredential("password123");
-    request1.setType("USERNAME_PASSWORD");
-    
-    AuthenticationResult result1 = authManager.authenticate(request1);
-    System.out.println("用户名密码认证结果：" + result1);
-    
-    // 手机验证码认证
-    AuthenticationRequest request2 = new AuthenticationRequest();
-    request2.setIdentifier("13800138000");
-    request2.setCredential("123456");
-    request2.setType("SMS_CODE");
-    
-    AuthenticationResult result2 = authManager.authenticate(request2);
-    System.out.println("短信验证码认证结果：" + result2);
-    
-    // 第三方OAuth认证
-    AuthenticationRequest request3 = new AuthenticationRequest();
-    request3.setIdentifier("oauth_token_12345");
-    request3.setType("OAUTH");
-    
-    AuthenticationResult result3 = authManager.authenticate(request3);
-    System.out.println("OAuth认证结果：" + result3);
-}
-
-private void demonstrateCacheStrategy() {
-    System.out.println("\n5. 缓存策略演示：");
-    
-    CacheRequest request = new CacheRequest();
-    request.setKey("user:1001");
-    request.setValue("用户信息数据");
-    request.setTtl(300);
-    
-    // 本地缓存
-    cacheManager.put("LOCAL", request);
-    String value1 = cacheManager.get("LOCAL", "user:1001");
-    System.out.println("本地缓存获取：" + value1);
-    
-    // Redis缓存
-    cacheManager.put("REDIS", request);
-    String value2 = cacheManager.get("REDIS", "user:1001");
-    System.out.println("Redis缓存获取：" + value2);
-    
-    // 多级缓存
-    cacheManager.put("MULTI_LEVEL", request);
-    String value3 = cacheManager.get("MULTI_LEVEL", "user:1001");
-    System.out.println("多级缓存获取：" + value3);
-}
-
-private void demonstrateRateLimitStrategy() {
-    System.out.println("\n6. 限流策略演示：");
-    
-    String clientId = "client_001";
-    
-    // 令牌桶限流
-    boolean allowed1 = rateLimitManager.isAllowed("TOKEN_BUCKET", clientId);
-    System.out.println("令牌桶限流结果：" + (allowed1 ? "允许访问" : "限流"));
-    
-    // 滑动窗口限流
-    boolean allowed2 = rateLimitManager.isAllowed("SLIDING_WINDOW", clientId);
-    System.out.println("滑动窗口限流结果：" + (allowed2 ? "允许访问" : "限流"));
-    
-    // 计数器限流
-    boolean allowed3 = rateLimitManager.isAllowed("COUNTER", clientId);
-    System.out.println("计数器限流结果：" + (allowed3 ? "允许访问" : "限流"));
-}
-
-private void demonstrateStrategyComposition() {
-    System.out.println("\n7. 策略组合演示（订单处理流程）：");
-    
-    OrderProcessingContext context = new OrderProcessingContext();
-    context.setOrderId("ORDER_2024001");
-    context.setUserId("user_001");
-    context.setAmount(1500.0);
-    context.setPaymentType("ALIPAY");
-    
-    OrderProcessingPipeline pipeline = new OrderProcessingPipeline();
-    
-    // 组合多个策略：风控检查 -> 优惠计算 -> 支付处理 -> 库存扣减 -> 消息通知
-    OrderProcessingResult result = pipeline.process(context);
-    System.out.println("订单处理结果：" + result);
-    
-    System.out.println("\n策略组合的优势：");
-    System.out.println("- 每个策略专注于单一职责");
-    System.out.println("- 策略之间可以灵活组合");
-    System.out.println("- 支持策略链的动态调整");
-    System.out.println("- 便于扩展新的处理步骤");
-}
-
 // ============== 认证策略相关 ==============
 
 /**
@@ -637,8 +622,6 @@ interface AuthenticationStrategy {
 /**
  * 用户名密码认证策略
  */
-@Service
-@Component
 class UsernamePasswordAuthStrategy implements AuthenticationStrategy {
     
     @Override
@@ -672,8 +655,6 @@ class UsernamePasswordAuthStrategy implements AuthenticationStrategy {
 /**
  * 短信验证码认证策略
  */
-@Service
-@Component
 class SmsCodeAuthStrategy implements AuthenticationStrategy {
     
     @Override
@@ -707,8 +688,6 @@ class SmsCodeAuthStrategy implements AuthenticationStrategy {
 /**
  * OAuth认证策略
  */
-@Service
-@Component
 class OAuthAuthStrategy implements AuthenticationStrategy {
     
     @Override
@@ -738,13 +717,14 @@ class OAuthAuthStrategy implements AuthenticationStrategy {
 /**
  * 认证策略管理器
  */
-@Component
 class AuthenticationStrategyManager {
     
-    @Autowired
-    private ApplicationContext applicationContext;
-    
     private final Map<String, AuthenticationStrategy> strategyCache = new ConcurrentHashMap<>();
+    private final java.util.List<AuthenticationStrategy> strategies = java.util.Arrays.asList(
+        new UsernamePasswordAuthStrategy(),
+        new SmsCodeAuthStrategy(),
+        new OAuthAuthStrategy()
+    );
     
     public AuthenticationResult authenticate(AuthenticationRequest request) {
         AuthenticationStrategy strategy = getStrategy(request.getType());
@@ -760,10 +740,7 @@ class AuthenticationStrategyManager {
     }
     
     private AuthenticationStrategy findStrategy(String type) {
-        Map<String, AuthenticationStrategy> strategies = 
-            applicationContext.getBeansOfType(AuthenticationStrategy.class);
-        
-        for (AuthenticationStrategy strategy : strategies.values()) {
+        for (AuthenticationStrategy strategy : strategies) {
             if (strategy.supports(type)) {
                 return strategy;
             }
@@ -788,8 +765,6 @@ interface CacheStrategy {
 /**
  * 本地缓存策略
  */
-@Service
-@Component
 class LocalCacheStrategy implements CacheStrategy {
     
     private final Map<String, String> cache = new ConcurrentHashMap<>();
@@ -822,8 +797,6 @@ class LocalCacheStrategy implements CacheStrategy {
 /**
  * Redis缓存策略
  */
-@Service
-@Component
 class RedisCacheStrategy implements CacheStrategy {
     
     private final Map<String, String> redisSimulator = new ConcurrentHashMap<>();
@@ -856,15 +829,15 @@ class RedisCacheStrategy implements CacheStrategy {
 /**
  * 多级缓存策略
  */
-@Service
-@Component
 class MultiLevelCacheStrategy implements CacheStrategy {
     
-    @Autowired
     private LocalCacheStrategy localCache;
-    
-    @Autowired
     private RedisCacheStrategy redisCache;
+    
+    public MultiLevelCacheStrategy(LocalCacheStrategy localCache, RedisCacheStrategy redisCache) {
+        this.localCache = localCache;
+        this.redisCache = redisCache;
+    }
     
     @Override
     public void put(CacheRequest request) {
@@ -914,18 +887,24 @@ class MultiLevelCacheStrategy implements CacheStrategy {
 /**
  * 缓存策略管理器
  */
-@Component
 class CacheStrategyManager {
-    
-    @Autowired
-    private ApplicationContext applicationContext;
     
     private final Map<String, CacheStrategy> strategyMap = new ConcurrentHashMap<>();
     
-    @Autowired
+    public CacheStrategyManager() {
+        initStrategies();
+    }
+    
     public void initStrategies() {
-        Map<String, CacheStrategy> strategies = applicationContext.getBeansOfType(CacheStrategy.class);
-        for (CacheStrategy strategy : strategies.values()) {
+        LocalCacheStrategy localCache = new LocalCacheStrategy();
+        RedisCacheStrategy redisCache = new RedisCacheStrategy();
+        
+        java.util.List<CacheStrategy> strategies = java.util.Arrays.asList(
+            localCache,
+            redisCache,
+            new MultiLevelCacheStrategy(localCache, redisCache)
+        );
+        for (CacheStrategy strategy : strategies) {
             strategyMap.put(strategy.getCacheType(), strategy);
         }
     }
@@ -963,8 +942,6 @@ interface RateLimitStrategy {
 /**
  * 令牌桶限流策略
  */
-@Service
-@Component
 class TokenBucketRateLimitStrategy implements RateLimitStrategy {
     
     private final Map<String, TokenBucket> buckets = new ConcurrentHashMap<>();
@@ -1022,8 +999,6 @@ class TokenBucketRateLimitStrategy implements RateLimitStrategy {
 /**
  * 滑动窗口限流策略
  */
-@Service
-@Component
 class SlidingWindowRateLimitStrategy implements RateLimitStrategy {
     
     private final Map<String, SlidingWindow> windows = new ConcurrentHashMap<>();
@@ -1078,8 +1053,6 @@ class SlidingWindowRateLimitStrategy implements RateLimitStrategy {
 /**
  * 计数器限流策略
  */
-@Service
-@Component
 class CounterRateLimitStrategy implements RateLimitStrategy {
     
     private final Map<String, Counter> counters = new ConcurrentHashMap<>();
@@ -1137,18 +1110,21 @@ class CounterRateLimitStrategy implements RateLimitStrategy {
 /**
  * 限流策略管理器
  */
-@Component
 class RateLimitStrategyManager {
-    
-    @Autowired
-    private ApplicationContext applicationContext;
     
     private final Map<String, RateLimitStrategy> strategies = new ConcurrentHashMap<>();
     
-    @Autowired
+    public RateLimitStrategyManager() {
+        initStrategies();
+    }
+    
     public void initStrategies() {
-        Map<String, RateLimitStrategy> strategyBeans = applicationContext.getBeansOfType(RateLimitStrategy.class);
-        for (RateLimitStrategy strategy : strategyBeans.values()) {
+        java.util.List<RateLimitStrategy> strategyList = java.util.Arrays.asList(
+            new TokenBucketRateLimitStrategy(),
+            new SlidingWindowRateLimitStrategy(),
+            new CounterRateLimitStrategy()
+        );
+        for (RateLimitStrategy strategy : strategyList) {
             strategies.put(strategy.getStrategyName(), strategy);
         }
     }
@@ -1177,7 +1153,6 @@ interface OrderProcessingStrategy {
 /**
  * 订单处理流水线
  */
-@Component
 class OrderProcessingPipeline {
     
     private final java.util.List<OrderProcessingStrategy> strategies = java.util.Arrays.asList(
