@@ -1,10 +1,12 @@
 package com.architecture.designpattern.strategy;
 
+import lombok.val;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Component
 public class StrategyInterviewQuestions {
@@ -30,10 +32,10 @@ public class StrategyInterviewQuestions {
         designPatternCombinations();
         practicalImplementation();
         commonMistakes();
-        springSpecificQuestions();
-        enterpriseScenarios();
-        performanceOptimization();
-        advancedTopics();
+        //springSpecificQuestions();
+        //enterpriseScenarios();
+        //performanceOptimization();
+        //advancedTopics();
     }
 
     /**
@@ -520,12 +522,12 @@ class OrderDiscountExample {
     public int getQuantity() { return quantity; }
 }
 
-interface DiscountStrategy {
+interface DiscountStrategySec {
     double applyDiscount(OrderDiscountExample order);
     String getStrategyName();
 }
 
-class FullReductionDiscountStrategy implements DiscountStrategy {
+class FullReductionDiscountStrategySec implements DiscountStrategySec {
     @Override
     public double applyDiscount(OrderDiscountExample order) {
         return order.getOriginalPrice() >= 500 ? order.getOriginalPrice() - 50 : order.getOriginalPrice();
@@ -537,7 +539,7 @@ class FullReductionDiscountStrategy implements DiscountStrategy {
     }
 }
 
-class MemberDiscountStrategy implements DiscountStrategy {
+class MemberDiscountStrategySec implements DiscountStrategySec {
     @Override
     public double applyDiscount(OrderDiscountExample order) {
         double discount = "VIP".equals(order.getMemberLevel()) ? 0.8 : 0.9;
@@ -550,7 +552,7 @@ class MemberDiscountStrategy implements DiscountStrategy {
     }
 }
 
-class QuantityDiscountStrategy implements DiscountStrategy {
+class QuantityDiscountStrategySec implements DiscountStrategySec {
     @Override
     public double applyDiscount(OrderDiscountExample order) {
         double discount = order.getQuantity() >= 3 ? 0.85 : 1.0;
@@ -564,18 +566,18 @@ class QuantityDiscountStrategy implements DiscountStrategy {
 }
 
 class DiscountStrategyManager {
-    private final Map<String, DiscountStrategy> strategies;
+    private final Map<String, DiscountStrategySec> strategies;
     
     public DiscountStrategyManager() {
         strategies = Map.of(
-            "FULL_REDUCTION", new FullReductionDiscountStrategy(),
-            "MEMBER_DISCOUNT", new MemberDiscountStrategy(),
-            "QUANTITY_DISCOUNT", new QuantityDiscountStrategy()
+            "FULL_REDUCTION", new FullReductionDiscountStrategySec(),
+            "MEMBER_DISCOUNT", new MemberDiscountStrategySec(),
+            "QUANTITY_DISCOUNT", new QuantityDiscountStrategySec()
         );
     }
     
     public double applyDiscount(String strategyName, OrderDiscountExample order) {
-        DiscountStrategy strategy = strategies.get(strategyName);
+        DiscountStrategySec strategy = strategies.get(strategyName);
         return strategy != null ? strategy.applyDiscount(order) : order.getOriginalPrice();
     }
     
@@ -1005,14 +1007,14 @@ class ReactiveStrategyDemo {
     }
     
     private OrderProcessResult applyDiscountStrategy(OrderEvent event) {
-        double discountedAmount = switch (event.getCustomerType()) {
+        /*val discountedAmount = switch (event.getCustomerType()) {
             case "VIP" -> event.getAmount() * 0.8;
             case "STUDENT" -> event.getAmount() * 0.7;
             default -> event.getAmount() * 0.95;
         };
         
         return new OrderProcessResult(event.getOrderId(), discountedAmount, 
-                                    event.getCustomerType() + "_DISCOUNT");
+                                    event.getCustomerType() + "_DISCOUNT");*/
     }
 }
 
