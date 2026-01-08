@@ -30,6 +30,10 @@ public class StrategyInterviewQuestions {
         designPatternCombinations();
         practicalImplementation();
         commonMistakes();
+        springSpecificQuestions();
+        enterpriseScenarios();
+        performanceOptimization();
+        advancedTopics();
     }
 
     /**
@@ -580,5 +584,688 @@ class DiscountStrategyManager {
                 .mapToDouble(strategy -> strategy.applyDiscount(order))
                 .min()
                 .orElse(order.getOriginalPrice());
+    }
+    
+    /**
+     * Q13: 在Spring框架中使用策略模式的最佳实践有哪些？
+     */
+    public void springSpecificQuestions() {
+        System.out.println("\n=== Q13: Spring框架中策略模式的最佳实践 ===");
+        
+        System.out.println("1. 使用@Component注解自动注册策略：");
+        System.out.println("   @Service");
+        System.out.println("   @PaymentType(\"ALIPAY\")");
+        System.out.println("   public class AlipayStrategy implements PaymentStrategy {}");
+        
+        System.out.println("\n2. 利用ApplicationContext自动装配策略：");
+        System.out.println("   @Autowired");
+        System.out.println("   private ApplicationContext applicationContext;");
+        System.out.println("   Map<String, PaymentStrategy> strategies = ");
+        System.out.println("       applicationContext.getBeansOfType(PaymentStrategy.class);");
+        
+        System.out.println("\n3. 使用@PostConstruct初始化策略映射：");
+        System.out.println("   @PostConstruct");
+        System.out.println("   public void initStrategies() {");
+        System.out.println("       // 扫描并建立策略映射");
+        System.out.println("   }");
+        
+        System.out.println("\n4. 结合@Conditional实现条件策略：");
+        System.out.println("   @Component");
+        System.out.println("   @ConditionalOnProperty(name=\"payment.strategy\", havingValue=\"alipay\")");
+        System.out.println("   public class AlipayStrategy implements PaymentStrategy {}");
+        
+        System.out.println("\n5. 使用@Profile支持环境相关策略：");
+        System.out.println("   @Component");
+        System.out.println("   @Profile(\"production\")");
+        System.out.println("   public class ProductionPaymentStrategy implements PaymentStrategy {}");
+        
+        System.out.println("\n面试官常问的深度问题：");
+        System.out.println("Q: 如何处理策略的循环依赖？");
+        System.out.println("A: 使用@Lazy注解延迟加载，或重新设计策略依赖关系");
+        
+        System.out.println("\nQ: 策略模式与Spring AOP如何结合？");
+        System.out.println("A: 可以用AOP实现策略执行的切面，如日志、监控、异常处理等");
+        
+        System.out.println("\nQ: 如何实现策略的热插拔？");
+        System.out.println("A: 结合Spring Boot Actuator和配置中心，动态刷新Bean配置");
+    }
+    
+    /**
+     * Q14: 在大型企业系统中，策略模式如何解决复杂业务场景？
+     */
+    public void enterpriseScenarios() {
+        System.out.println("\n=== Q14: 企业级复杂业务场景应用 ===");
+        
+        System.out.println("场景1: 电商平台多维度定价策略");
+        System.out.println("挑战：");
+        System.out.println("- 基础价格、会员价格、促销价格、动态定价");
+        System.out.println("- 地区差异化定价、时间段定价");
+        System.out.println("- VIP等级定价、批量采购定价");
+        
+        System.out.println("\n解决方案：");
+        System.out.println("- 使用策略链模式，按优先级执行定价策略");
+        System.out.println("- 配置驱动的策略选择器");
+        System.out.println("- 策略组合器支持多个定价因子");
+        
+        PricingStrategyDemo pricingDemo = new PricingStrategyDemo();
+        pricingDemo.demonstratePricingStrategy();
+        
+        System.out.println("\n场景2: 金融风控多层级决策");
+        System.out.println("挑战：");
+        System.out.println("- 规则引擎、机器学习模型、专家系统");
+        System.out.println("- 实时决策、批量处理、人工审核");
+        System.out.println("- A/B测试、模型切换、降级策略");
+        
+        RiskControlDemo riskDemo = new RiskControlDemo();
+        riskDemo.demonstrateRiskControl();
+        
+        System.out.println("\n场景3: 内容推荐算法引擎");
+        System.out.println("特点：");
+        System.out.println("- 多种推荐算法：协同过滤、内容相似、深度学习");
+        System.out.println("- 实时个性化、召回排序、多目标优化");
+        System.out.println("- 冷启动处理、降级兜底、效果评估");
+        
+        RecommendationEngineDemo recDemo = new RecommendationEngineDemo();
+        recDemo.demonstrateRecommendation();
+        
+        System.out.println("\n企业级实施要点：");
+        System.out.println("1. 策略版本管理：支持策略的版本控制和回滚");
+        System.out.println("2. 配置中心集成：策略参数的动态配置");
+        System.out.println("3. 监控告警：策略执行状况的实时监控");
+        System.out.println("4. 灰度发布：新策略的渐进式上线");
+        System.out.println("5. 性能优化：策略执行的缓存和并行化");
+    }
+    
+    /**
+     * Q15: 策略模式的性能优化有哪些关键技术？
+     */
+    public void performanceOptimization() {
+        System.out.println("\n=== Q15: 策略模式性能优化技术 ===");
+        
+        System.out.println("1. 策略缓存优化：");
+        System.out.println("问题：频繁创建策略对象导致GC压力");
+        System.out.println("解决：");
+        System.out.println("- 策略对象池化，重用策略实例");
+        System.out.println("- 使用ConcurrentHashMap缓存策略");
+        System.out.println("- Spring单例模式自动管理策略生命周期");
+        
+        StrategyCache cacheDemo = new StrategyCache();
+        cacheDemo.demonstrateCaching();
+        
+        System.out.println("\n2. 预编译策略选择：");
+        System.out.println("问题：运行时策略选择开销大");
+        System.out.println("解决：");
+        System.out.println("- 编译时生成策略路由表");
+        System.out.println("- 使用注解处理器预生成策略映射");
+        System.out.println("- 避免反射，使用直接方法调用");
+        
+        System.out.println("\n3. 并行策略执行：");
+        System.out.println("场景：需要执行多个独立策略");
+        System.out.println("解决：");
+        System.out.println("- 使用CompletableFuture并行执行");
+        System.out.println("- ForkJoinPool分治策略处理");
+        System.out.println("- 异步策略执行，避免阻塞主线程");
+        
+        ParallelStrategyDemo parallelDemo = new ParallelStrategyDemo();
+        parallelDemo.demonstrateParallelExecution();
+        
+        System.out.println("\n4. 内存优化技术：");
+        System.out.println("- 策略无状态设计，避免内存泄漏");
+        System.out.println("- 使用弱引用管理策略缓存");
+        System.out.println("- 延迟加载非核心策略");
+        System.out.println("- 策略数据的压缩存储");
+        
+        System.out.println("\n性能测试要点：");
+        System.out.println("- 策略执行时间分布统计");
+        System.out.println("- 内存使用量监控");
+        System.out.println("- 并发场景下的性能表现");
+        System.out.println("- 不同JVM参数的影响分析");
+    }
+    
+    /**
+     * Q16: 策略模式的高级主题和前沿技术
+     */
+    public void advancedTopics() {
+        System.out.println("\n=== Q16: 策略模式的高级主题 ===");
+        
+        System.out.println("1. 函数式策略模式：");
+        System.out.println("传统策略模式 vs 函数式策略模式");
+        System.out.println("优势：");
+        System.out.println("- 代码更简洁，减少类的数量");
+        System.out.println("- 支持Lambda表达式和方法引用");
+        System.out.println("- 更好的组合性和可读性");
+        
+        FunctionalStrategyDemo funcDemo = new FunctionalStrategyDemo();
+        funcDemo.demonstrateFunctionalStrategy();
+        
+        System.out.println("\n2. 响应式策略模式：");
+        System.out.println("结合Reactive Streams和RxJava");
+        System.out.println("特点：");
+        System.out.println("- 异步非阻塞策略执行");
+        System.out.println("- 背压处理和流控制");
+        System.out.println("- 事件驱动的策略触发");
+        
+        ReactiveStrategyDemo reactiveDemo = new ReactiveStrategyDemo();
+        reactiveDemo.demonstrateReactiveStrategy();
+        
+        System.out.println("\n3. 微服务中的策略模式：");
+        System.out.println("分布式策略执行");
+        System.out.println("- 策略服务化，独立部署和扩缩容");
+        System.out.println("- 服务发现和负载均衡");
+        System.out.println("- 断路器和降级策略");
+        
+        System.out.println("\n4. AI/ML集成的智能策略：");
+        System.out.println("- 机器学习模型作为策略实现");
+        System.out.println("- 在线学习和模型更新");
+        System.out.println("- A/B测试和多臂老虎机算法");
+        System.out.println("- 策略效果的实时反馈和优化");
+        
+        System.out.println("\n5. 云原生策略模式：");
+        System.out.println("- 容器化策略部署");
+        System.out.println("- Serverless策略函数");
+        System.out.println("- 策略编排和工作流");
+        System.out.println("- 多云和混合云策略路由");
+        
+        System.out.println("\n面试加分点：");
+        System.out.println("- 了解业界最新的策略模式应用");
+        System.out.println("- 能结合具体技术栈讨论实现方案");
+        System.out.println("- 有实际的性能优化和架构设计经验");
+        System.out.println("- 能从业务价值角度分析技术选择");
+        
+        System.out.println("\n常见陷阱：");
+        System.out.println("- 过度设计，为简单逻辑使用策略模式");
+        System.out.println("- 忽略策略的生命周期管理");
+        System.out.println("- 策略接口设计不合理，频繁变更");
+        System.out.println("- 没有考虑策略执行的异常处理");
+        System.out.println("- 忽略了策略模式对系统复杂度的影响");
+    }
+}
+
+// ============== 面试题演示类实现 ==============
+
+/**
+ * 定价策略演示
+ */
+class PricingStrategyDemo {
+    public void demonstratePricingStrategy() {
+        System.out.println("\n定价策略链演示：");
+        
+        Product product = new Product("iPhone 15", 8999.0, "PREMIUM");
+        Customer customer = new Customer("VIP001", "VIP", "BEIJING");
+        
+        PricingContext context = new PricingContext(product, customer, 2);
+        PricingEngine engine = new PricingEngine();
+        
+        double finalPrice = engine.calculatePrice(context);
+        System.out.println("最终价格：" + finalPrice + " 元");
+        
+        // 展示不同策略的影响
+        System.out.println("定价过程分解：");
+        System.out.println("- 基础价格：" + product.getBasePrice());
+        System.out.println("- VIP折扣：-" + (product.getBasePrice() * 0.1));
+        System.out.println("- 地区调整：+" + (product.getBasePrice() * 0.05));
+        System.out.println("- 批量优惠：-" + (product.getBasePrice() * 0.03));
+    }
+}
+
+/**
+ * 风控决策演示
+ */
+class RiskControlDemo {
+    public void demonstrateRiskControl() {
+        System.out.println("\n多层级风控决策演示：");
+        
+        TransactionContext transaction = new TransactionContext();
+        transaction.setUserId("USER_123");
+        transaction.setAmount(50000.0);
+        transaction.setDeviceId("DEVICE_456");
+        transaction.setIpAddress("192.168.1.100");
+        
+        RiskDecisionEngine engine = new RiskDecisionEngine();
+        RiskDecision decision = engine.evaluateRisk(transaction);
+        
+        System.out.println("风控决策结果：" + decision);
+        
+        if (decision.getAction().equals("MANUAL_REVIEW")) {
+            System.out.println("触发人工审核原因：" + decision.getReason());
+        }
+    }
+}
+
+/**
+ * 推荐引擎演示
+ */
+class RecommendationEngineDemo {
+    public void demonstrateRecommendation() {
+        System.out.println("\n智能推荐引擎演示：");
+        
+        RecommendationContext context = new RecommendationContext();
+        context.setUserId("USER_789");
+        context.setScenario("HOME_PAGE");
+        context.setLimit(10);
+        
+        SmartRecommendationEngine engine = new SmartRecommendationEngine();
+        List<RecommendationItem> recommendations = engine.recommend(context);
+        
+        System.out.println("推荐结果：");
+        for (RecommendationItem item : recommendations) {
+            System.out.println("- " + item.getTitle() + " (分数:" + item.getScore() + 
+                             ", 策略:" + item.getStrategy() + ")");
+        }
+    }
+}
+
+/**
+ * 策略缓存演示
+ */
+class StrategyCache {
+    private final Map<String, Object> cache = new ConcurrentHashMap<>();
+    
+    public void demonstrateCaching() {
+        System.out.println("\n策略缓存优化演示：");
+        
+        long start = System.nanoTime();
+        
+        // 模拟无缓存的策略获取
+        for (int i = 0; i < 1000; i++) {
+            createNewStrategy("PAYMENT");
+        }
+        
+        long withoutCache = System.nanoTime() - start;
+        System.out.println("无缓存耗时：" + withoutCache / 1000000 + "ms");
+        
+        start = System.nanoTime();
+        
+        // 模拟有缓存的策略获取
+        for (int i = 0; i < 1000; i++) {
+            getCachedStrategy("PAYMENT");
+        }
+        
+        long withCache = System.nanoTime() - start;
+        System.out.println("有缓存耗时：" + withCache / 1000000 + "ms");
+        System.out.println("性能提升：" + (withoutCache / withCache) + "倍");
+    }
+    
+    private Object createNewStrategy(String type) {
+        // 模拟策略对象创建开销
+        return new Object();
+    }
+    
+    private Object getCachedStrategy(String type) {
+        return cache.computeIfAbsent(type, k -> new Object());
+    }
+}
+
+/**
+ * 并行策略执行演示
+ */
+class ParallelStrategyDemo {
+    public void demonstrateParallelExecution() {
+        System.out.println("\n并行策略执行演示：");
+        
+        List<String> strategyTypes = List.of("RISK", "PRICING", "PROMOTION", "INVENTORY");
+        
+        long start = System.currentTimeMillis();
+        
+        // 串行执行
+        for (String type : strategyTypes) {
+            executeStrategy(type);
+        }
+        
+        long serialTime = System.currentTimeMillis() - start;
+        System.out.println("串行执行耗时：" + serialTime + "ms");
+        
+        start = System.currentTimeMillis();
+        
+        // 并行执行
+        CompletableFuture<?>[] futures = strategyTypes.stream()
+                .map(type -> CompletableFuture.runAsync(() -> executeStrategy(type)))
+                .toArray(CompletableFuture[]::new);
+        
+        CompletableFuture.allOf(futures).join();
+        
+        long parallelTime = System.currentTimeMillis() - start;
+        System.out.println("并行执行耗时：" + parallelTime + "ms");
+        System.out.println("性能提升：" + (double)serialTime / parallelTime + "倍");
+    }
+    
+    private void executeStrategy(String type) {
+        try {
+            // 模拟策略执行时间
+            Thread.sleep(100);
+            System.out.println("执行策略：" + type + " [线程:" + Thread.currentThread().getName() + "]");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+}
+
+/**
+ * 函数式策略演示
+ */
+class FunctionalStrategyDemo {
+    public void demonstrateFunctionalStrategy() {
+        System.out.println("\n函数式策略模式演示：");
+        
+        // 传统方式
+        DiscountCalculator traditionalCalculator = new DiscountCalculator();
+        traditionalCalculator.setStrategy(new VipDiscountStrategy());
+        double result1 = traditionalCalculator.calculate(1000.0);
+        System.out.println("传统方式结果：" + result1);
+        
+        // 函数式方式
+        FunctionalDiscountCalculator funcCalculator = new FunctionalDiscountCalculator();
+        
+        // 使用Lambda表达式
+        funcCalculator.setDiscountFunction(amount -> amount * 0.8); // 8折
+        double result2 = funcCalculator.calculate(1000.0);
+        System.out.println("Lambda表达式结果：" + result2);
+        
+        // 使用方法引用
+        funcCalculator.setDiscountFunction(this::calculateStudentDiscount);
+        double result3 = funcCalculator.calculate(1000.0);
+        System.out.println("方法引用结果：" + result3);
+        
+        // 策略组合
+        Function<Double, Double> combinedStrategy = 
+            ((Function<Double, Double>) amount -> amount * 0.9) // 9折
+            .andThen(amount -> Math.max(amount - 50, amount * 0.8)); // 再减50或8折取较小值
+        
+        funcCalculator.setDiscountFunction(combinedStrategy);
+        double result4 = funcCalculator.calculate(1000.0);
+        System.out.println("组合策略结果：" + result4);
+    }
+    
+    private double calculateStudentDiscount(double amount) {
+        return amount * 0.7; // 学生7折
+    }
+}
+
+/**
+ * 响应式策略演示
+ */
+class ReactiveStrategyDemo {
+    public void demonstrateReactiveStrategy() {
+        System.out.println("\n响应式策略模式演示：");
+        
+        // 模拟响应式数据流
+        System.out.println("处理数据流中的策略：");
+        
+        List<OrderEvent> events = List.of(
+            new OrderEvent("ORDER_1", 100.0, "VIP"),
+            new OrderEvent("ORDER_2", 500.0, "NORMAL"),
+            new OrderEvent("ORDER_3", 1500.0, "VIP"),
+            new OrderEvent("ORDER_4", 200.0, "STUDENT")
+        );
+        
+        // 模拟流式处理（简化版，实际会使用RxJava或Reactor）
+        events.stream()
+              .map(this::applyDiscountStrategy)
+              .forEach(result -> System.out.println("处理结果：" + result));
+    }
+    
+    private OrderProcessResult applyDiscountStrategy(OrderEvent event) {
+        double discountedAmount = switch (event.getCustomerType()) {
+            case "VIP" -> event.getAmount() * 0.8;
+            case "STUDENT" -> event.getAmount() * 0.7;
+            default -> event.getAmount() * 0.95;
+        };
+        
+        return new OrderProcessResult(event.getOrderId(), discountedAmount, 
+                                    event.getCustomerType() + "_DISCOUNT");
+    }
+}
+
+// ============== 辅助数据类 ==============
+
+class Product {
+    private String name;
+    private double basePrice;
+    private String category;
+    
+    public Product(String name, double basePrice, String category) {
+        this.name = name;
+        this.basePrice = basePrice;
+        this.category = category;
+    }
+    
+    public String getName() { return name; }
+    public double getBasePrice() { return basePrice; }
+    public String getCategory() { return category; }
+}
+
+class Customer {
+    private String id;
+    private String level;
+    private String region;
+    
+    public Customer(String id, String level, String region) {
+        this.id = id;
+        this.level = level;
+        this.region = region;
+    }
+    
+    public String getId() { return id; }
+    public String getLevel() { return level; }
+    public String getRegion() { return region; }
+}
+
+class PricingContext {
+    private Product product;
+    private Customer customer;
+    private int quantity;
+    
+    public PricingContext(Product product, Customer customer, int quantity) {
+        this.product = product;
+        this.customer = customer;
+        this.quantity = quantity;
+    }
+    
+    public Product getProduct() { return product; }
+    public Customer getCustomer() { return customer; }
+    public int getQuantity() { return quantity; }
+}
+
+class PricingEngine {
+    public double calculatePrice(PricingContext context) {
+        double price = context.getProduct().getBasePrice();
+        
+        // VIP折扣
+        if ("VIP".equals(context.getCustomer().getLevel())) {
+            price *= 0.9;
+        }
+        
+        // 地区价格调整
+        if ("BEIJING".equals(context.getCustomer().getRegion())) {
+            price *= 1.05;
+        }
+        
+        // 批量折扣
+        if (context.getQuantity() >= 2) {
+            price *= 0.97;
+        }
+        
+        return price * context.getQuantity();
+    }
+}
+
+class TransactionContext {
+    private String userId;
+    private double amount;
+    private String deviceId;
+    private String ipAddress;
+    
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
+    public double getAmount() { return amount; }
+    public void setAmount(double amount) { this.amount = amount; }
+    public String getDeviceId() { return deviceId; }
+    public void setDeviceId(String deviceId) { this.deviceId = deviceId; }
+    public String getIpAddress() { return ipAddress; }
+    public void setIpAddress(String ipAddress) { this.ipAddress = ipAddress; }
+}
+
+class RiskDecision {
+    private String action;
+    private String reason;
+    private int riskScore;
+    
+    public RiskDecision(String action, String reason, int riskScore) {
+        this.action = action;
+        this.reason = reason;
+        this.riskScore = riskScore;
+    }
+    
+    public String getAction() { return action; }
+    public String getReason() { return reason; }
+    public int getRiskScore() { return riskScore; }
+    
+    @Override
+    public String toString() {
+        return "RiskDecision{action='" + action + "', reason='" + reason + 
+               "', riskScore=" + riskScore + "}";
+    }
+}
+
+class RiskDecisionEngine {
+    public RiskDecision evaluateRisk(TransactionContext context) {
+        int riskScore = 0;
+        StringBuilder reasons = new StringBuilder();
+        
+        // 金额风险
+        if (context.getAmount() > 10000) {
+            riskScore += 30;
+            reasons.append("大额交易;");
+        }
+        
+        // 设备风险（模拟）
+        if (context.getDeviceId().contains("456")) {
+            riskScore += 20;
+            reasons.append("可疑设备;");
+        }
+        
+        // IP风险（模拟）
+        if (!context.getIpAddress().startsWith("192.168")) {
+            riskScore += 25;
+            reasons.append("异常IP;");
+        }
+        
+        String action = riskScore > 50 ? "REJECT" : 
+                       riskScore > 30 ? "MANUAL_REVIEW" : "APPROVE";
+        
+        return new RiskDecision(action, reasons.toString(), riskScore);
+    }
+}
+
+class RecommendationContext {
+    private String userId;
+    private String scenario;
+    private int limit;
+    
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
+    public String getScenario() { return scenario; }
+    public void setScenario(String scenario) { this.scenario = scenario; }
+    public int getLimit() { return limit; }
+    public void setLimit(int limit) { this.limit = limit; }
+}
+
+class RecommendationItem {
+    private String title;
+    private double score;
+    private String strategy;
+    
+    public RecommendationItem(String title, double score, String strategy) {
+        this.title = title;
+        this.score = score;
+        this.strategy = strategy;
+    }
+    
+    public String getTitle() { return title; }
+    public double getScore() { return score; }
+    public String getStrategy() { return strategy; }
+}
+
+class SmartRecommendationEngine {
+    public List<RecommendationItem> recommend(RecommendationContext context) {
+        return List.of(
+            new RecommendationItem("iPhone 15", 0.95, "协同过滤"),
+            new RecommendationItem("MacBook Pro", 0.88, "内容相似"),
+            new RecommendationItem("AirPods", 0.82, "购买关联"),
+            new RecommendationItem("iPad", 0.75, "用户画像"),
+            new RecommendationItem("Apple Watch", 0.70, "热度推荐")
+        );
+    }
+}
+
+// 传统策略模式相关类
+interface TraditionalDiscountStrategy {
+    double calculateDiscount(double amount);
+}
+
+class VipDiscountStrategy implements TraditionalDiscountStrategy {
+    @Override
+    public double calculateDiscount(double amount) {
+        return amount * 0.8;
+    }
+}
+
+class DiscountCalculator {
+    private TraditionalDiscountStrategy strategy;
+    
+    public void setStrategy(TraditionalDiscountStrategy strategy) {
+        this.strategy = strategy;
+    }
+    
+    public double calculate(double amount) {
+        return strategy.calculateDiscount(amount);
+    }
+}
+
+// 函数式策略模式相关类
+class FunctionalDiscountCalculator {
+    private Function<Double, Double> discountFunction;
+    
+    public void setDiscountFunction(Function<Double, Double> discountFunction) {
+        this.discountFunction = discountFunction;
+    }
+    
+    public double calculate(double amount) {
+        return discountFunction.apply(amount);
+    }
+}
+
+// 响应式相关类
+class OrderEvent {
+    private String orderId;
+    private double amount;
+    private String customerType;
+    
+    public OrderEvent(String orderId, double amount, String customerType) {
+        this.orderId = orderId;
+        this.amount = amount;
+        this.customerType = customerType;
+    }
+    
+    public String getOrderId() { return orderId; }
+    public double getAmount() { return amount; }
+    public String getCustomerType() { return customerType; }
+}
+
+class OrderProcessResult {
+    private String orderId;
+    private double finalAmount;
+    private String appliedStrategy;
+    
+    public OrderProcessResult(String orderId, double finalAmount, String appliedStrategy) {
+        this.orderId = orderId;
+        this.finalAmount = finalAmount;
+        this.appliedStrategy = appliedStrategy;
+    }
+    
+    @Override
+    public String toString() {
+        return "OrderProcessResult{orderId='" + orderId + "', finalAmount=" + finalAmount + 
+               ", appliedStrategy='" + appliedStrategy + "'}";
     }
 }
