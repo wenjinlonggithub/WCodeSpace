@@ -1158,7 +1158,7 @@ class OrderProcessingPipeline {
     private final java.util.List<OrderProcessingStrategy> strategies = java.util.Arrays.asList(
         new RiskCheckStrategy(),
         new PromotionCalculationStrategy(),
-        new PaymentProcessingStrategy(),
+        new OrderPaymentProcessStrategy(),
         new InventoryDeductionStrategy(),
         new NotificationStrategy()
     );
@@ -1223,7 +1223,7 @@ class PromotionCalculationStrategy implements OrderProcessingStrategy {
     }
 }
 
-class PaymentProcessingStrategy implements OrderProcessingStrategy {
+class OrderPaymentProcessStrategy implements OrderProcessingStrategy {
     @Override
     public OrderProcessingResult process(OrderProcessingContext context) {
         // 模拟支付处理

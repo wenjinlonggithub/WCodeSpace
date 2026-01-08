@@ -190,7 +190,7 @@ public class SpringStrategyAdvanced implements ApplicationContextAware, Initiali
         factory.registerStrategies();
         
         // 通过工厂获取策略
-        PaymentProcessingStrategy paymentStrategy = factory.getStrategy("PAYMENT", PaymentProcessingStrategy.class);
+        PaymentProcessingStrategyW paymentStrategy = factory.getStrategy("PAYMENT", PaymentProcessingStrategyW.class);
         System.out.println("获取支付策略：" + paymentStrategy.getClass().getSimpleName());
         
         NotificationSendingStrategy notificationStrategy = factory.getStrategy("NOTIFICATION", NotificationSendingStrategy.class);
@@ -260,7 +260,8 @@ public class SpringStrategyAdvanced implements ApplicationContextAware, Initiali
         DynamicStrategyLoader loader = new DynamicStrategyLoader(applicationContext);
         
         // 动态加载新的策略
-        String strategyCode = """
+        String strategyCode = null;
+            /**"""
             public class DynamicPromotionStrategy implements PromotionStrategy {
                 public PromotionResult apply(Order order) {
                     double discount = order.getTotalAmount() * 0.05;
@@ -269,7 +270,7 @@ public class SpringStrategyAdvanced implements ApplicationContextAware, Initiali
                 public boolean isApplicable(Order order) { return true; }
                 public String getType() { return "DYNAMIC"; }
             }
-            """;
+            """;*/
         
         boolean loaded = loader.loadStrategy("DYNAMIC", strategyCode);
         System.out.println("动态策略加载结果：" + (loaded ? "成功" : "失败"));
@@ -961,7 +962,7 @@ class SpringStrategyFactory {
     
     public void registerStrategies() {
         // 注册支付策略
-        registerStrategy("PAYMENT", PaymentProcessingStrategy.class, new DefaultPaymentStrategy());
+        registerStrategy("PAYMENT", PaymentProcessingStrategyW.class, new DefaultPaymentStrategyW());
         
         // 注册通知策略
         registerStrategy("NOTIFICATION", NotificationSendingStrategy.class, new DefaultNotificationStrategy());
@@ -975,7 +976,7 @@ class SpringStrategyFactory {
     }
 }
 
-interface PaymentProcessingStrategy {
+interface PaymentProcessingStrategyW {
     void processPayment(String orderId, double amount);
 }
 
@@ -983,7 +984,7 @@ interface NotificationSendingStrategy {
     void sendNotification(String userId, String message);
 }
 
-class DefaultPaymentStrategy implements PaymentProcessingStrategy {
+class DefaultPaymentStrategyW implements PaymentProcessingStrategyW {
     @Override
     public void processPayment(String orderId, double amount) {
         System.out.println("默认支付策略处理：订单" + orderId + "，金额" + amount);
