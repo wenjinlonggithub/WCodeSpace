@@ -191,7 +191,7 @@ public class GCAlgorithmSimulation {
     private void demonstrateReferenceCounting() {
         System.out.println("=== 引用计数算法演示 ===");
         
-        ReferenceCountingHeap heap = new ReferenceCountingHeap();
+        referenceCountingHeap heap = new referenceCountingHeap();
         
         System.out.println("1. 创建对象和引用：");
         
@@ -666,12 +666,12 @@ class MarkCompactHeap {
 /**
  * 引用计数堆模拟
  */
-class ReferenceCountingHeap {
+class referenceCountingHeap {
     private final Map<Integer, RCObject> objects;
     private final Map<Integer, Set<Integer>> externalRefs;
     private final AtomicInteger nextId;
     
-    public ReferenceCountingHeap() {
+    public referenceCountingHeap() {
         this.objects = new HashMap<>();
         this.externalRefs = new HashMap<>();
         this.nextId = new AtomicInteger(1);

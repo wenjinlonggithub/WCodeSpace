@@ -54,7 +54,7 @@ public class ReferenceCountingDemo {
     private void demonstrateBasicOperations() {
         System.out.println("=== 1. 基本引用计数操作演示 ===");
         
-        ReferenceCountingHeap heap = new ReferenceCountingHeap();
+        referenceCountingHeap heap = new referenceCountingHeap();
         
         System.out.println("步骤1：创建对象A");
         int objectA = heap.createObject("ObjectA", 1024);
@@ -93,7 +93,7 @@ public class ReferenceCountingDemo {
     private void demonstrateCircularReference() {
         System.out.println("=== 2. 循环引用问题演示 ===");
         
-        ReferenceCountingHeap heap = new ReferenceCountingHeap();
+        referenceCountingHeap heap = new referenceCountingHeap();
         
         System.out.println("步骤1：创建对象A和B");
         int objectA = heap.createObject("ObjectA", 1024);
@@ -129,7 +129,7 @@ public class ReferenceCountingDemo {
     /**
      * 演示循环引用检测算法
      */
-    private void demonstrateCycleDetection(ReferenceCountingHeap heap) {
+    private void demonstrateCycleDetection(referenceCountingHeap heap) {
         System.out.println("=== 2.1 循环引用检测算法 ===");
         
         System.out.println("使用辅助标记算法检测循环引用：");
@@ -166,7 +166,7 @@ public class ReferenceCountingDemo {
     private void demonstrateComplexReferenceNetwork() {
         System.out.println("=== 3. 复杂引用网络演示 ===");
         
-        ReferenceCountingHeap heap = new ReferenceCountingHeap();
+        referenceCountingHeap heap = new referenceCountingHeap();
         
         System.out.println("构建复杂的对象引用网络：");
         
