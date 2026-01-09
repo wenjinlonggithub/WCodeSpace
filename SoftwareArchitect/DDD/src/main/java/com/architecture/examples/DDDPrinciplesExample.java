@@ -219,7 +219,6 @@ public class DDDPrinciplesExample {
         
         OrderFactory orderFactory = new OrderFactory();
         
-        // 使用工厂创建订单
         Email customerEmail = new Email("factory@example.com");
         Customer customer = new Customer(1L, "工厂客户", customerEmail, "13600136000");
         
@@ -227,6 +226,149 @@ public class DDDPrinciplesExample {
         
         System.out.println("通过工厂创建订单: " + order.getId());
         System.out.println("配送地址: " + order.getShippingAddress().getFullAddress());
+    }
+
+    /**
+     * 7. 领域事件(Domain Event)示例
+     * 
+     * 领域事件特点：
+     * - 业务事实：表达已发生的业务事实
+     * - 解耦：实现聚合间的松耦合
+     * - 异步处理：支持异步业务流程
+     * - 最终一致性：实现跨聚合的最终一致性
+     */
+    public void domainEventExample() {
+        System.out.println("\n=== 领域事件示例 ===");
+        
+        Email customerEmail = new Email("event@example.com");
+        Customer customer = new Customer(1L, "事件客户", customerEmail, "13500135000");
+        Address shippingAddress = new Address("深圳市", "南山区", "科技园", "高新南一道", "518000");
+        
+        Order order = new Order(1L, customer, shippingAddress);
+        
+        Money productPrice = new Money(new BigDecimal("999.99"), "CNY");
+        Product product = new Product(1L, "商品", "描述", productPrice, 100, ProductCategory.ELECTRONICS);
+        
+        order.addOrderItem(product, 1);
+        
+        System.out.println("订单创建完成，触发领域事件：");
+        System.out.println("- OrderCreatedEvent: 订单已创建");
+        
+        order.confirm();
+        System.out.println("- OrderConfirmedEvent: 订单已确认");
+        System.out.println("  事件处理：发送确认邮件、更新库存、记录日志");
+        
+        order.ship();
+        System.out.println("- OrderShippedEvent: 订单已发货");
+        System.out.println("  事件处理：通知物流、发送短信、更新状态");
+    }
+
+    /**
+     * 8. 规格模式(Specification Pattern)示例
+     * 
+     * 规格模式特点：
+     * - 业务规则封装：将业务规则封装为对象
+     * - 可组合：支持规则的与、或、非组合
+     * - 可重用：规则可在多处重用
+     * - 可测试：便于单元测试
+     */
+    public void specificationPatternExample() {
+        System.out.println("\n=== 规格模式示例 ===");
+        
+        Money price1 = new Money(new BigDecimal("50.00"), "CNY");
+        Product product1 = new Product(1L, "便宜商品", "描述", price1, 10, ProductCategory.ELECTRONICS);
+        
+        Money price2 = new Money(new BigDecimal("150.00"), "CNY");
+        Product product2 = new Product(2L, "贵商品", "描述", price2, 0, ProductCategory.ELECTRONICS);
+        
+        Money price3 = new Money(new BigDecimal("80.00"), "CNY");
+        Product product3 = new Product(3L, "中等商品", "描述", price3, 5, ProductCategory.BOOKS);
+        
+        AvailableProductSpec availableSpec = new AvailableProductSpec();
+        AffordableProductSpec affordableSpec = new AffordableProductSpec(new Money(new BigDecimal("100.00"), "CNY"));
+        
+        System.out.println("商品1可用: " + availableSpec.isSatisfiedBy(product1));
+        System.out.println("商品1价格合适: " + affordableSpec.isSatisfiedBy(product1));
+        System.out.println("商品1满足条件(可用且价格合适): " + 
+            availableSpec.and(affordableSpec).isSatisfiedBy(product1));
+        
+        System.out.println("\n商品2可用: " + availableSpec.isSatisfiedBy(product2));
+        System.out.println("商品2价格合适: " + affordableSpec.isSatisfiedBy(product2));
+        
+        System.out.println("\n商品3可用: " + availableSpec.isSatisfiedBy(product3));
+        System.out.println("商品3价格合适: " + affordableSpec.isSatisfiedBy(product3));
+    }
+
+    /**
+     * 9. 分层架构示例
+     * 
+     * DDD分层架构：
+     * - 用户界面层：展示和接收用户输入
+     * - 应用层：协调领域对象完成用例
+     * - 领域层：核心业务逻辑
+     * - 基础设施层：技术实现
+     */
+    public void layeredArchitectureExample() {
+        System.out.println("\n=== 分层架构示例 ===");
+        
+        System.out.println("1. 用户界面层 (User Interface Layer)");
+        System.out.println("   - Controller: 接收HTTP请求");
+        System.out.println("   - DTO: 数据传输对象");
+        System.out.println("   - View: 视图渲染");
+        
+        System.out.println("\n2. 应用层 (Application Layer)");
+        System.out.println("   - ApplicationService: 协调领域对象");
+        System.out.println("   - 事务管理: @Transactional");
+        System.out.println("   - DTO转换: 领域对象 <-> DTO");
+        
+        System.out.println("\n3. 领域层 (Domain Layer)");
+        System.out.println("   - Entity: 实体对象");
+        System.out.println("   - ValueObject: 值对象");
+        System.out.println("   - Aggregate: 聚合根");
+        System.out.println("   - DomainService: 领域服务");
+        System.out.println("   - Repository接口: 仓储接口");
+        
+        System.out.println("\n4. 基础设施层 (Infrastructure Layer)");
+        System.out.println("   - Repository实现: 数据访问实现");
+        System.out.println("   - 消息队列: Kafka、RabbitMQ");
+        System.out.println("   - 缓存: Redis");
+        System.out.println("   - 外部服务: 第三方API");
+    }
+
+    /**
+     * 10. 限界上下文(Bounded Context)示例
+     * 
+     * 限界上下文特点：
+     * - 明确边界：定义模型的适用范围
+     * - 统一语言：上下文内使用统一的术语
+     * - 独立演化：不同上下文可独立发展
+     * - 上下文映射：定义上下文间的关系
+     */
+    public void boundedContextExample() {
+        System.out.println("\n=== 限界上下文示例 ===");
+        
+        System.out.println("电商系统的限界上下文划分：");
+        
+        System.out.println("\n1. 订单上下文 (Order Context)");
+        System.out.println("   - 核心概念: Order、OrderItem、OrderStatus");
+        System.out.println("   - 职责: 订单创建、确认、发货、完成");
+        
+        System.out.println("\n2. 库存上下文 (Inventory Context)");
+        System.out.println("   - 核心概念: Stock、Warehouse、StockLevel");
+        System.out.println("   - 职责: 库存管理、入库、出库、盘点");
+        
+        System.out.println("\n3. 支付上下文 (Payment Context)");
+        System.out.println("   - 核心概念: Payment、PaymentMethod、Transaction");
+        System.out.println("   - 职责: 支付处理、退款、对账");
+        
+        System.out.println("\n4. 用户上下文 (User Context)");
+        System.out.println("   - 核心概念: User、Account、Profile");
+        System.out.println("   - 职责: 用户注册、登录、权限管理");
+        
+        System.out.println("\n上下文映射关系：");
+        System.out.println("- 订单上下文 -> 库存上下文: 发布领域事件");
+        System.out.println("- 订单上下文 -> 支付上下文: 防腐层(ACL)");
+        System.out.println("- 订单上下文 -> 用户上下文: 共享内核");
     }
 
     // 领域服务示例类
@@ -252,6 +394,42 @@ public class DDDPrinciplesExample {
                                String district, String street, String zipCode) {
             Address shippingAddress = new Address(province, city, district, street, zipCode);
             return new Order(orderIdCounter++, customer, shippingAddress);
+        }
+    }
+
+    private interface Specification<T> {
+        boolean isSatisfiedBy(T candidate);
+        
+        default Specification<T> and(Specification<T> other) {
+            return candidate -> this.isSatisfiedBy(candidate) && other.isSatisfiedBy(candidate);
+        }
+        
+        default Specification<T> or(Specification<T> other) {
+            return candidate -> this.isSatisfiedBy(candidate) || other.isSatisfiedBy(candidate);
+        }
+        
+        default Specification<T> not() {
+            return candidate -> !this.isSatisfiedBy(candidate);
+        }
+    }
+
+    private static class AvailableProductSpec implements Specification<Product> {
+        @Override
+        public boolean isSatisfiedBy(Product product) {
+            return product.isAvailable();
+        }
+    }
+
+    private static class AffordableProductSpec implements Specification<Product> {
+        private final Money maxPrice;
+        
+        public AffordableProductSpec(Money maxPrice) {
+            this.maxPrice = maxPrice;
+        }
+        
+        @Override
+        public boolean isSatisfiedBy(Product product) {
+            return product.getPrice().getAmount().compareTo(maxPrice.getAmount()) <= 0;
         }
     }
 }

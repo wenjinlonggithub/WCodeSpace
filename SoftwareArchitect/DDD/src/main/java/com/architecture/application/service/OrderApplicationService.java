@@ -12,8 +12,8 @@ import com.architecture.domain.valueobject.Address;
 import com.architecture.infrastructure.repository.CustomerRepository;
 import com.architecture.infrastructure.repository.OrderRepository;
 import com.architecture.infrastructure.repository.ProductRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
