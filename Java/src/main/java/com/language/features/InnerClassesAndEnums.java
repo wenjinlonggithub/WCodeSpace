@@ -144,10 +144,7 @@ public class InnerClassesAndEnums {
         
         task.run();
         
-        // 3. 事件处理器示例
-        interface EventHandler {
-            void handle(String event);
-        }
+
         
         EventHandler clickHandler = new EventHandler() {
             private int clickCount = 0;
@@ -186,7 +183,10 @@ public class InnerClassesAndEnums {
         sortedByLambda.sort(lambdaComparator);
         System.out.println("Sorted by lambda: " + sortedByLambda);
     }
-    
+    // 3. 事件处理器示例
+    interface EventHandler {
+        void handle(String event);
+    }
     /**
      * 枚举类型详解
      */

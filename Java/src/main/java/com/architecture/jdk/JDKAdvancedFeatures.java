@@ -8,6 +8,7 @@ import java.util.concurrent.*;
 import java.lang.management.*;
 import java.net.http.*;
 import java.net.URI;
+import java.util.stream.Stream;
 
 /**
  * JDK高级特性和性能优化
@@ -119,7 +120,7 @@ public class JDKAdvancedFeatures {
             
             // 由于HTTP Client是JDK 11+的特性，这里提供示例代码
             System.out.println("\n--- HTTP Client Example Code ---");
-            System.out.println("""
+            /**System.out.println(
                 // 1. 创建HTTP客户端
                 HttpClient client = HttpClient.newBuilder()
                     .version(HttpClient.Version.HTTP_2)
@@ -148,7 +149,7 @@ public class JDKAdvancedFeatures {
                 asyncResponse.thenApply(HttpResponse::body)
                            .thenAccept(System.out::println)
                            .join();
-                """);
+                """);*/
             
         } catch (Exception e) {
             System.err.println("HTTP Client demo error: " + e.getMessage());
