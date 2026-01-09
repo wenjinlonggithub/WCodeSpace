@@ -1,0 +1,9 @@
+╭───────────────────────────────────────────────────╮
+│ ✻ Welcome to Claude Code!                         │
+│                                                   │
+│   /help for help, /status for your current setup  │
+│                                                   │
+│   cwd: D:\develop\20\WCodeSpace                   │
+╰───────────────────────────────────────────────────╯
+
+
