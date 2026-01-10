@@ -9,8 +9,8 @@
   <url>http://maven.apache.org</url>
   <modules>
     <module>Spring</module>
-    <module>kafka</module>
-    <module>mybatis</module>
+    <module>Kafka</module>
+    <module>Mybatis</module>
   </modules>
   <dependencies>
     <dependency>
