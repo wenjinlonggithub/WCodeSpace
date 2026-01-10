@@ -59,11 +59,69 @@ Apache Kafka 是由 LinkedIn 开发的分布式流处理平台，于 2011 年开
 - **压缩算法**: 支持多种压缩算法，减少网络传输量
 
 ### 核心架构
+
+#### 整体架构图
+```mermaid
+graph TB
+    subgraph "生产者层"
+        P1[Producer App 1]
+        P2[Producer App 2]
+        P3[Producer App N]
+    end
+    
+    subgraph "Kafka集群"
+        subgraph "Broker节点"
+            B1[Broker 1]
+            B2[Broker 2]
+            B3[Broker 3]
+        end
+        
+        subgraph "Topic分区"
+            T1[Topic: user-events<br/>分区: 0,1,2]
+            T2[Topic: order-events<br/>分区: 0,1,2,3]
+        end
+    end
+    
+    subgraph "消费者层"
+        C1[Consumer Group 1]
+        C2[Consumer Group 2]
+    end
+    
+    subgraph "协调服务"
+        Z[ZooKeeper集群<br/>元数据管理]
+    end
+    
+    P1 --> B1
+    P2 --> B2
+    P3 --> B3
+    
+    B1 --> C1
+    B2 --> C1
+    B3 --> C2
+    
+    B1 <--> Z
+    B2 <--> Z
+    B3 <--> Z
 ```
-Producer → Kafka Cluster (Brokers) → Consumer
-                ↓
-        ZooKeeper (Metadata Management)
+
+#### 消息处理流程
+```mermaid
+sequenceDiagram
+    participant P as Producer
+    participant B as Broker
+    participant C as Consumer
+    
+    P->>B: 1. 发送消息
+    B->>B: 2. 写入日志
+    B->>B: 3. 复制到副本
+    B->>P: 4. 返回确认
+    C->>B: 5. 拉取消息
+    B->>C: 6. 返回消息批次
+    C->>C: 7. 处理消息
+    C->>B: 8. 提交offset
 ```
+
+> 📊 **详细架构图**: 查看 [Kafka架构设计图](docs/kafka-architecture-diagram.md) 和 [处理流程图](docs/kafka-flow-diagram.md)
 
 ## 核心概念
 
