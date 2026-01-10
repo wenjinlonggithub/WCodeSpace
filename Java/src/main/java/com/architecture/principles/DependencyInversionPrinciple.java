@@ -142,8 +142,8 @@ class EarlyOOPExample {
     public void processOrder() {
         database.connect();
         // ... 业务逻辑
-        mailer.send();
-        printer.print();
+        mailer.send("订单确认邮件");
+        printer.print("订单收据");
     }
     
     // 问题：虽然有了对象，但依然紧耦合
@@ -160,6 +160,12 @@ class DesignPatternExample {
         // 使用工厂创建对象
         this.database = DatabaseFactory.createConnection();
         this.mailer = MailerFactory.createMailer();
+    }
+    
+    public void processOrder() {
+        database.connect();
+        database.save("订单数据");
+        mailer.send("订单确认邮件");
     }
     
     // 进步：通过工厂模式降低了一些耦合
@@ -183,9 +189,9 @@ class ModernDIPExample {
     
     public void processOrder() {
         // 业务逻辑与具体实现完全解耦
-        database.save(/* order data */);
-        mailer.send(/* email */);
-        printer.print(/* receipt */);
+        database.save("订单数据");
+        mailer.send("订单确认邮件");
+        printer.print("订单收据");
     }
     
     // 优势：完全解耦，易测试，易扩展
