@@ -1,5 +1,8 @@
 package com.architecture.principles;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * 依赖倒置原则 (Dependency Inversion Principle - DIP) 详解
  * 
@@ -7,10 +10,27 @@ package com.architecture.principles;
  * 1. 高层模块不应该依赖低层模块，两者都应该依赖抽象
  * 2. 抽象不应该依赖细节，细节应该依赖抽象
  * 
- * 核心原理：
- * - 控制反转 (IoC): 将对象的创建和依赖关系的管理交给外部容器
- * - 依赖注入 (DI): 通过构造函数、setter或接口注入依赖
- * - 面向接口编程: 依赖抽象而非具体实现
+ * 核心原理详解：
+ * 
+ * 【生活化类比】
+ * 想象你是一个餐厅老板：
+ * - 违反DIP：直接雇佣"张师傅"做川菜，如果张师傅离职，餐厅就做不了川菜了
+ * - 遵循DIP：雇佣"会做川菜的厨师"(抽象)，任何会川菜的人都能胜任
+ * 
+ * 【技术原理】
+ * 1. 控制反转 (IoC): 
+ *    - 传统方式：我需要什么，我自己创建什么 (主动控制)
+ *    - IoC方式：我需要什么，外部给我什么 (被动接收)
+ *    - 类比：从"自己做饭"变成"点外卖"
+ * 
+ * 2. 依赖注入 (DI):
+ *    - 构造函数注入：创建对象时就给依赖 (出生时就有父母)
+ *    - Setter注入：创建后再设置依赖 (长大后交朋友)
+ *    - 接口注入：通过接口方法注入 (通过中介介绍)
+ * 
+ * 3. 面向接口编程:
+ *    - 不关心具体是谁，只关心能做什么
+ *    - 类比：招聘"会开车的司机"，不指定"必须是张三"
  * 
  * 优势：
  * 1. 降低耦合度 - 模块间松散耦合
@@ -39,7 +59,41 @@ package com.architecture.principles;
  * A: 增加代码复杂度，过度抽象可能导致理解困难
  */
 
-// ============= 违反DIP的例子 =============
+// ============= 生活化案例：餐厅管理系统 =============
+
+// 【违反DIP的餐厅】- 直接依赖具体厨师
+class ZhangChef {
+    public void cookSichuanFood() {
+        System.out.println("张师傅做川菜：麻婆豆腐、宫保鸡丁");
+    }
+}
+
+class LiChef {
+    public void cookCantonFood() {
+        System.out.println("李师傅做粤菜：白切鸡、蒸蛋");
+    }
+}
+
+// 餐厅直接依赖具体厨师 - 问题很大！
+class BadRestaurant {
+    private ZhangChef zhangChef;  // 只能做川菜
+    private LiChef liChef;        // 只能做粤菜
+    
+    public BadRestaurant() {
+        this.zhangChef = new ZhangChef();  // 写死了依赖
+        this.liChef = new LiChef();        // 写死了依赖
+    }
+    
+    public void serveSichuanFood() {
+        zhangChef.cookSichuanFood();  // 张师傅离职就完蛋了
+    }
+    
+    public void serveCantonFood() {
+        liChef.cookCantonFood();      // 李师傅离职也完蛋了
+    }
+}
+
+// ============= 违反DIP的技术例子 =============
 
 // 低层模块 - 具体实现
 class MySQLDatabase {
@@ -57,7 +111,7 @@ class BadUserService {
     private MySQLDatabase database; // 直接依赖具体实现
     
     public BadUserService() {
-        this.database = new MySQLDatabase(); // 紧耦合
+        this.database = new MySQLDatabase(); // 紧耦合 - 问题所在！
     }
     
     public void saveUser(String userData) {
@@ -67,9 +121,86 @@ class BadUserService {
     public String getUser(String userId) {
         return database.read(userId);
     }
+    
+    // 问题演示：如果要换成PostgreSQL怎么办？
+    // 1. 必须修改这个类的代码
+    // 2. 重新编译
+    // 3. 重新测试
+    // 4. 如果有100个这样的Service类，就要改100次！
 }
 
-// ============= 遵循DIP的例子 =============
+// ============= 遵循DIP的餐厅例子 =============
+
+// 【遵循DIP的餐厅】- 依赖抽象接口
+interface Chef {
+    void cook(String dishName);
+    String getSpecialty();
+}
+
+// 具体厨师实现接口
+class SichuanChef implements Chef {
+    @Override
+    public void cook(String dishName) {
+        System.out.println("川菜师傅制作：" + dishName + " (麻辣鲜香)");
+    }
+    
+    @Override
+    public String getSpecialty() {
+        return "川菜";
+    }
+}
+
+class CantonChef implements Chef {
+    @Override
+    public void cook(String dishName) {
+        System.out.println("粤菜师傅制作：" + dishName + " (清淡鲜美)");
+    }
+    
+    @Override
+    public String getSpecialty() {
+        return "粤菜";
+    }
+}
+
+class FrenchChef implements Chef {
+    @Override
+    public void cook(String dishName) {
+        System.out.println("法式主厨制作：" + dishName + " (精致浪漫)");
+    }
+    
+    @Override
+    public String getSpecialty() {
+        return "法式料理";
+    }
+}
+
+// 智能餐厅 - 依赖抽象，不依赖具体厨师
+class SmartRestaurant {
+    private Chef chef;  // 依赖抽象接口
+    
+    // 构造函数注入 - 可以传入任何实现Chef接口的厨师
+    public SmartRestaurant(Chef chef) {
+        this.chef = chef;
+    }
+    
+    // Setter注入 - 可以随时更换厨师
+    public void setChef(Chef chef) {
+        this.chef = chef;
+        System.out.println("餐厅现在有" + chef.getSpecialty() + "师傅了！");
+    }
+    
+    public void serveDish(String dishName) {
+        System.out.println("客人点餐：" + dishName);
+        chef.cook(dishName);
+        System.out.println("上菜完成！");
+    }
+    
+    // 优势演示：
+    // 1. 厨师离职？没问题，换个同类型厨师就行
+    // 2. 想增加新菜系？没问题，招个新厨师就行
+    // 3. 想临时换厨师？没问题，setChef就行
+    // 4. 餐厅代码完全不用改！
+}
 
 // 抽象层 - 定义接口
 interface Database {
@@ -252,6 +383,33 @@ public class DependencyInversionPrinciple {
     public static void main(String[] args) {
         System.out.println("=== Dependency Inversion Principle Demo ===");
         
+        // ============= 生活化案例演示 =============
+        System.out.println("\n=== 餐厅管理案例 ===");
+        
+        // 创建不同类型的厨师
+        Chef sichuanChef = new SichuanChef();
+        Chef cantonChef = new CantonChef();
+        Chef frenchChef = new FrenchChef();
+        
+        // 智能餐厅可以使用任何厨师
+        SmartRestaurant restaurant = new SmartRestaurant(sichuanChef);
+        restaurant.serveDish("麻婆豆腐");
+        
+        // 轻松更换厨师 - 这就是DIP的威力！
+        restaurant.setChef(cantonChef);
+        restaurant.serveDish("白切鸡");
+        
+        restaurant.setChef(frenchChef);
+        restaurant.serveDish("法式鹅肝");
+        
+        System.out.println("\n--- 对比违反DIP的餐厅 ---");
+        BadRestaurant badRestaurant = new BadRestaurant();
+        badRestaurant.serveSichuanFood();
+        badRestaurant.serveCantonFood();
+        System.out.println("问题：如果要增加法式料理，必须修改BadRestaurant类代码！");
+        
+        // ============= 技术案例演示 =============
+        
         // 使用不同的数据库实现
         System.out.println("\n--- Using MySQL ---");
         UserService mysqlUserService = DIContainer.createUserService("mysql");
@@ -312,6 +470,135 @@ public class DependencyInversionPrinciple {
         
         kafkaPublisher.publishMessage("用户注册事件", "user_registered");
         rabbitPublisher.publishMessage("订单创建事件", "order_created");
+        
+        // ============= Spring框架实际应用案例 =============
+        System.out.println("\n=== Spring框架DIP应用 ===");
+        
+        // 模拟Spring的@Autowired依赖注入
+        System.out.println("\n--- 模拟Spring依赖注入 ---");
+        SpringLikeContainer container = new SpringLikeContainer();
+        
+        // 注册bean
+        container.registerBean("userRepository", new MySQLUserRepository());
+        container.registerBean("emailService", new SMTPEmailService());
+        container.registerBean("logger", new ConsoleLogger());
+        
+        // 创建服务并自动注入依赖
+        SpringUserService springUserService = container.createBean(SpringUserService.class);
+        springUserService.registerUser("张三", "zhangsan@example.com");
+        
+        System.out.println("\n--- 切换到不同实现 ---");
+        // 轻松切换实现
+        container.registerBean("userRepository", new MongoUserRepository());
+        container.registerBean("emailService", new MockEmailService());
+        
+        SpringUserService newService = container.createBean(SpringUserService.class);
+        newService.registerUser("李四", "lisi@example.com");
+    }
+}
+
+// ============= Spring框架模拟实现 =============
+
+// 用户仓储接口
+interface UserRepository {
+    void save(User user);
+    User findById(String id);
+}
+
+// 用户实体
+class User {
+    private String name;
+    private String email;
+    
+    public User(String name, String email) {
+        this.name = name;
+        this.email = email;
+    }
+    
+    public String getName() { return name; }
+    public String getEmail() { return email; }
+    
+    @Override
+    public String toString() {
+        return "User{name='" + name + "', email='" + email + "'}";
+    }
+}
+
+// MySQL实现
+class MySQLUserRepository implements UserRepository {
+    @Override
+    public void save(User user) {
+        System.out.println("MySQL保存用户: " + user);
+    }
+    
+    @Override
+    public User findById(String id) {
+        return new User("MySQL用户" + id, "mysql@example.com");
+    }
+}
+
+// MongoDB实现
+class MongoUserRepository implements UserRepository {
+    @Override
+    public void save(User user) {
+        System.out.println("MongoDB保存用户: " + user);
+    }
+    
+    @Override
+    public User findById(String id) {
+        return new User("Mongo用户" + id, "mongo@example.com");
+    }
+}
+
+// 模拟Spring的Service类
+class SpringUserService {
+    private UserRepository userRepository;  // 依赖注入
+    private EmailService emailService;      // 依赖注入
+    private Logger logger;                  // 依赖注入
+    
+    // 模拟@Autowired构造函数注入
+    public SpringUserService(UserRepository userRepository, 
+                           EmailService emailService, 
+                           Logger logger) {
+        this.userRepository = userRepository;
+        this.emailService = emailService;
+        this.logger = logger;
+    }
+    
+    public void registerUser(String name, String email) {
+        logger.log("开始注册用户: " + name);
+        
+        User user = new User(name, email);
+        userRepository.save(user);
+        
+        emailService.sendEmail(email, "欢迎注册", "欢迎加入我们的平台！");
+        
+        logger.log("用户注册完成: " + name);
+    }
+}
+
+// 简单的IoC容器模拟
+class SpringLikeContainer {
+    private Map<String, Object> beans = new HashMap<>();
+    
+    public void registerBean(String name, Object bean) {
+        beans.put(name, bean);
+        System.out.println("注册Bean: " + name + " -> " + bean.getClass().getSimpleName());
+    }
+    
+    @SuppressWarnings("unchecked")
+    public <T> T getBean(String name, Class<T> type) {
+        return (T) beans.get(name);
+    }
+    
+    // 模拟Spring的依赖注入
+    public SpringUserService createBean(Class<SpringUserService> clazz) {
+        UserRepository userRepository = getBean("userRepository", UserRepository.class);
+        EmailService emailService = getBean("emailService", EmailService.class);
+        Logger logger = getBean("logger", Logger.class);
+        
+        System.out.println("自动注入依赖创建SpringUserService");
+        return new SpringUserService(userRepository, emailService, logger);
     }
 }
 
