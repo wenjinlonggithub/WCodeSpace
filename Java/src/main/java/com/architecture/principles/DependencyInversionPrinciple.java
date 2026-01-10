@@ -4,62 +4,229 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 依赖倒置原则 (Dependency Inversion Principle - DIP) 详解
+ * 依赖倒置原则 (Dependency Inversion Principle - DIP) 深度解析
  * 
- * 核心思想：
- * 1. 高层模块不应该依赖低层模块，两者都应该依赖抽象
- * 2. 抽象不应该依赖细节，细节应该依赖抽象
+ * ==================== 为什么叫"依赖倒置"？ ====================
  * 
- * 核心原理详解：
+ * 【历史背景】
+ * 1990年代，面向对象编程兴起，但软件系统变得越来越复杂。
+ * 传统的"自顶向下"设计导致了严重的依赖问题：
+ * - 高层业务逻辑直接依赖底层技术实现
+ * - 系统像"倒金字塔"一样不稳定
+ * - 任何底层变化都会影响整个系统
  * 
- * 【生活化类比】
- * 想象你是一个餐厅老板：
- * - 违反DIP：直接雇佣"张师傅"做川菜，如果张师傅离职，餐厅就做不了川菜了
- * - 遵循DIP：雇佣"会做川菜的厨师"(抽象)，任何会川菜的人都能胜任
+ * 【"倒置"的含义】
+ * 传统依赖方向：高层 → 低层 (Business → Database)
+ * 倒置后依赖方向：高层 ← 抽象 → 低层 (Business ← Interface → Database)
  * 
- * 【技术原理】
- * 1. 控制反转 (IoC): 
- *    - 传统方式：我需要什么，我自己创建什么 (主动控制)
- *    - IoC方式：我需要什么，外部给我什么 (被动接收)
- *    - 类比：从"自己做饭"变成"点外卖"
+ * 这就是"倒置"的核心：依赖关系被"翻转"了！
  * 
- * 2. 依赖注入 (DI):
- *    - 构造函数注入：创建对象时就给依赖 (出生时就有父母)
- *    - Setter注入：创建后再设置依赖 (长大后交朋友)
- *    - 接口注入：通过接口方法注入 (通过中介介绍)
+ * ==================== 软件工程历史演进 ====================
  * 
- * 3. 面向接口编程:
- *    - 不关心具体是谁，只关心能做什么
- *    - 类比：招聘"会开车的司机"，不指定"必须是张三"
+ * 【1960-1970年代：结构化编程】
+ * - 问题：意大利面条式代码，goto语句满天飞
+ * - 解决：引入函数、模块化
+ * - 局限：仍然是自顶向下的依赖
  * 
- * 优势：
- * 1. 降低耦合度 - 模块间松散耦合
- * 2. 提高可测试性 - 易于mock和单元测试
- * 3. 增强可扩展性 - 新增实现无需修改现有代码
- * 4. 提升可维护性 - 修改实现不影响其他模块
- * 5. 支持多态 - 运行时动态选择实现
+ * 【1980-1990年代：面向对象编程】
+ * - 问题：类之间紧耦合，继承滥用
+ * - 解决：封装、继承、多态
+ * - 局限：依赖关系仍然混乱
  * 
- * 应用场景：
- * - 数据访问层 (DAO/Repository模式)
- * - 服务层解耦
- * - 第三方服务集成
- * - 配置管理
- * - 缓存策略
- * - 消息队列
- * - 支付网关
+ * 【1990年代：设计模式兴起】
+ * - GoF设计模式（1994年）
+ * - 开始关注对象间的协作关系
+ * - 但缺乏系统性的设计原则
  * 
- * 常见面试题：
- * Q1: DIP与IoC、DI的关系？
- * A: DIP是设计原则，IoC是设计思想，DI是实现技术
+ * 【1995年：Robert C. Martin提出DIP】
+ * - 作为SOLID原则的一部分
+ * - 系统性解决依赖关系问题
+ * - 为后来的IoC容器奠定理论基础
  * 
- * Q2: 如何在Spring中实现DIP？
- * A: 通过@Autowired、@Component、@Service等注解实现依赖注入
+ * 【2000年代：IoC容器爆发】
+ * - Spring Framework (2003年)
+ * - 依赖注入成为主流
+ * - 企业级应用的标准架构
  * 
- * Q3: DIP的缺点？
- * A: 增加代码复杂度，过度抽象可能导致理解困难
+ * ==================== 传统依赖关系的问题 ====================
+ * 
+ * 【问题1：脆弱性 (Fragility)】
+ * 底层改动导致上层崩溃，就像多米诺骨牌效应
+ * 
+ * 【问题2：僵化性 (Rigidity)】
+ * 难以修改和扩展，每次改动都牵一发而动全身
+ * 
+ * 【问题3：不可移植性 (Immobility)】
+ * 代码无法重用，因为紧耦合到特定实现
+ * 
+ * 【问题4：粘滞性 (Viscosity)】
+ * 做正确的事比做错误的事更困难
+ * 
+ * ==================== DIP的演进路径 ====================
+ * 
+ * 【第一阶段：认识问题】
+ * 传统方式 → 发现耦合问题 → 寻求解决方案
+ * 
+ * 【第二阶段：引入抽象】
+ * 具体依赖 → 接口抽象 → 依赖接口而非实现
+ * 
+ * 【第三阶段：控制反转】
+ * 主动创建 → 被动接收 → 外部注入依赖
+ * 
+ * 【第四阶段：容器化管理】
+ * 手动注入 → 自动注入 → IoC容器管理
+ * 
+ * 【第五阶段：现代化实现】
+ * 配置文件 → 注解驱动 → 约定优于配置
+ * 
+ * ==================== 解决的核心问题 ====================
+ * 
+ * 【业务问题】
+ * 1. 需求变更频繁，系统难以适应
+ * 2. 不同环境需要不同实现（开发/测试/生产）
+ * 3. 第三方服务更换成本高
+ * 4. 单元测试困难，无法mock依赖
+ * 
+ * 【技术问题】
+ * 1. 编译时依赖导致的循环依赖
+ * 2. 部署时的版本冲突
+ * 3. 运行时的性能问题
+ * 4. 维护时的影响范围不可控
+ * 
+ * 【团队问题】
+ * 1. 不同团队开发的模块难以集成
+ * 2. 代码审查时影响范围难以评估
+ * 3. 新人理解系统架构困难
+ * 4. 重构风险高，不敢轻易改动
  */
 
-// ============= 生活化案例：餐厅管理系统 =============
+// ============= 历史演进的代码示例 =============
+
+// 【1960年代：结构化编程风格】
+class StructuredProgrammingExample {
+    // 所有逻辑都在一个地方，自顶向下
+    public void processOrder() {
+        // 直接调用底层函数
+        connectToDatabase();
+        validateOrder();
+        calculatePrice();
+        saveToDatabase();
+        sendEmail();
+        printReceipt();
+    }
+    
+    private void connectToDatabase() { /* 直接MySQL连接 */ }
+    private void validateOrder() { /* 硬编码验证规则 */ }
+    private void calculatePrice() { /* 固定计算逻辑 */ }
+    private void saveToDatabase() { /* 直接SQL操作 */ }
+    private void sendEmail() { /* 直接SMTP调用 */ }
+    private void printReceipt() { /* 直接打印机调用 */ }
+    
+    // 问题：任何底层改动都要修改这个函数
+    // 无法测试、无法重用、难以维护
+}
+
+// 【1980年代：早期面向对象风格】
+class EarlyOOPExample {
+    private MySQLConnection database;
+    private SMTPMailer mailer;
+    private HPPrinter printer;
+    
+    public EarlyOOPExample() {
+        // 仍然是硬编码依赖
+        this.database = new MySQLConnection();
+        this.mailer = new SMTPMailer();
+        this.printer = new HPPrinter();
+    }
+    
+    public void processOrder() {
+        database.connect();
+        // ... 业务逻辑
+        mailer.send();
+        printer.print();
+    }
+    
+    // 问题：虽然有了对象，但依然紧耦合
+    // 换个数据库？要修改代码重新编译
+}
+
+// 【1990年代：设计模式时期】
+class DesignPatternExample {
+    // 开始使用工厂模式
+    private DatabaseConnection database;
+    private Mailer mailer;
+    
+    public DesignPatternExample() {
+        // 使用工厂创建对象
+        this.database = DatabaseFactory.createConnection();
+        this.mailer = MailerFactory.createMailer();
+    }
+    
+    // 进步：通过工厂模式降低了一些耦合
+    // 问题：仍然需要主动获取依赖，配置复杂
+}
+
+// 【2000年代：DIP + IoC容器时期】
+class ModernDIPExample {
+    private final DatabaseConnection database;
+    private final Mailer mailer;
+    private final Printer printer;
+    
+    // 依赖注入：不再主动创建，被动接收
+    public ModernDIPExample(DatabaseConnection database, 
+                           Mailer mailer, 
+                           Printer printer) {
+        this.database = database;
+        this.mailer = mailer;
+        this.printer = printer;
+    }
+    
+    public void processOrder() {
+        // 业务逻辑与具体实现完全解耦
+        database.save(/* order data */);
+        mailer.send(/* email */);
+        printer.print(/* receipt */);
+    }
+    
+    // 优势：完全解耦，易测试，易扩展
+}
+
+// ============= 依赖关系的"倒置"可视化 =============
+
+/*
+传统依赖关系（自顶向下）：
+┌─────────────────┐
+│   OrderService  │ ──┐
+└─────────────────┘   │
+                      ▼
+┌─────────────────┐   │
+│  PaymentService │ ──┤
+└─────────────────┘   │
+                      ▼
+┌─────────────────┐   │
+│ DatabaseService │ ──┘
+└─────────────────┘
+
+问题：上层直接依赖下层，下层变化影响上层
+
+倒置后的依赖关系：
+┌─────────────────┐
+│   OrderService  │
+└─────────────────┘
+         │ 依赖
+         ▼
+┌─────────────────┐
+│   <<Interface>> │ ◄─── 抽象层
+│  PaymentGateway │
+└─────────────────┘
+         ▲ 实现
+         │
+┌─────────────────┐
+│ AlipayPayment   │ ◄─── 具体实现
+└─────────────────┘
+
+优势：高层和低层都依赖抽象，彼此独立变化
+*/
 
 // 【违反DIP的餐厅】- 直接依赖具体厨师
 class ZhangChef {
@@ -382,6 +549,34 @@ class NotificationService {
 public class DependencyInversionPrinciple {
     public static void main(String[] args) {
         System.out.println("=== Dependency Inversion Principle Demo ===");
+        
+        // ============= 历史演进演示 =============
+        System.out.println("\n=== 软件工程历史演进 ===");
+        
+        System.out.println("\n--- 1960年代：结构化编程 ---");
+        StructuredProgrammingExample structuredExample = new StructuredProgrammingExample();
+        structuredExample.processOrder();
+        System.out.println("问题：所有逻辑耦合在一起，难以维护和测试");
+        
+        System.out.println("\n--- 1980年代：早期面向对象 ---");
+        EarlyOOPExample oopExample = new EarlyOOPExample();
+        oopExample.processOrder();
+        System.out.println("问题：虽然有了对象，但仍然硬编码依赖");
+        
+        System.out.println("\n--- 1990年代：设计模式时期 ---");
+        DesignPatternExample patternExample = new DesignPatternExample();
+        patternExample.processOrder();
+        System.out.println("进步：工厂模式降低了耦合，但配置仍然复杂");
+        
+        System.out.println("\n--- 2000年代：DIP + IoC容器 ---");
+        // 模拟现代DI容器
+        DatabaseConnection modernDb = new PostgreSQLConnection();
+        Mailer modernMailer = new GmailMailer();
+        Printer modernPrinter = new PDFPrinter();
+        
+        ModernDIPExample modernExample = new ModernDIPExample(modernDb, modernMailer, modernPrinter);
+        modernExample.processOrder();
+        System.out.println("优势：完全解耦，依赖外部注入，易于测试和扩展");
         
         // ============= 生活化案例演示 =============
         System.out.println("\n=== 餐厅管理案例 ===");
@@ -752,5 +947,88 @@ class MessagePublisher {
         System.out.println("准备发布消息...");
         messageQueue.sendMessage(message, topic);
         System.out.println("消息发布完成");
+    }
+}
+
+// ============= 历史演进所需的接口和实现 =============
+
+// 现代DIP示例所需的接口
+interface DatabaseConnection {
+    void save(String data);
+    void connect();
+}
+
+interface Mailer {
+    void send(String message);
+}
+
+interface Printer {
+    void print(String content);
+}
+
+// 具体实现类
+class MySQLConnection implements DatabaseConnection {
+    @Override
+    public void save(String data) {
+        System.out.println("MySQL保存数据: " + data);
+    }
+    
+    @Override
+    public void connect() {
+        System.out.println("连接到MySQL数据库");
+    }
+}
+
+class PostgreSQLConnection implements DatabaseConnection {
+    @Override
+    public void save(String data) {
+        System.out.println("PostgreSQL保存数据: " + data);
+    }
+    
+    @Override
+    public void connect() {
+        System.out.println("连接到PostgreSQL数据库");
+    }
+}
+
+class SMTPMailer implements Mailer {
+    @Override
+    public void send(String message) {
+        System.out.println("SMTP发送邮件: " + message);
+    }
+}
+
+class GmailMailer implements Mailer {
+    @Override
+    public void send(String message) {
+        System.out.println("Gmail发送邮件: " + message);
+    }
+}
+
+class HPPrinter implements Printer {
+    @Override
+    public void print(String content) {
+        System.out.println("HP打印机打印: " + content);
+    }
+}
+
+class PDFPrinter implements Printer {
+    @Override
+    public void print(String content) {
+        System.out.println("PDF打印: " + content);
+    }
+}
+
+// 工厂类（设计模式时期使用）
+class DatabaseFactory {
+    public static DatabaseConnection createConnection() {
+        // 硬编码配置，仍然有耦合
+        return new MySQLConnection();
+    }
+}
+
+class MailerFactory {
+    public static Mailer createMailer() {
+        return new SMTPMailer();
     }
 }
