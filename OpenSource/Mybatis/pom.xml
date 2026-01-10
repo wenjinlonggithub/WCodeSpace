@@ -13,7 +13,7 @@
     </parent>
 
     <groupId>com.learning</groupId>
-    <artifactId>mybatis</artifactId>
+    <artifactId>Mybatis</artifactId>
     <version>1.0.0</version>
     <name>MyBatis Learning Project</name>
     <description>MyBatis框架深度学习项目 - 从基础到高级特性</description>
