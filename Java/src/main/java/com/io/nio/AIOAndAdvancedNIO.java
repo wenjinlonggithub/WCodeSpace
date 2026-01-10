@@ -1,6 +1,7 @@
 package com.io.nio;
 
 import java.io.*;
+import java.net.InetSocketAddress;
 import java.nio.*;
 import java.nio.channels.*;
 import java.nio.file.*;
@@ -289,7 +290,7 @@ public class AIOAndAdvancedNIO {
             }
         }
         
-        private static void handleClient(AsynchronousSocketChannel clientChannel) {
+        private static Object handleClient(AsynchronousSocketChannel clientChannel) {
             ByteBuffer buffer = ByteBuffer.allocate(1024);
             
             // 异步读取客户端数据
@@ -333,6 +334,7 @@ public class AIOAndAdvancedNIO {
                     closeChannel(clientChannel);
                 }
             });
+            return null;
         }
         
         private static void closeChannel(AsynchronousSocketChannel channel) {
