@@ -1,0 +1,119 @@
+# MyBatis配置文件
+spring:
+  application:
+    name: mybatis-demo
+  
+  # 数据源配置
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.h2.Driver
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=MySQL
+    username: sa
+    password: 
+    
+    # Druid连接池配置
+    druid:
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+      max-wait: 60000
+      time-between-eviction-runs-millis: 60000
+      min-evictable-idle-time-millis: 300000
+      validation-query: SELECT 1
+      test-while-idle: true
+      test-on-borrow: false
+      test-on-return: false
+      pool-prepared-statements: true
+      max-pool-prepared-statement-per-connection-size: 20
+      
+      # 监控配置
+      web-stat-filter:
+        enabled: true
+        url-pattern: /*
+        exclusions: "*.js,*.gif,*.jpg,*.png,*.css,*.ico,/druid/*"
+      
+      stat-view-servlet:
+        enabled: true
+        url-pattern: /druid/*
+        reset-enable: false
+        login-username: admin
+        login-password: admin123
+
+  # H2数据库控制台配置（开发环境）
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+# MyBatis配置
+mybatis:
+  # 指定mapper xml文件位置
+  mapper-locations: classpath:mapper/*.xml
+  # 指定实体类包路径
+  type-aliases-package: com.learning.mybatis.entity
+  # MyBatis配置文件位置
+  config-location: classpath:mybatis-config.xml
+  
+  configuration:
+    # 开启驼峰命名转换
+    map-underscore-to-camel-case: true
+    # 开启延迟加载
+    lazy-loading-enabled: true
+    # 开启积极的延迟加载
+    aggressive-lazy-loading: false
+    # 允许多结果集
+    multiple-result-sets-enabled: true
+    # 使用列标签代替列名
+    use-column-label: true
+    # 允许JDBC生成主键
+    use-generated-keys: true
+    # 默认执行器类型
+    default-executor-type: simple
+    # 默认语句超时时间
+    default-statement-timeout: 25000
+    # 默认获取数据大小
+    default-fetch-size: 100
+    # 是否开启自动驼峰命名规则映射
+    map-underscore-to-camel-case: true
+    # 本地缓存机制
+    local-cache-scope: session
+    # JDBC类型为空时的处理
+    jdbc-type-for-null: other
+    # 延迟加载触发方法
+    lazy-load-trigger-methods: equals,clone,hashCode,toString
+    # 开启二级缓存
+    cache-enabled: true
+    # 配置默认的执行器
+    default-executor-type: simple
+    # 指定 MyBatis 应如何自动映射列到字段或属性
+    auto-mapping-behavior: partial
+    # 指定发现自动映射目标未知列（或者未知属性类型）的行为
+    auto-mapping-unknown-column-behavior: warning
+    # 日志实现
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+
+# 分页插件配置
+pagehelper:
+  helper-dialect: h2
+  reasonable: true
+  support-methods-arguments: true
+  params: count=countSql
+  page-size-zero: true
+
+# 日志配置
+logging:
+  level:
+    com.learning.mybatis.mapper: debug
+    org.apache.ibatis: debug
+    java.sql: debug
+    java.sql.Statement: debug
+    java.sql.PreparedStatement: debug
+    java.sql.ResultSet: debug
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n"
+
+# 应用配置
+app:
+  name: MyBatis学习演示项目
+  version: 1.0.0
+  description: 深度学习MyBatis框架的各种特性和最佳实践

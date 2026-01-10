@@ -18,7 +18,12 @@
       "Bash(.gradlew.bat:*)",
       "Bash(./gradlew:*)",
       "Bash(set:*)",
-      "Bash(export:*)"
+      "Bash(export:*)",
+      "Bash(cd \"D:\\develop\\20\\WCodeSpace\\OpenSource\")",
+      "Bash(mkdir -p mybatissrcmainjavacomlearningmybatis)",
+      "Bash(mkdir -p mybatissrcmainresources)",
+      "Bash(grep:*)",
+      "Bash(sed:*)"
     ],
     "deny": []
   }

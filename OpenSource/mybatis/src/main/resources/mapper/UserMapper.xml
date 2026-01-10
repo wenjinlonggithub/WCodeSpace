@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.learning.mybatis.mapper.UserMapper">
+
+    <!-- 基础结果映射 -->
+    <resultMap id="userResultMap" type="com.learning.mybatis.entity.User">
+        <id property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="email" column="email"/>
+        <result property="password" column="password"/>
+        <result property="realName" column="real_name"/>
+        <result property="phone" column="phone"/>
+        <result property="age" column="age"/>
+        <result property="gender" column="gender"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- 用户与角色关联的结果映射 -->
+    <resultMap id="userWithRolesMap" type="com.learning.mybatis.entity.User" extends="userResultMap">
+        <collection property="roles" ofType="com.learning.mybatis.entity.Role">
+            <id property="id" column="role_id"/>
+            <result property="roleCode" column="role_code"/>
+            <result property="roleName" column="role_name"/>
+            <result property="description" column="role_description"/>
+            <result property="status" column="role_status"/>
+            <result property="createTime" column="role_create_time"/>
+            <result property="updateTime" column="role_update_time"/>
+        </collection>
+    </resultMap>
+
+    <!-- 用户与详细信息关联的结果映射 -->
+    <resultMap id="userWithProfileMap" type="com.learning.mybatis.entity.User" extends="userResultMap">
+        <association property="profile" javaType="com.learning.mybatis.entity.UserProfile">
+            <id property="id" column="profile_id"/>
+            <result property="userId" column="user_id"/>
+            <result property="avatar" column="avatar"/>
+            <result property="bio" column="bio"/>
+            <result property="address" column="address"/>
+            <result property="birthday" column="birthday"/>
+            <result property="createTime" column="profile_create_time"/>
+            <result property="updateTime" column="profile_update_time"/>
+        </association>
+    </resultMap>
+
+    <!-- 基础插入语句 -->
+    <insert id="insert" parameterType="com.learning.mybatis.entity.User" 
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user (
+            username, email, password, real_name, phone, 
+            age, gender, status, create_time, update_time
+        ) VALUES (
+            #{username}, #{email}, #{password}, #{realName}, #{phone},
+            #{age}, #{gender}, #{status}, #{createTime}, #{updateTime}
+        )
+    </insert>
+
+    <!-- 选择性插入 -->
+    <insert id="insertSelective" parameterType="com.learning.mybatis.entity.User" 
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="username != null and username != ''">username,</if>
+            <if test="email != null and email != ''">email,</if>
+            <if test="password != null and password != ''">password,</if>
+            <if test="realName != null and realName != ''">real_name,</if>
+            <if test="phone != null and phone != ''">phone,</if>
+            <if test="age != null">age,</if>
+            <if test="gender != null">gender,</if>
+            <if test="status != null">status,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="username != null and username != ''">#{username},</if>
+            <if test="email != null and email != ''">#{email},</if>
+            <if test="password != null and password != ''">#{password},</if>
+            <if test="realName != null and realName != ''">#{realName},</if>
+            <if test="phone != null and phone != ''">#{phone},</if>
+            <if test="age != null">#{age},</if>
+            <if test="gender != null">#{gender},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+        </trim>
+    </insert>
+
+    <!-- 批量插入 -->
+    <insert id="batchInsert" parameterType="java.util.List" 
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user (
+            username, email, password, real_name, phone, 
+            age, gender, status, create_time, update_time
+        ) VALUES
+        <foreach collection="users" item="user" separator=",">
+            (
+                #{user.username}, #{user.email}, #{user.password}, 
+                #{user.realName}, #{user.phone}, #{user.age}, 
+                #{user.gender}, #{user.status}, #{user.createTime}, #{user.updateTime}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 根据用户名查询 -->
+    <select id="selectByUsername" parameterType="string" resultMap="userResultMap">
+        SELECT * FROM user WHERE username = #{username}
+    </select>
+
+    <!-- 查询所有用户 -->
+    <select id="selectAll" resultMap="userResultMap">
+        SELECT * FROM user ORDER BY create_time DESC
+    </select>
+
+    <!-- 动态条件查询 -->
+    <select id="selectByCondition" parameterType="com.learning.mybatis.entity.User" 
+            resultMap="userResultMap">
+        SELECT * FROM user
+        <where>
+            <if test="username != null and username != ''">
+                AND username LIKE CONCAT('%', #{username}, '%')
+            </if>
+            <if test="email != null and email != ''">
+                AND email = #{email}
+            </if>
+            <if test="realName != null and realName != ''">
+                AND real_name LIKE CONCAT('%', #{realName}, '%')
+            </if>
+            <if test="phone != null and phone != ''">
+                AND phone = #{phone}
+            </if>
+            <if test="age != null">
+                AND age = #{age}
+            </if>
+            <if test="gender != null">
+                AND gender = #{gender}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 高级搜索 -->
+    <select id="advancedSearch" resultMap="userResultMap">
+        SELECT * FROM user
+        <where>
+            <if test="username != null and username != ''">
+                AND username LIKE CONCAT('%', #{username}, '%')
+            </if>
+            <if test="email != null and email != ''">
+                AND email LIKE CONCAT('%', #{email}, '%')
+            </if>
+            <if test="minAge != null and maxAge != null">
+                AND age BETWEEN #{minAge} AND #{maxAge}
+            </if>
+            <if test="minAge != null and maxAge == null">
+                AND age >= #{minAge}
+            </if>
+            <if test="minAge == null and maxAge != null">
+                AND age <= #{maxAge}
+            </if>
+            <if test="gender != null">
+                AND gender = #{gender}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 根据ID列表查询 -->
+    <select id="selectByIds" parameterType="java.util.List" resultMap="userResultMap">
+        SELECT * FROM user
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 根据主键更新 -->
+    <update id="updateById" parameterType="com.learning.mybatis.entity.User">
+        UPDATE user SET
+            username = #{username},
+            email = #{email},
+            password = #{password},
+            real_name = #{realName},
+            phone = #{phone},
+            age = #{age},
+            gender = #{gender},
+            status = #{status},
+            update_time = #{updateTime}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 选择性更新 -->
+    <update id="updateSelective" parameterType="com.learning.mybatis.entity.User">
+        UPDATE user
+        <set>
+            <if test="username != null and username != ''">username = #{username},</if>
+            <if test="email != null and email != ''">email = #{email},</if>
+            <if test="password != null and password != ''">password = #{password},</if>
+            <if test="realName != null and realName != ''">real_name = #{realName},</if>
+            <if test="phone != null and phone != ''">phone = #{phone},</if>
+            <if test="age != null">age = #{age},</if>
+            <if test="gender != null">gender = #{gender},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 批量更新状态 -->
+    <update id="updateStatusBatch">
+        UPDATE user SET status = #{status}, update_time = NOW()
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <!-- 根据ID列表删除 -->
+    <delete id="deleteByIds" parameterType="java.util.List">
+        DELETE FROM user
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 查询用户及其角色信息（一对多） -->
+    <select id="selectUserWithRoles" parameterType="long" resultMap="userWithRolesMap">
+        SELECT 
+            u.id, u.username, u.email, u.real_name, u.phone, u.age, 
+            u.gender, u.status, u.create_time, u.update_time,
+            r.id as role_id, r.role_code, r.role_name, r.description as role_description,
+            r.status as role_status, r.create_time as role_create_time, 
+            r.update_time as role_update_time
+        FROM user u
+        LEFT JOIN user_role ur ON u.id = ur.user_id
+        LEFT JOIN role r ON ur.role_id = r.id
+        WHERE u.id = #{userId}
+    </select>
+
+    <!-- 查询用户及其详细信息（一对一） -->
+    <select id="selectUserWithProfile" parameterType="long" resultMap="userWithProfileMap">
+        SELECT 
+            u.id, u.username, u.email, u.real_name, u.phone, u.age, 
+            u.gender, u.status, u.create_time, u.update_time,
+            p.id as profile_id, p.user_id, p.avatar, p.bio, p.address, 
+            p.birthday, p.create_time as profile_create_time, 
+            p.update_time as profile_update_time
+        FROM user u
+        LEFT JOIN user_profile p ON u.id = p.user_id
+        WHERE u.id = #{userId}
+    </select>
+
+    <!-- 查询用户及其订单信息（一对多，使用嵌套查询） -->
+    <select id="selectUserWithOrders" parameterType="long" resultMap="userWithOrdersMap">
+        SELECT * FROM user WHERE id = #{userId}
+    </select>
+
+    <!-- 用户与订单关联的结果映射（嵌套查询方式） -->
+    <resultMap id="userWithOrdersMap" type="com.learning.mybatis.entity.User" extends="userResultMap">
+        <collection property="orders" column="id" select="selectOrdersByUserId"/>
+    </resultMap>
+
+    <!-- 根据用户ID查询订单 -->
+    <select id="selectOrdersByUserId" parameterType="long" resultType="com.learning.mybatis.entity.Order">
+        SELECT * FROM orders WHERE user_id = #{userId} ORDER BY create_time DESC
+    </select>
+
+    <!-- SQL片段定义 -->
+    <sql id="userColumns">
+        id, username, email, password, real_name, phone, age, gender, status, create_time, update_time
+    </sql>
+
+    <sql id="userWhereCondition">
+        <where>
+            <if test="id != null">AND id = #{id}</if>
+            <if test="username != null and username != ''">AND username = #{username}</if>
+            <if test="email != null and email != ''">AND email = #{email}</if>
+            <if test="status != null">AND status = #{status}</if>
+        </where>
+    </sql>
+
+    <!-- 使用SQL片段的查询示例 -->
+    <select id="selectByConditionWithFragment" parameterType="com.learning.mybatis.entity.User" 
+            resultMap="userResultMap">
+        SELECT <include refid="userColumns"/> FROM user
+        <include refid="userWhereCondition"/>
+        ORDER BY create_time DESC
+    </select>
+
+</mapper>

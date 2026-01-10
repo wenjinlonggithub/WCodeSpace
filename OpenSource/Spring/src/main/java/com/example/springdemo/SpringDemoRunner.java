@@ -5,6 +5,9 @@ import com.example.springdemo.di.DIDemoService;
 import com.example.springdemo.lifecycle.LifecycleDemoService;
 import com.example.springdemo.events.EventsDemoService;
 import com.example.springdemo.aop.AOPDemoService;
+import com.example.springdemo.security.SecurityDemoService;
+import com.example.springdemo.transaction.TransactionDemoService;
+import com.example.springdemo.cache.CacheDemoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -26,6 +29,9 @@ public class SpringDemoRunner implements CommandLineRunner {
     private final LifecycleDemoService lifecycleDemoService;
     private final EventsDemoService eventsDemoService;
     private final AOPDemoService aopDemoService;
+    private final SecurityDemoService securityDemoService;
+    private final TransactionDemoService transactionDemoService;
+    private final CacheDemoService cacheDemoService;
     
     @Override
     public void run(String... args) throws Exception {
@@ -50,6 +56,15 @@ public class SpringDemoRunner implements CommandLineRunner {
             
             // 5. AOP演示
             runAOPDemo();
+            
+            // 6. 安全管理演示
+            runSecurityDemo();
+            
+            // 7. 事务管理演示
+            runTransactionDemo();
+            
+            // 8. 缓存管理演示
+            runCacheDemo();
             
             log.info("\n✅ 所有演示完成！");
             
@@ -91,5 +106,29 @@ public class SpringDemoRunner implements CommandLineRunner {
         log.info("         🎯 AOP演示");
         log.info("=".repeat(50));
         aopDemoService.demonstrateAOP();
+    }
+    
+    private void runSecurityDemo() {
+        log.info("\n" + "=".repeat(50));
+        log.info("         🔒 安全管理演示");
+        log.info("=".repeat(50));
+        securityDemoService.demonstrateSecurity();
+        securityDemoService.showSecurityConfiguration();
+    }
+    
+    private void runTransactionDemo() {
+        log.info("\n" + "=".repeat(50));
+        log.info("         💾 事务管理演示");
+        log.info("=".repeat(50));
+        transactionDemoService.demonstrateTransactions();
+        transactionDemoService.showTransactionConfiguration();
+    }
+    
+    private void runCacheDemo() {
+        log.info("\n" + "=".repeat(50));
+        log.info("         💾 缓存管理演示");
+        log.info("=".repeat(50));
+        cacheDemoService.demonstrateCache();
+        cacheDemoService.showCacheConfiguration();
     }
 }
