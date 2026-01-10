@@ -14,7 +14,11 @@
       "Bash(for pattern in builder command composite decorator facade factory observer prototype proxy state strategy templatemethod)",
       "Bash(do echo \"Creating files for $pattern\")",
       "Bash(touch:*)",
-      "Bash(java:*)"
+      "Bash(java:*)",
+      "Bash(.gradlew.bat:*)",
+      "Bash(./gradlew:*)",
+      "Bash(set:*)",
+      "Bash(export:*)"
     ],
     "deny": []
   }

@@ -9,5 +9,6 @@
   <url>http://maven.apache.org</url>
   <modules>
     <module>Spring</module>
+    <module>kafka</module>
   </modules>
 </project>
