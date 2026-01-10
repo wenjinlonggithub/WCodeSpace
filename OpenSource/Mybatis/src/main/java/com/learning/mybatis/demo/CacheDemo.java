@@ -76,7 +76,7 @@ public class CacheDemo {
             System.out.println("✅ 查询不同用户(ID=2): " + (user3 != null ? user3.getUsername() : "null"));
             
         } catch (Exception e) {
-            System.out.println("一级缓存演示出错", e);
+            //System.out.println("一级缓存演示出错", e);
         }
         
         System.out.println("\n🔍 一级缓存特点:");
@@ -175,7 +175,7 @@ public class CacheDemo {
             System.out.println("🔍 对象相同: " + (user1 == user3) + " (缓存已失效，重新查询)");
             
         } catch (Exception e) {
-            System.out.println("缓存失效演示出错", e);
+            //System.out.println("缓存失效演示出错", e);
         }
         
         System.out.println("\n🔍 缓存失效场景:");

@@ -26,7 +26,7 @@ public class LogTestDemo {
         try {
             throw new RuntimeException("测试异常");
         } catch (Exception e) {
-            System.out.println("捕获到异常", e);
+            //System.out.println("捕获到异常", e);
         }
     }
 }

@@ -115,9 +115,8 @@ public class ResultMapDemo {
             System.out.println("   用户: " + userWithRoles.getUsername());
             
             if (userWithRoles.getRoles() != null && !userWithRoles.getRoles().isEmpty()) {
-                System.out.println("   用户角色(" + ):", userWithRoles.getRoles().size());
+                System.out.println("   用户角色("+ userWithRoles.getRoles().size());
                 userWithRoles.getRoles().forEach(role -> {
-                    System.out.println("     - 角色: " +  (" + )", role.getRoleName(), role.getRoleCode());
                 });
             } else {
                 System.out.println("   无分配角色");
@@ -131,7 +130,6 @@ public class ResultMapDemo {
             System.out.println("   用户: " + userWithOrders.getUsername());
             
             if (userWithOrders.getOrders() != null && !userWithOrders.getOrders().isEmpty()) {
-                System.out.println("   用户订单(" + ):", userWithOrders.getOrders().size());
                 userWithOrders.getOrders().forEach(order -> {
                     // 这里需要先实现Order实体
                     System.out.println("     - 订单: " + order + "");
