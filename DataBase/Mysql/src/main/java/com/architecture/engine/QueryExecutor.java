@@ -279,10 +279,10 @@ public class QueryExecutor {
         private final String indexName;
         private final String tableName;
         private final WhereCondition indexCondition;
-        private final BPlusTree<Object, Map<String, Object>> index;
+        private final BPlusTree<Integer, Map<String, Object>> index;
         
         public IndexScanPlan(String indexName, String tableName, WhereCondition indexCondition,
-                           BPlusTree<Object, Map<String, Object>> index, double cost, long rows) {
+                           BPlusTree<Integer, Map<String, Object>> index, double cost, long rows) {
             super("IndexScan", cost, rows);
             this.indexName = indexName;
             this.tableName = tableName;
@@ -298,7 +298,7 @@ public class QueryExecutor {
             
             if ("=".equals(indexCondition.getOperator())) {
                 // 点查询
-                Map<String, Object> row = index.search(indexCondition.getValue());
+                Map<String, Object> row = index.search((Integer)indexCondition.getValue());
                 if (row != null) {
                     result.add(row);
                 }
@@ -466,7 +466,7 @@ public class QueryExecutor {
             // 检查是否有可用索引
             for (WhereCondition condition : conditions) {
                 if ("=".equals(condition.getOperator())) {
-                    BPlusTree<Object, Map<String, Object>> index = indexManager.getIndex(tableName, condition.getColumn());
+                    BPlusTree<Integer, Map<String, Object>> index = indexManager.getIndex(tableName, condition.getColumn());
                     if (index != null) {
                         // 使用索引扫描
                         double indexCost = calculateIndexScanCost(1); // 假设索引选择性很高
@@ -737,14 +737,14 @@ public class QueryExecutor {
      * 索引管理器
      */
     public static class IndexManager {
-        private final Map<String, BPlusTree<Object, Map<String, Object>>> indexes = new HashMap<>();
+        private final Map<String, BPlusTree<Integer, Map<String, Object>>> indexes = new HashMap<>();
         
         /**
          * 创建索引
          */
         public void createIndex(String tableName, String columnName) {
             String indexKey = tableName + "." + columnName;
-            BPlusTree<Object, Map<String, Object>> index = new BPlusTree<>();
+            BPlusTree<Integer, Map<String, Object>> index = new BPlusTree<>();
             indexes.put(indexKey, index);
             System.out.printf("📇 创建索引: %s%n", indexKey);
         }
@@ -752,7 +752,7 @@ public class QueryExecutor {
         /**
          * 获取索引
          */
-        public BPlusTree<Object, Map<String, Object>> getIndex(String tableName, String columnName) {
+        public BPlusTree<Integer, Map<String, Object>> getIndex(String tableName, String columnName) {
             String indexKey = tableName + "." + columnName;
             return indexes.get(indexKey);
         }

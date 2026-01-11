@@ -23,7 +23,11 @@
       "Bash(mkdir -p mybatissrcmainjavacomlearningmybatis)",
       "Bash(mkdir -p mybatissrcmainresources)",
       "Bash(grep:*)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(rm \"D:\\develop\\20\\WCodeSpace\\DataBase\\Mysql\\src\\main\\java\\com\\architecture\\engine\\IndexScanPlanBuilder.java\")",
+      "Bash(cd \"D:\\develop\\20\\WCodeSpace\\DataBase\\Mysql\")",
+      "Bash(mkdir -p target/classes)",
+      "Bash(javac -cp \".\" -d \"target/classes\" src/main/java/com/architecture/engine/*.java src/main/java/com/architecture/index/*.java src/main/java/com/architecture/example/*.java src/main/java/com/architecture/*.java)"
     ],
     "deny": []
   }

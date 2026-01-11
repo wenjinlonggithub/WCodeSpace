@@ -363,7 +363,7 @@ public class LockManager {
     /**
      * 检查两种锁类型是否兼容
      */
-    private boolean isCompatible(LockType type1, LockType type2) {
+    private static boolean isCompatible(LockType type1, LockType type2) {
         int index1 = type1.ordinal();
         int index2 = type2.ordinal();
         return COMPATIBILITY_MATRIX[index1][index2];

@@ -80,9 +80,9 @@ public class PerformanceTuningDemo {
         
         // 创建不同类型的索引
         BPlusTree<Integer, String> primaryIndex = new BPlusTree<>(4);
-        BPlusTree<String, List<Integer>> nameIndex = new BPlusTree<>(4);
-        BPlusTree<Integer, List<Integer>> ageIndex = new BPlusTree<>(4);
-        BPlusTree<String, List<Integer>> compositeIndex = new BPlusTree<>(4); // (age,name)
+        Map<String, List<Integer>> nameIndex = new HashMap<>();
+        Map<Integer, List<Integer>> ageIndex = new HashMap<>();
+        Map<String, List<Integer>> compositeIndex = new HashMap<>(); // (age,name)
         
         System.out.println("📊 准备测试数据 (10000条记录)...");
         
@@ -100,14 +100,14 @@ public class PerformanceTuningDemo {
             primaryIndex.insert(i, userData);
             
             // 单列索引：姓名
-            //nameIndex.computeIfAbsent(name, k -> new ArrayList<>()).add(i);
+            nameIndex.computeIfAbsent(name, k -> new ArrayList<>()).add(i);
             
             // 单列索引：年龄  
-            //ageIndex.computeIfAbsent(age, k -> new ArrayList<>()).add(i);
+            ageIndex.computeIfAbsent(age, k -> new ArrayList<>()).add(i);
             
             // 复合索引：年龄+姓名
             String compositeKey = age + "_" + name;
-            //compositeIndex.computeIfAbsent(compositeKey, k -> new ArrayList<>()).add(i);
+            compositeIndex.computeIfAbsent(compositeKey, k -> new ArrayList<>()).add(i);
         }
         long insertTime = System.nanoTime() - startTime;
         System.out.printf("✅ 数据插入完成，耗时: %.2fms%n", insertTime / 1_000_000.0);
