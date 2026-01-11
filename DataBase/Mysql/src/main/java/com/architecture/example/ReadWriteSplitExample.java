@@ -6,6 +6,12 @@ import com.zaxxer.hikari.HikariDataSource;
 import javax.sql.DataSource;
 import java.sql.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.CompletableFuture;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 读写分离示例
