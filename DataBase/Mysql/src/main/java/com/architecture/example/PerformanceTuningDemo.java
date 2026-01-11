@@ -160,19 +160,19 @@ public class PerformanceTuningDemo {
     /**
      * 测试单列索引查询性能
      */
-    private void testSingleColumnQuery(BPlusTree<String, List<Integer>> nameIndex, 
-                                     BPlusTree<Integer, List<Integer>> ageIndex) {
+    private void testSingleColumnQuery(Map<String, List<Integer>> nameIndex, 
+                                     Map<Integer, List<Integer>> ageIndex) {
         
         // 名称查询
         long start = System.nanoTime();
-        List<Integer> nameResults = nameIndex.search("User500");
+        List<Integer> nameResults = nameIndex.get("User500");
         long nameTime = System.nanoTime() - start;
         System.out.printf("  姓名查询 'User500': %.2f μs，结果数: %d%n", 
             nameTime / 1000.0, nameResults != null ? nameResults.size() : 0);
         
         // 年龄查询
         start = System.nanoTime();
-        List<Integer> ageResults = ageIndex.search(30);
+        List<Integer> ageResults = ageIndex.get(30);
         long ageQueryTime = System.nanoTime() - start;
         System.out.printf("  年龄查询 '30': %.2f μs，结果数: %d%n", 
             ageQueryTime / 1000.0, ageResults != null ? ageResults.size() : 0);
@@ -181,9 +181,9 @@ public class PerformanceTuningDemo {
     /**
      * 测试复合索引查询性能
      */
-    private void testCompositeIndexQuery(BPlusTree<String, List<Integer>> compositeIndex) {
+    private void testCompositeIndexQuery(Map<String, List<Integer>> compositeIndex) {
         long start = System.nanoTime();
-        List<Integer> compositeResults = compositeIndex.search("30_User500");
+        List<Integer> compositeResults = compositeIndex.get("30_User500");
         long compositeTime = System.nanoTime() - start;
         
         System.out.printf("  复合索引查询 (age=30 AND name='User500'): %.2f μs，结果数: %d%n",
@@ -195,13 +195,13 @@ public class PerformanceTuningDemo {
     /**
      * 测试范围查询性能
      */
-    private void testRangeQuery(BPlusTree<Integer, List<Integer>> ageIndex) {
+    private void testRangeQuery(Map<Integer, List<Integer>> ageIndex) {
         // 模拟范围查询 age BETWEEN 25 AND 35
         long start = System.nanoTime();
         int totalResults = 0;
         
         for (int age = 25; age <= 35; age++) {
-            List<Integer> results = ageIndex.search(age);
+            List<Integer> results = ageIndex.get(age);
             if (results != null) {
                 totalResults += results.size();
             }

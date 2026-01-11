@@ -27,7 +27,10 @@
       "Bash(rm \"D:\\develop\\20\\WCodeSpace\\DataBase\\Mysql\\src\\main\\java\\com\\architecture\\engine\\IndexScanPlanBuilder.java\")",
       "Bash(cd \"D:\\develop\\20\\WCodeSpace\\DataBase\\Mysql\")",
       "Bash(mkdir -p target/classes)",
-      "Bash(javac -cp \".\" -d \"target/classes\" src/main/java/com/architecture/engine/*.java src/main/java/com/architecture/index/*.java src/main/java/com/architecture/example/*.java src/main/java/com/architecture/*.java)"
+      "Bash(javac -cp \".\" -d \"target/classes\" src/main/java/com/architecture/engine/*.java src/main/java/com/architecture/index/*.java src/main/java/com/architecture/example/*.java src/main/java/com/architecture/*.java)",
+      "Bash(rm \"D:\\develop\\20\\WCodeSpace\\DataBase\\Mysql\\src\\main\\java\\com\\architecture\\example\\ReadWriteSplitExample.java\")",
+      "Bash(javac -cp \"src\" src/main/java/com/architecture/*.java src/main/java/com/architecture/engine/*.java src/main/java/com/architecture/index/*.java src/main/java/com/architecture/example/*.java)",
+      "Bash(java -cp \"src\" com.architecture.MySQLArchitectureDemo --help)"
     ],
     "deny": []
   }

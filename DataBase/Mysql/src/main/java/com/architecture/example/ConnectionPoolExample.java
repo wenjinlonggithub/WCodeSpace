@@ -1,21 +1,19 @@
 package com.architecture.example;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-
 import javax.sql.DataSource;
 import java.sql.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.io.PrintWriter;
+import java.util.logging.Logger;
 
 /**
- * 连接池示例
- * 演示：HikariCP连接池配置、多线程并发访问、连接池监控
+ * 简单连接池示例
+ * 演示：数据库连接池的基本原理和实现
  */
 public class ConnectionPoolExample {
     
-    private static HikariDataSource dataSource;
+    private static SimpleDataSource dataSource;
     
     static {
         initializeConnectionPool();
@@ -25,42 +23,12 @@ public class ConnectionPoolExample {
      * 初始化连接池
      */
     private static void initializeConnectionPool() {
-        HikariConfig config = new HikariConfig();
-        
-        // 基本配置
-        config.setJdbcUrl("jdbc:mysql://localhost:3306/test_db?useSSL=false&serverTimezone=UTC&characterEncoding=utf8");
-        config.setUsername("root");
-        config.setPassword("password");
-        config.setDriverClassName("com.mysql.cj.jdbc.Driver");
-        
-        // 连接池配置
-        config.setMaximumPoolSize(20);              // 最大连接数
-        config.setMinimumIdle(5);                   // 最小空闲连接数
-        config.setConnectionTimeout(30000);         // 连接超时时间(毫秒)
-        config.setIdleTimeout(600000);              // 空闲连接超时时间(毫秒)
-        config.setMaxLifetime(1800000);             // 连接最大生存时间(毫秒)
-        config.setLeakDetectionThreshold(60000);    // 连接泄漏检测阈值(毫秒)
-        
-        // 连接测试
-        config.setConnectionTestQuery("SELECT 1");
-        
-        // 连接池名称
-        config.setPoolName("MySQL-Pool");
-        
-        // 性能优化
-        config.addDataSourceProperty("cachePrepStmts", "true");
-        config.addDataSourceProperty("prepStmtCacheSize", "250");
-        config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-        config.addDataSourceProperty("useServerPrepStmts", "true");
-        config.addDataSourceProperty("useLocalSessionState", "true");
-        config.addDataSourceProperty("rewriteBatchedStatements", "true");
-        config.addDataSourceProperty("cacheResultSetMetadata", "true");
-        config.addDataSourceProperty("cacheServerConfiguration", "true");
-        config.addDataSourceProperty("elideSetAutoCommits", "true");
-        config.addDataSourceProperty("maintainTimeStats", "false");
-        
-        dataSource = new HikariDataSource(config);
-        System.out.println("✅ HikariCP连接池初始化完成");
+        dataSource = new SimpleDataSource(
+            "jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1",  // 使用H2内存数据库用于演示
+            "sa", 
+            "", 
+            10  // 最大连接数
+        );
     }
     
     /**
@@ -71,224 +39,634 @@ public class ConnectionPoolExample {
     }
     
     /**
-     * 测试连接池
+     * 简单数据源实现
+     */
+    public static class SimpleDataSource implements DataSource {
+        private final String url;
+        private final String username;
+        private final String password;
+        private final int maxConnections;
+        
+        private final BlockingQueue<Connection> connectionPool;
+        private final AtomicInteger currentConnections = new AtomicInteger(0);
+        
+        public SimpleDataSource(String url, String username, String password, int maxConnections) {
+            this.url = url;
+            this.username = username;
+            this.password = password;
+            this.maxConnections = maxConnections;
+            this.connectionPool = new ArrayBlockingQueue<>(maxConnections);
+            
+            // 初始化连接池
+            initializePool();
+        }
+        
+        private void initializePool() {
+            try {
+                // 预创建一些连接
+                for (int i = 0; i < Math.min(5, maxConnections); i++) {
+                    Connection conn = createNewConnection();
+                    if (conn != null) {
+                        connectionPool.offer(conn);
+                        currentConnections.incrementAndGet();
+                    }
+                }
+                System.out.printf("✅ 连接池初始化完成，预创建 %d 个连接%n", connectionPool.size());
+            } catch (SQLException e) {
+                System.err.println("❌ 连接池初始化失败: " + e.getMessage());
+            }
+        }
+        
+        private Connection createNewConnection() throws SQLException {
+            return DriverManager.getConnection(url, username, password);
+        }
+        
+        @Override
+        public Connection getConnection() throws SQLException {
+            return getConnection(username, password);
+        }
+        
+        @Override
+        public Connection getConnection(String username, String password) throws SQLException {
+            try {
+                // 尝试从池中获取连接
+                Connection conn = connectionPool.poll(5, TimeUnit.SECONDS);
+                
+                if (conn == null) {
+                    // 池中没有可用连接，尝试创建新连接
+                    if (currentConnections.get() < maxConnections) {
+                        conn = createNewConnection();
+                        if (conn != null) {
+                            currentConnections.incrementAndGet();
+                        }
+                    } else {
+                        throw new SQLException("连接池已满，无法获取连接");
+                    }
+                }
+                
+                // 检查连接是否有效
+                if (conn != null && conn.isClosed()) {
+                    currentConnections.decrementAndGet();
+                    return getConnection(username, password); // 递归重试
+                }
+                
+                return new PooledConnection(conn, this);
+                
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new SQLException("获取连接时被中断", e);
+            }
+        }
+        
+        /**
+         * 归还连接到池中
+         */
+        void returnConnection(Connection connection) {
+            try {
+                if (connection != null && !connection.isClosed()) {
+                    // 重置连接状态
+                    if (!connection.getAutoCommit()) {
+                        connection.rollback();
+                        connection.setAutoCommit(true);
+                    }
+                    
+                    // 归还到池中
+                    if (!connectionPool.offer(connection)) {
+                        // 池已满，关闭连接
+                        connection.close();
+                        currentConnections.decrementAndGet();
+                    }
+                } else {
+                    currentConnections.decrementAndGet();
+                }
+            } catch (SQLException e) {
+                System.err.println("❌ 归还连接失败: " + e.getMessage());
+                currentConnections.decrementAndGet();
+            }
+        }
+        
+        public int getActiveConnections() {
+            return currentConnections.get();
+        }
+        
+        public int getIdleConnections() {
+            return connectionPool.size();
+        }
+        
+        // DataSource接口的其他方法实现
+        @Override
+        public PrintWriter getLogWriter() throws SQLException {
+            return null;
+        }
+        
+        @Override
+        public void setLogWriter(PrintWriter out) throws SQLException {
+        }
+        
+        @Override
+        public void setLoginTimeout(int seconds) throws SQLException {
+        }
+        
+        @Override
+        public int getLoginTimeout() throws SQLException {
+            return 0;
+        }
+        
+        @Override
+        public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+            throw new SQLFeatureNotSupportedException();
+        }
+        
+        @Override
+        public <T> T unwrap(Class<T> iface) throws SQLException {
+            throw new SQLException("不支持unwrap操作");
+        }
+        
+        @Override
+        public boolean isWrapperFor(Class<?> iface) throws SQLException {
+            return false;
+        }
+    }
+    
+    /**
+     * 池化连接包装器
+     */
+    static class PooledConnection implements Connection {
+        private final Connection delegate;
+        private final SimpleDataSource dataSource;
+        private boolean closed = false;
+        
+        public PooledConnection(Connection delegate, SimpleDataSource dataSource) {
+            this.delegate = delegate;
+            this.dataSource = dataSource;
+        }
+        
+        @Override
+        public void close() throws SQLException {
+            if (!closed) {
+                closed = true;
+                dataSource.returnConnection(delegate);
+            }
+        }
+        
+        @Override
+        public boolean isClosed() throws SQLException {
+            return closed || delegate.isClosed();
+        }
+        
+        // 委托所有其他方法到实际连接
+        @Override
+        public Statement createStatement() throws SQLException {
+            checkClosed();
+            return delegate.createStatement();
+        }
+        
+        @Override
+        public PreparedStatement prepareStatement(String sql) throws SQLException {
+            checkClosed();
+            return delegate.prepareStatement(sql);
+        }
+        
+        @Override
+        public CallableStatement prepareCall(String sql) throws SQLException {
+            checkClosed();
+            return delegate.prepareCall(sql);
+        }
+        
+        @Override
+        public String nativeSQL(String sql) throws SQLException {
+            checkClosed();
+            return delegate.nativeSQL(sql);
+        }
+        
+        @Override
+        public void setAutoCommit(boolean autoCommit) throws SQLException {
+            checkClosed();
+            delegate.setAutoCommit(autoCommit);
+        }
+        
+        @Override
+        public boolean getAutoCommit() throws SQLException {
+            checkClosed();
+            return delegate.getAutoCommit();
+        }
+        
+        @Override
+        public void commit() throws SQLException {
+            checkClosed();
+            delegate.commit();
+        }
+        
+        @Override
+        public void rollback() throws SQLException {
+            checkClosed();
+            delegate.rollback();
+        }
+        
+        @Override
+        public DatabaseMetaData getMetaData() throws SQLException {
+            checkClosed();
+            return delegate.getMetaData();
+        }
+        
+        @Override
+        public void setReadOnly(boolean readOnly) throws SQLException {
+            checkClosed();
+            delegate.setReadOnly(readOnly);
+        }
+        
+        @Override
+        public boolean isReadOnly() throws SQLException {
+            checkClosed();
+            return delegate.isReadOnly();
+        }
+        
+        @Override
+        public void setCatalog(String catalog) throws SQLException {
+            checkClosed();
+            delegate.setCatalog(catalog);
+        }
+        
+        @Override
+        public String getCatalog() throws SQLException {
+            checkClosed();
+            return delegate.getCatalog();
+        }
+        
+        @Override
+        public void setTransactionIsolation(int level) throws SQLException {
+            checkClosed();
+            delegate.setTransactionIsolation(level);
+        }
+        
+        @Override
+        public int getTransactionIsolation() throws SQLException {
+            checkClosed();
+            return delegate.getTransactionIsolation();
+        }
+        
+        @Override
+        public SQLWarning getWarnings() throws SQLException {
+            checkClosed();
+            return delegate.getWarnings();
+        }
+        
+        @Override
+        public void clearWarnings() throws SQLException {
+            checkClosed();
+            delegate.clearWarnings();
+        }
+        
+        @Override
+        public Statement createStatement(int resultSetType, int resultSetConcurrency) throws SQLException {
+            checkClosed();
+            return delegate.createStatement(resultSetType, resultSetConcurrency);
+        }
+        
+        @Override
+        public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency) throws SQLException {
+            checkClosed();
+            return delegate.prepareStatement(sql, resultSetType, resultSetConcurrency);
+        }
+        
+        @Override
+        public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency) throws SQLException {
+            checkClosed();
+            return delegate.prepareCall(sql, resultSetType, resultSetConcurrency);
+        }
+        
+        @Override
+        public java.util.Map<String, Class<?>> getTypeMap() throws SQLException {
+            checkClosed();
+            return delegate.getTypeMap();
+        }
+        
+        @Override
+        public void setTypeMap(java.util.Map<String, Class<?>> map) throws SQLException {
+            checkClosed();
+            delegate.setTypeMap(map);
+        }
+        
+        @Override
+        public void setHoldability(int holdability) throws SQLException {
+            checkClosed();
+            delegate.setHoldability(holdability);
+        }
+        
+        @Override
+        public int getHoldability() throws SQLException {
+            checkClosed();
+            return delegate.getHoldability();
+        }
+        
+        @Override
+        public Savepoint setSavepoint() throws SQLException {
+            checkClosed();
+            return delegate.setSavepoint();
+        }
+        
+        @Override
+        public Savepoint setSavepoint(String name) throws SQLException {
+            checkClosed();
+            return delegate.setSavepoint(name);
+        }
+        
+        @Override
+        public void rollback(Savepoint savepoint) throws SQLException {
+            checkClosed();
+            delegate.rollback(savepoint);
+        }
+        
+        @Override
+        public void releaseSavepoint(Savepoint savepoint) throws SQLException {
+            checkClosed();
+            delegate.releaseSavepoint(savepoint);
+        }
+        
+        @Override
+        public Statement createStatement(int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException {
+            checkClosed();
+            return delegate.createStatement(resultSetType, resultSetConcurrency, resultSetHoldability);
+        }
+        
+        @Override
+        public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException {
+            checkClosed();
+            return delegate.prepareStatement(sql, resultSetType, resultSetConcurrency, resultSetHoldability);
+        }
+        
+        @Override
+        public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException {
+            checkClosed();
+            return delegate.prepareCall(sql, resultSetType, resultSetConcurrency, resultSetHoldability);
+        }
+        
+        @Override
+        public PreparedStatement prepareStatement(String sql, int autoGeneratedKeys) throws SQLException {
+            checkClosed();
+            return delegate.prepareStatement(sql, autoGeneratedKeys);
+        }
+        
+        @Override
+        public PreparedStatement prepareStatement(String sql, int[] columnIndexes) throws SQLException {
+            checkClosed();
+            return delegate.prepareStatement(sql, columnIndexes);
+        }
+        
+        @Override
+        public PreparedStatement prepareStatement(String sql, String[] columnNames) throws SQLException {
+            checkClosed();
+            return delegate.prepareStatement(sql, columnNames);
+        }
+        
+        @Override
+        public Clob createClob() throws SQLException {
+            checkClosed();
+            return delegate.createClob();
+        }
+        
+        @Override
+        public Blob createBlob() throws SQLException {
+            checkClosed();
+            return delegate.createBlob();
+        }
+        
+        @Override
+        public NClob createNClob() throws SQLException {
+            checkClosed();
+            return delegate.createNClob();
+        }
+        
+        @Override
+        public SQLXML createSQLXML() throws SQLException {
+            checkClosed();
+            return delegate.createSQLXML();
+        }
+        
+        @Override
+        public boolean isValid(int timeout) throws SQLException {
+            if (closed) return false;
+            return delegate.isValid(timeout);
+        }
+        
+        @Override
+        public void setClientInfo(String name, String value) throws SQLClientInfoException {
+            try {
+                checkClosed();
+                delegate.setClientInfo(name, value);
+            } catch (SQLException e) {
+                throw new SQLClientInfoException();
+            }
+        }
+        
+        @Override
+        public void setClientInfo(java.util.Properties properties) throws SQLClientInfoException {
+            try {
+                checkClosed();
+                delegate.setClientInfo(properties);
+            } catch (SQLException e) {
+                throw new SQLClientInfoException();
+            }
+        }
+        
+        @Override
+        public String getClientInfo(String name) throws SQLException {
+            checkClosed();
+            return delegate.getClientInfo(name);
+        }
+        
+        @Override
+        public java.util.Properties getClientInfo() throws SQLException {
+            checkClosed();
+            return delegate.getClientInfo();
+        }
+        
+        @Override
+        public Array createArrayOf(String typeName, Object[] elements) throws SQLException {
+            checkClosed();
+            return delegate.createArrayOf(typeName, elements);
+        }
+        
+        @Override
+        public Struct createStruct(String typeName, Object[] attributes) throws SQLException {
+            checkClosed();
+            return delegate.createStruct(typeName, attributes);
+        }
+        
+        @Override
+        public void setSchema(String schema) throws SQLException {
+            checkClosed();
+            delegate.setSchema(schema);
+        }
+        
+        @Override
+        public String getSchema() throws SQLException {
+            checkClosed();
+            return delegate.getSchema();
+        }
+        
+        @Override
+        public void abort(Executor executor) throws SQLException {
+            checkClosed();
+            delegate.abort(executor);
+        }
+        
+        @Override
+        public void setNetworkTimeout(Executor executor, int milliseconds) throws SQLException {
+            checkClosed();
+            delegate.setNetworkTimeout(executor, milliseconds);
+        }
+        
+        @Override
+        public int getNetworkTimeout() throws SQLException {
+            checkClosed();
+            return delegate.getNetworkTimeout();
+        }
+        
+        @Override
+        public <T> T unwrap(Class<T> iface) throws SQLException {
+            checkClosed();
+            return delegate.unwrap(iface);
+        }
+        
+        @Override
+        public boolean isWrapperFor(Class<?> iface) throws SQLException {
+            checkClosed();
+            return delegate.isWrapperFor(iface);
+        }
+        
+        private void checkClosed() throws SQLException {
+            if (closed) {
+                throw new SQLException("连接已关闭");
+            }
+        }
+    }
+    
+    /**
+     * 测试连接池功能
      */
     public static void testConnectionPool() {
+        System.out.println("🚀 连接池功能测试");
+        System.out.println("=".repeat(50));
+        
         try {
-            // 1. 测试基本连接获取
+            // 初始化数据库
+            initializeDatabase();
+            
+            // 测试基本连接功能
             testBasicConnection();
             
-            // 2. 测试并发访问
-            testConcurrentAccess();
+            // 测试并发连接
+            testConcurrentConnections();
             
-            // 3. 监控连接池状态
-            monitorConnectionPool();
+            // 显示连接池状态
+            showPoolStatus();
             
         } catch (Exception e) {
             System.err.println("❌ 连接池测试失败: " + e.getMessage());
+            e.printStackTrace();
         }
     }
     
-    /**
-     * 测试基本连接获取
-     */
+    private static void initializeDatabase() throws SQLException {
+        try (Connection conn = dataSource.getConnection();
+             Statement stmt = conn.createStatement()) {
+            
+            // 创建测试表
+            stmt.execute("CREATE TABLE IF NOT EXISTS test_users (" +
+                "id INT PRIMARY KEY AUTO_INCREMENT, " +
+                "name VARCHAR(100), " +
+                "email VARCHAR(100))");
+            
+            System.out.println("✅ 数据库初始化完成");
+        }
+    }
+    
     private static void testBasicConnection() throws SQLException {
-        try (Connection connection = dataSource.getConnection()) {
-            System.out.println("✅ 从连接池获取连接成功");
+        System.out.println("\n📋 基本连接测试:");
+        
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(
+                 "INSERT INTO test_users (name, email) VALUES (?, ?)")) {
             
-            // 执行简单查询测试连接有效性
-            try (PreparedStatement pstmt = connection.prepareStatement("SELECT 1 as test");
-                 ResultSet rs = pstmt.executeQuery()) {
-                
-                if (rs.next()) {
-                    System.out.println("✅ 连接有效性测试通过: " + rs.getInt("test"));
-                }
+            pstmt.setString(1, "测试用户");
+            pstmt.setString(2, "test@example.com");
+            int result = pstmt.executeUpdate();
+            
+            System.out.printf("  插入记录: %d 行%n", result);
+        }
+        
+        try (Connection conn = dataSource.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM test_users")) {
+            
+            if (rs.next()) {
+                System.out.printf("  总记录数: %d%n", rs.getInt(1));
             }
         }
     }
     
-    /**
-     * 测试并发访问
-     */
-    private static void testConcurrentAccess() {
-        System.out.println("🔄 开始并发访问测试...");
+    private static void testConcurrentConnections() throws InterruptedException {
+        System.out.println("\n🔀 并发连接测试:");
         
-        ExecutorService executor = Executors.newFixedThreadPool(10);
+        int threadCount = 15;
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch latch = new CountDownLatch(threadCount);
         
-        // 提交20个并发任务
-        for (int i = 0; i < 20; i++) {
-            final int taskId = i + 1;
+        long startTime = System.currentTimeMillis();
+        
+        for (int i = 0; i < threadCount; i++) {
+            final int threadId = i;
             executor.submit(() -> {
                 try {
-                    performDatabaseOperation(taskId);
-                } catch (SQLException e) {
-                    System.err.println("❌ 任务" + taskId + "执行失败: " + e.getMessage());
+                    testThreadConnection(threadId);
+                } finally {
+                    latch.countDown();
                 }
             });
         }
         
+        latch.await();
+        long endTime = System.currentTimeMillis();
+        
+        System.out.printf("  %d 个线程并发测试完成，耗时: %d ms%n", threadCount, endTime - startTime);
+        
         executor.shutdown();
-        try {
-            if (executor.awaitTermination(30, TimeUnit.SECONDS)) {
-                System.out.println("✅ 所有并发任务执行完成");
-            } else {
-                System.out.println("⚠️ 部分任务执行超时");
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            System.err.println("❌ 并发测试被中断");
-        }
+        executor.awaitTermination(30, TimeUnit.SECONDS);
     }
     
-    /**
-     * 执行数据库操作
-     */
-    private static void performDatabaseOperation(int taskId) throws SQLException {
-        long startTime = System.currentTimeMillis();
-        
-        try (Connection connection = dataSource.getConnection()) {
+    private static void testThreadConnection(int threadId) {
+        try (Connection conn = dataSource.getConnection()) {
             // 模拟数据库操作
-            String sql = "SELECT SLEEP(0.1), ? as task_id, CONNECTION_ID() as conn_id";
+            Thread.sleep(100);
             
-            try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-                pstmt.setInt(1, taskId);
-                
-                try (ResultSet rs = pstmt.executeQuery()) {
-                    if (rs.next()) {
-                        long endTime = System.currentTimeMillis();
-                        System.out.printf("✅ 任务%d完成 - 连接ID: %d, 耗时: %dms%n", 
-                            taskId, rs.getLong("conn_id"), endTime - startTime);
-                    }
-                }
+            try (PreparedStatement pstmt = conn.prepareStatement(
+                    "INSERT INTO test_users (name, email) VALUES (?, ?)")) {
+                pstmt.setString(1, "用户" + threadId);
+                pstmt.setString(2, "user" + threadId + "@example.com");
+                pstmt.executeUpdate();
             }
-        }
-    }
-    
-    /**
-     * 监控连接池状态
-     */
-    private static void monitorConnectionPool() {
-        if (dataSource != null) {
-            System.out.println("\n📊 连接池状态监控:");
-            System.out.println("活跃连接数: " + dataSource.getHikariPoolMXBean().getActiveConnections());
-            System.out.println("空闲连接数: " + dataSource.getHikariPoolMXBean().getIdleConnections());
-            System.out.println("总连接数: " + dataSource.getHikariPoolMXBean().getTotalConnections());
-            System.out.println("等待连接的线程数: " + dataSource.getHikariPoolMXBean().getThreadsAwaitingConnection());
-            System.out.println("连接池配置:");
-            System.out.println("  最大连接数: " + dataSource.getMaximumPoolSize());
-            System.out.println("  最小空闲连接数: " + dataSource.getMinimumIdle());
-            System.out.println("  连接超时时间: " + dataSource.getConnectionTimeout() + "ms");
-            System.out.println("  空闲超时时间: " + dataSource.getIdleTimeout() + "ms");
-        }
-    }
-    
-    /**
-     * 演示连接池优化策略
-     */
-    public static void demonstrateOptimization() {
-        System.out.println("\n🔧 连接池优化建议:");
-        System.out.println("1. 根据应用并发量设置合适的最大连接数");
-        System.out.println("   - 经验公式: max_connections = CPU核数 × 2 + 磁盘数");
-        System.out.println("   - 考虑数据库服务器的最大连接数限制");
-        
-        System.out.println("\n2. 设置合适的空闲连接数");
-        System.out.println("   - minimum_idle建议设置为max_connections的25%-50%");
-        System.out.println("   - 避免频繁的连接创建和销毁");
-        
-        System.out.println("\n3. 配置连接超时和生存时间");
-        System.out.println("   - connection_timeout: 30秒（避免长时间等待）");
-        System.out.println("   - idle_timeout: 10分钟（释放长时间空闲连接）");
-        System.out.println("   - max_lifetime: 30分钟（防止连接过期）");
-        
-        System.out.println("\n4. 启用PreparedStatement缓存");
-        System.out.println("   - cachePrepStmts=true");
-        System.out.println("   - prepStmtCacheSize=250");
-        System.out.println("   - prepStmtCacheSqlLimit=2048");
-        
-        System.out.println("\n5. 监控和调试");
-        System.out.println("   - 启用连接泄漏检测：leakDetectionThreshold");
-        System.out.println("   - 监控连接池指标：活跃连接、等待线程数等");
-        System.out.println("   - 定期检查慢查询和连接异常");
-    }
-    
-    /**
-     * 关闭连接池
-     */
-    public static void shutdown() {
-        if (dataSource != null) {
-            dataSource.close();
-            System.out.println("✅ 连接池已关闭");
-        }
-    }
-    
-    /**
-     * 演示连接池压力测试
-     */
-    public static void stressTest() {
-        System.out.println("\n🧪 连接池压力测试开始...");
-        
-        ExecutorService executor = Executors.newFixedThreadPool(50);
-        final int totalTasks = 100;
-        long startTime = System.currentTimeMillis();
-        
-        for (int i = 0; i < totalTasks; i++) {
-            final int taskId = i + 1;
-            executor.submit(() -> {
-                try {
-                    // 模拟重负载数据库操作
-                    heavyDatabaseOperation(taskId);
-                } catch (Exception e) {
-                    System.err.println("❌ 压力测试任务" + taskId + "失败: " + e.getMessage());
-                }
-            });
-        }
-        
-        executor.shutdown();
-        try {
-            if (executor.awaitTermination(60, TimeUnit.SECONDS)) {
-                long endTime = System.currentTimeMillis();
-                System.out.println("✅ 压力测试完成，总耗时: " + (endTime - startTime) + "ms");
-                System.out.println("平均每个任务耗时: " + (endTime - startTime) / totalTasks + "ms");
-            } else {
-                System.out.println("⚠️ 压力测试超时");
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-        
-        // 最终监控状态
-        monitorConnectionPool();
-    }
-    
-    /**
-     * 重负载数据库操作
-     */
-    private static void heavyDatabaseOperation(int taskId) throws SQLException {
-        try (Connection connection = dataSource.getConnection()) {
-            // 模拟复杂查询
-            String sql = """
-                SELECT 
-                    ? as task_id,
-                    CONNECTION_ID() as conn_id,
-                    COUNT(*) as count,
-                    AVG(LENGTH(?)) as avg_length
-                FROM information_schema.columns 
-                WHERE table_schema = 'information_schema'
-                """;
             
-            try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-                pstmt.setInt(1, taskId);
-                pstmt.setString(2, "test_string_" + taskId);
-                
-                try (ResultSet rs = pstmt.executeQuery()) {
-                    if (rs.next()) {
-                        if (taskId % 10 == 0) { // 每10个任务打印一次进度
-                            System.out.printf("🔄 任务%d完成，连接ID: %d%n", 
-                                taskId, rs.getLong("conn_id"));
-                        }
-                    }
-                }
-            }
+            System.out.printf("    线程 %d: 操作完成%n", threadId);
+            
+        } catch (Exception e) {
+            System.err.printf("    线程 %d: 操作失败 - %s%n", threadId, e.getMessage());
         }
+    }
+    
+    private static void showPoolStatus() {
+        if (dataSource instanceof SimpleDataSource) {
+            SimpleDataSource sds = (SimpleDataSource) dataSource;
+            System.out.println("\n📊 连接池状态:");
+            System.out.printf("  活跃连接: %d%n", sds.getActiveConnections());
+            System.out.printf("  空闲连接: %d%n", sds.getIdleConnections());
+        }
+    }
+    
+    /**
+     * 主测试方法
+     */
+    public static void main(String[] args) {
+        testConnectionPool();
     }
 }
