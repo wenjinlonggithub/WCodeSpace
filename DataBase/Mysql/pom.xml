@@ -86,12 +86,11 @@
             <scope>test</scope>
         </dependency>
         
-        <!-- 内嵌H2数据库用于测试 -->
+        <!-- 内嵌H2数据库用于测试和演示 -->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <version>2.2.220</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 

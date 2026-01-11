@@ -14,7 +14,10 @@ public class IndexOptimizationExample {
     
     private static final DataSource dataSource = ConnectionPoolExample.getDataSource();
     private static final Random random = new Random();
-    
+
+    public static void main(String[] args) {
+        demonstrateIndexUsage();
+    }
     /**
      * 演示索引使用
      */
@@ -94,9 +97,9 @@ public class IndexOptimizationExample {
                     city VARCHAR(50),
                     age INT,
                     registration_date DATE,
-                    status ENUM('active', 'inactive') DEFAULT 'active',
+                    status VARCHAR(20) DEFAULT 'active',
                     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+                )
                 """;
             
             // 创建商品表
@@ -107,10 +110,10 @@ public class IndexOptimizationExample {
                     category VARCHAR(50),
                     price DECIMAL(10,2),
                     stock_quantity INT DEFAULT 0,
-                    description TEXT,
+                    description CLOB,
                     brand VARCHAR(100),
                     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+                )
                 """;
             
             // 创建订单表
@@ -125,7 +128,7 @@ public class IndexOptimizationExample {
                     order_date DATE,
                     status VARCHAR(20) DEFAULT 'pending',
                     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+                )
                 """;
             
             stmt.execute(createCustomersSql);
@@ -180,7 +183,7 @@ public class IndexOptimizationExample {
                 pstmt.setString(3, "1" + String.format("%010d", i));
                 pstmt.setString(4, cities[random.nextInt(cities.length)]);
                 pstmt.setInt(5, 18 + random.nextInt(50));
-                pstmt.setDate(6, new Date(System.currentTimeMillis() - random.nextInt((int) (365 * 24 * 3600 * 1000L))));
+                pstmt.setDate(6, new Date(System.currentTimeMillis() - (long) random.nextInt(365) * 24 * 3600 * 1000));
                 
                 pstmt.addBatch();
                 
@@ -242,7 +245,7 @@ public class IndexOptimizationExample {
                 pstmt.setInt(3, quantity);
                 pstmt.setBigDecimal(4, unitPrice);
                 pstmt.setBigDecimal(5, totalAmount);
-                pstmt.setDate(6, new Date(System.currentTimeMillis() - random.nextInt((int) (90 * 24 * 3600 * 1000L))));
+                pstmt.setDate(6, new Date(System.currentTimeMillis() - (long) random.nextInt(90) * 24 * 3600 * 1000));
                 pstmt.setString(7, statuses[random.nextInt(statuses.length)]);
                 
                 pstmt.addBatch();

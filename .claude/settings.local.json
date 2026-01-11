@@ -32,7 +32,11 @@
       "Bash(javac -cp \"src\" src/main/java/com/architecture/*.java src/main/java/com/architecture/engine/*.java src/main/java/com/architecture/index/*.java src/main/java/com/architecture/example/*.java)",
       "Bash(java -cp \"src\" com.architecture.MySQLArchitectureDemo --help)",
       "Bash(java -cp \"src/main/java\" com.architecture.MySQLArchitectureDemo --version)",
-      "Bash(cd \"D:\\develop\\20\\WCodeSpace\")"
+      "Bash(cd \"D:\\develop\\20\\WCodeSpace\")",
+      "Bash(mvn clean compile exec:java -Dexec.mainClass=\"com.architecture.example.IndexOptimizationExample\")",
+      "Bash(where mvn)",
+      "Bash(javac -cp \"target/classes;C:\\Users\\EDY\\.m2\\repository\\com\\h2database\\h2\\2.2.220\\h2-2.2.220.jar\" src/main/java/com/architecture/example/*.java -d target/classes)",
+      "Bash(java -cp \"target/classes;C:\\Users\\EDY\\.m2\\repository\\com\\h2database\\h2\\2.2.220\\h2-2.2.220.jar;C:\\Users\\EDY\\.m2\\repository\\com\\mysql\\mysql-connector-j\\8.0.33\\mysql-connector-j-8.0.33.jar;C:\\Users\\EDY\\.m2\\repository\\com\\zaxxer\\HikariCP\\5.0.1\\HikariCP-5.0.1.jar;C:\\Users\\EDY\\.m2\\repository\\org\\slf4j\\slf4j-api\\2.0.0-alpha1\\slf4j-api-2.0.0-alpha1.jar;C:\\Users\\EDY\\.m2\\repository\\org\\mybatis\\mybatis\\3.5.13\\mybatis-3.5.13.jar;C:\\Users\\EDY\\.m2\\repository\\com\\alibaba\\fastjson2\\fastjson2\\2.0.40\\fastjson2-2.0.40.jar;C:\\Users\\EDY\\.m2\\repository\\ch\\qos\\logback\\logback-classic\\1.4.8\\logback-classic-1.4.8.jar;C:\\Users\\EDY\\.m2\\repository\\ch\\qos\\logback\\logback-core\\1.4.8\\logback-core-1.4.8.jar\" com.architecture.example.IndexOptimizationExample)"
     ],
     "deny": []
   }
