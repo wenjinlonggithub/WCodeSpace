@@ -41,7 +41,10 @@
       "Bash(java -cp \"target/classes;C:\\Users\\EDY\\.m2\\repository\\*\" com.architecture.example.IndexOptimizationExample)",
       "Bash(java -cp \"target/classes;C:\\Users\\EDY\\.m2\\repository\\com\\h2database\\h2\\2.2.220\\h2-2.2.220.jar;C:\\Users\\EDY\\.m2\\repository\\com\\zaxxer\\HikariCP\\5.0.1\\HikariCP-5.0.1.jar;C:\\Users\\EDY\\.m2\\repository\\org\\slf4j\\slf4j-api\\2.0.0-alpha1\\slf4j-api-2.0.0-alpha1.jar;C:\\Users\\EDY\\.m2\\repository\\ch\\qos\\logback\\logback-classic\\1.4.8\\logback-classic-1.4.8.jar;C:\\Users\\EDY\\.m2\\repository\\ch\\qos\\logback\\logback-core\\1.4.8\\logback-core-1.4.8.jar\" com.architecture.example.IndexOptimizationExample)",
       "Bash(javac -cp \"C:\\Users\\EDY\\.m2\\repository\\com\\h2database\\h2\\2.2.220\\h2-2.2.220.jar;C:\\Users\\EDY\\.m2\\repository\\com\\zaxxer\\HikariCP\\5.0.1\\HikariCP-5.0.1.jar;C:\\Users\\EDY\\.m2\\repository\\org\\slf4j\\slf4j-api\\2.0.0-alpha1\\slf4j-api-2.0.0-alpha1.jar;C:\\Users\\EDY\\.m2\\repository\\ch\\qos\\logback\\logback-classic\\1.4.8\\logback-classic-1.4.8.jar;C:\\Users\\EDY\\.m2\\repository\\ch\\qos\\logback\\logback-core\\1.4.8\\logback-core-1.4.8.jar\" -d target/classes src/main/java/com/architecture/example/IndexOptimizationExample.java)",
-      "Bash(rm -rf target/classes/com/architecture/example/IndexOptimizationExample.class)"
+      "Bash(rm -rf target/classes/com/architecture/example/IndexOptimizationExample.class)",
+      "Bash(find D:develop20WCodeSpace -type d -name \"target\" -exec rm -rf {} +)",
+      "Bash(true)",
+      "Bash(find \"D:\\develop\\20\\WCodeSpace\" -name \"*.class\" -type f -delete)"
     ],
     "deny": []
   }

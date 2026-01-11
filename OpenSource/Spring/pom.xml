@@ -14,9 +14,9 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spring.boot.version>3.4.2</spring.boot.version>
-        <spring.version>6.2.2</spring.version>
-        <spring.cloud.version>2024.0.0</spring.cloud.version>
+        <spring.boot.version>3.4.3</spring.boot.version>
+        <spring.version>6.2.3</spring.version>
+        <spring.cloud.version>2025.0.0</spring.cloud.version>
     </properties>
 
     <dependencyManagement>

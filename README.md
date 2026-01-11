@@ -3,7 +3,7 @@
 <div align="center">
 
 ![Java](https://img.shields.io/badge/Java-21+-ED8B00?style=for-the-badge&logo=java&logoColor=white)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.2-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.3-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
 ![Maven](https://img.shields.io/badge/Maven-C71A36?style=for-the-badge&logo=apache-maven&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
@@ -181,7 +181,7 @@ public class ModernSpringDemoApplication {
 
 ### 后端技术
 - **语言**: Java 21, Python, Go
-- **框架**: Spring Boot 3.x, Spring Cloud 2024.x
+- **框架**: Spring Boot 3.4.x, Spring Cloud 2025.x
 - **数据库**: MySQL 8.0, Redis, MongoDB, PostgreSQL
 - **中间件**: Kafka, RabbitMQ, Elasticsearch
 - **容器化**: Docker, Kubernetes
@@ -280,7 +280,7 @@ graph LR
 # Java 开发环境
 - JDK 21+
 - Maven 3.9+
-- Spring Boot 3.4.2+
+- Spring Boot 3.4.3+
 
 # 推荐 IDE
 - IntelliJ IDEA 2024.x
@@ -337,7 +337,7 @@ java -cp target/classes com.example.springdemo.ModernSpringDemoApplication
 
 ## 📊 技术趋势洞察
 
-### 🔮 2026年技术规划
+### 🔮 2026年技术规划与AI集成
 根据项目中的技术规划图，我们重点关注：
 
 #### 🤖 AI技术整合
@@ -530,6 +530,6 @@ Permission is hereby granted, free of charge, to any person obtaining a copy...
 
 ---
 
-*最后更新: 2025年1月*
+*最后更新: 2026年1月11日*
 
 </div>
