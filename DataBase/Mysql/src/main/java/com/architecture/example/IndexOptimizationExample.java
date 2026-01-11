@@ -15,8 +15,11 @@ public class IndexOptimizationExample {
     private static final DataSource dataSource = ConnectionPoolExample.getDataSource();
     private static final Random random = new Random();
 
-    public static void main(String[] args) {
-        demonstrateIndexUsage();
+    public static void main(String[] args) throws SQLException {
+        //demonstrateIndexUsage();
+        setupTestData();
+        testQueryWithoutIndex();
+        createIndexesAndTest();
     }
     /**
      * 演示索引使用
@@ -152,13 +155,13 @@ public class IndexOptimizationExample {
         
         try {
             // 插入客户数据
-            insertCustomers(conn, 10000);
+            insertCustomers(conn, 100000);
             
             // 插入商品数据
-            insertProducts(conn, 1000);
+            insertProducts(conn, 100000);
             
             // 插入订单数据
-            insertOrders(conn, 50000);
+            insertOrders(conn, 500000);
             
             conn.commit();
             System.out.println("✅ 测试数据插入完成");
