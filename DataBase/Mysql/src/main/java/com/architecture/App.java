@@ -30,9 +30,9 @@ public class App {
             System.out.println("\n5. 批量操作示例:");
             BatchOperationExample.testBatchOperations();
             
-            // 6. 读写分离示例
-            System.out.println("\n6. 读写分离示例:");
-            ReadWriteSplitExample.demonstrateReadWriteSplit();
+            // 6. MySQL核心概念演示
+            System.out.println("\n6. MySQL核心概念演示:");
+            MySQLConceptsDemo.demonstrateAllConcepts();
             
             System.out.println("\n====== 所有示例执行完成 ======");
             
