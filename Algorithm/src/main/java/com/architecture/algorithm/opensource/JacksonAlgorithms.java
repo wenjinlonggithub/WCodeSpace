@@ -387,13 +387,27 @@ public class JacksonAlgorithms {
             // 简化处理，只处理基本字段
             if (obj instanceof Person) {
                 Person person = (Person) obj;
-                sb.append("\"name\":\"").append(person.getName()).append("\",");
-                sb.append("\"age\":").append(person.getAge()).append(",");
-                sb.append("\"email\":\"").append(person.getEmail()).append("\",");
-                sb.append("\"skills\":");
-                serializeList(person.getSkills(), sb);
+                List<String> parts = new ArrayList<>();
+                parts.add("\"name\":\"" + person.getName() + "\"");
+                parts.add("\"age\":" + person.getAge());
+                parts.add("\"email\":\"" + person.getEmail() + "\"");
+                
+                StringBuilder skillsSb = new StringBuilder();
+                skillsSb.append("[");
+                if (person.getSkills() != null) {
+                    for (int i = 0; i < person.getSkills().size(); i++) {
+                        if (i > 0) skillsSb.append(",");
+                        skillsSb.append("\"").append(person.getSkills().get(i)).append("\"");
+                    }
+                }
+                skillsSb.append("]");
+                parts.add("\"skills\":" + skillsSb.toString());
+                
+                for (int i = 0; i < parts.size(); i++) {
+                    if (i > 0) sb.append(",");
+                    sb.append(parts.get(i));
+                }
             }
-            sb.setLength(sb.length() - 1); // 移除最后的逗号
             sb.append("}");
         }
         
