@@ -160,7 +160,7 @@ public class IndexOptimizationExample {
                 pstmt.setString(3, "1" + String.format("%010d", i));
                 pstmt.setString(4, cities[random.nextInt(cities.length)]);
                 pstmt.setInt(5, 18 + random.nextInt(50));
-                pstmt.setDate(6, new Date(System.currentTimeMillis() - random.nextInt(365 * 24 * 3600 * 1000L)));
+                pstmt.setDate(6, new Date(System.currentTimeMillis() - random.nextInt((int) (365 * 24 * 3600 * 1000L))));
                 
                 pstmt.addBatch();
                 
@@ -222,7 +222,7 @@ public class IndexOptimizationExample {
                 pstmt.setInt(3, quantity);
                 pstmt.setBigDecimal(4, unitPrice);
                 pstmt.setBigDecimal(5, totalAmount);
-                pstmt.setDate(6, new Date(System.currentTimeMillis() - random.nextInt(90 * 24 * 3600 * 1000L)));
+                pstmt.setDate(6, new Date(System.currentTimeMillis() - random.nextInt((int) (90 * 24 * 3600 * 1000L))));
                 pstmt.setString(7, statuses[random.nextInt(statuses.length)]);
                 
                 pstmt.addBatch();
