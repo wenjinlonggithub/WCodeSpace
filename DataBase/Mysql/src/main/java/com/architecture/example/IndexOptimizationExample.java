@@ -445,10 +445,11 @@ public class IndexOptimizationExample {
     }
     
     /**
-     * 前缀索引演示
+     * 前缀索引演示（H2不支持前缀索引，仅演示概念）
      */
     private static void demonstratePrefixIndex() throws SQLException {
         System.out.println("\n✂️ 前缀索引演示");
+        System.out.println("ℹ️ H2数据库不支持前缀索引语法，此为概念演示");
         
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement()) {
@@ -456,23 +457,20 @@ public class IndexOptimizationExample {
             // 分析前缀选择性
             analyzePrefixSelectivity();
             
-            // 创建前缀索引
-            stmt.execute("CREATE INDEX idx_customers_email_prefix ON customers(email(10))");
-            stmt.execute("CREATE INDEX idx_products_name_prefix ON products(name(15))");
+            System.out.println("\n📝 前缀索引概念说明:");
+            System.out.println("   • MySQL支持前缀索引：CREATE INDEX idx_email_prefix ON table(email(10))");
+            System.out.println("   • 前缀索引可以减小索引大小，提高插入性能");
+            System.out.println("   • 需要在索引大小和查询精度间找到平衡");
+            System.out.println("   • H2替代方案：使用计算列或函数索引");
             
-            System.out.println("✅ 前缀索引创建完成");
-        }
-        
-        // 测试前缀索引
-        String[] prefixQueries = {
-            "SELECT * FROM customers WHERE email = 'customer123@example.com'",
-            "SELECT * FROM products WHERE name = '商品123'"
-        };
-        
-        for (String query : prefixQueries) {
-            System.out.println("\n查询: " + query);
-            executeQueryWithTiming(query, "前缀索引");
-            analyzeQueryPlan(query);
+            return; // 跳过实际创建，因为H2不支持
+            
+            // 以下代码为MySQL前缀索引示例（在H2中不执行）
+            // stmt.execute("CREATE INDEX idx_customers_email_prefix ON customers(email(10))");
+            // stmt.execute("CREATE INDEX idx_products_name_prefix ON products(name(15))");
+            
+        } catch (SQLException e) {
+            System.err.println("❌ 前缀索引操作失败（H2不支持）: " + e.getMessage());
         }
     }
     
@@ -485,7 +483,8 @@ public class IndexOptimizationExample {
         String[] prefixLengths = {"5", "10", "15", "20"};
         
         for (String length : prefixLengths) {
-            String sql = "SELECT COUNT(DISTINCT LEFT(email, " + length + ")) / COUNT(*) as selectivity FROM customers";
+            // 使用H2兼容的SUBSTRING函数替代MySQL的LEFT函数
+            String sql = "SELECT COUNT(DISTINCT SUBSTRING(email, 1, " + length + ")) * 1.0 / COUNT(*) as selectivity FROM customers";
             
             try (Connection conn = dataSource.getConnection();
                  PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -495,6 +494,8 @@ public class IndexOptimizationExample {
                     double selectivity = rs.getDouble("selectivity");
                     System.out.printf("邮箱前%s位选择性: %.4f%n", length, selectivity);
                 }
+            } catch (SQLException e) {
+                System.err.println("❌ 分析前缀选择性失败: " + e.getMessage());
             }
         }
     }
@@ -578,40 +579,33 @@ public class IndexOptimizationExample {
              ResultSet rs = pstmt.executeQuery()) {
             
             System.out.println("📊 执行计划分析:");
-            System.out.println("Type\tKey\t\tRows\tExtra");
+            
+            // H2数据库的执行计划格式
+            ResultSetMetaData metaData = rs.getMetaData();
+            int columnCount = metaData.getColumnCount();
+            
+            // 打印表头
+            for (int i = 1; i <= columnCount; i++) {
+                System.out.print(metaData.getColumnName(i) + "\t");
+            }
+            System.out.println();
             System.out.println("─".repeat(50));
             
+            // 打印执行计划数据
             while (rs.next()) {
-                String type = rs.getString("type");
-                String key = rs.getString("key");
-                long rows = rs.getLong("rows");
-                String extra = rs.getString("Extra");
-                
-                System.out.printf("%s\t%s\t%d\t%s%n", 
-                    type != null ? type : "NULL",
-                    key != null ? key : "NULL",
-                    rows,
-                    extra != null ? extra : ""
-                );
-                
-                // 性能建议
-                if ("ALL".equals(type)) {
-                    System.out.println("⚠️ 全表扫描，建议添加索引");
-                } else if ("index".equals(type)) {
-                    System.out.println("⚠️ 全索引扫描，考虑优化查询条件");
-                } else if ("range".equals(type) || "ref".equals(type) || "eq_ref".equals(type)) {
-                    System.out.println("✅ 使用了索引，性能良好");
+                for (int i = 1; i <= columnCount; i++) {
+                    String value = rs.getString(i);
+                    System.out.print((value != null ? value : "NULL") + "\t");
                 }
+                System.out.println();
                 
-                if (extra != null) {
-                    if (extra.contains("Using filesort")) {
-                        System.out.println("⚠️ 使用文件排序，考虑添加排序字段索引");
-                    }
-                    if (extra.contains("Using temporary")) {
-                        System.out.println("⚠️ 使用临时表，考虑优化GROUP BY或ORDER BY");
-                    }
-                    if (extra.contains("Using index")) {
-                        System.out.println("✅ 使用覆盖索引，性能优秀");
+                // H2执行计划分析建议
+                String plan = rs.getString("PLAN");
+                if (plan != null) {
+                    if (plan.contains("tableScan")) {
+                        System.out.println("⚠️ 全表扫描，建议添加索引");
+                    } else if (plan.contains("scanIndex")) {
+                        System.out.println("✅ 使用了索引扫描");
                     }
                 }
             }
