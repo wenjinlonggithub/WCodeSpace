@@ -16,10 +16,10 @@ public class IndexOptimizationExample {
     private static final Random random = new Random();
 
     public static void main(String[] args) throws SQLException {
-        //demonstrateIndexUsage();
-        setupTestData();
-        testQueryWithoutIndex();
-        createIndexesAndTest();
+        demonstrateIndexUsage();
+        //setupTestData();
+        //testQueryWithoutIndex();
+        //createIndexesAndTest();
     }
     /**
      * 演示索引使用
