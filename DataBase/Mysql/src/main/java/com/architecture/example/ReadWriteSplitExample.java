@@ -197,7 +197,7 @@ public class ReadWriteSplitExample {
     /**
      * 创建测试表
      */
-    private static void setupTestTable() throws SQLException {
+    private static void setupTestTable() throws SQLException, InterruptedException {
         System.out.println("📋 创建读写分离测试表...");
         
         String createTableSql = """

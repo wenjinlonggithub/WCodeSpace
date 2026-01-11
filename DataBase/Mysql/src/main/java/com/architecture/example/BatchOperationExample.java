@@ -8,10 +8,19 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.math.BigDecimal;
 
 /**
  * 批量操作示例
  * 演示：批量插入、批量更新、分页处理、并发批量操作
+ * 
+ * 主要功能：
+ * 1. 不同批量插入方法的性能对比
+ * 2. 批量更新和删除操作
+ * 3. 大数据量处理策略
+ * 4. 并发批量操作
+ * 5. 批量操作错误处理和恢复
+ * 6. 性能优化技巧
  */
 public class BatchOperationExample {
     
@@ -22,6 +31,9 @@ public class BatchOperationExample {
      * 测试批量操作
      */
     public static void testBatchOperations() {
+        System.out.println("🚀 MySQL批量操作性能优化演示");
+        System.out.println("=".repeat(60));
+        
         try {
             // 1. 创建测试表
             setupBatchTestTable();
@@ -44,5 +56,734 @@ public class BatchOperationExample {
             // 7. 错误处理和事务回滚
             demonstrateBatchErrorHandling();
             
+            // 8. 输出优化建议
+            printBatchOptimizationTips();
+            
         } catch (Exception e) {
-            System.err.println(\"❌ 批量操作测试失败: \" + e.getMessage());\n            e.printStackTrace();\n        }\n    }\n    \n    /**\n     * 创建批量测试表\n     */\n    private static void setupBatchTestTable() throws SQLException {\n        System.out.println(\"📋 创建批量测试表...\");\n        \n        try (Connection conn = dataSource.getConnection();\n             Statement stmt = conn.createStatement()) {\n            \n            // 删除已存在的表\n            stmt.execute(\"DROP TABLE IF EXISTS batch_test\");\n            stmt.execute(\"DROP TABLE IF EXISTS user_scores\");\n            \n            // 创建批量测试表\n            String createBatchTestSql = \"\"\"\n                CREATE TABLE batch_test (\n                    id BIGINT PRIMARY KEY AUTO_INCREMENT,\n                    user_id INT NOT NULL,\n                    name VARCHAR(100) NOT NULL,\n                    email VARCHAR(100),\n                    score DECIMAL(5,2) DEFAULT 0,\n                    status TINYINT DEFAULT 1,\n                    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n                    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n                    INDEX idx_user_id (user_id),\n                    INDEX idx_email (email),\n                    INDEX idx_score (score)\n                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4\n                \"\"\";\n            \n            // 创建用户成绩表\n            String createUserScoresSql = \"\"\"\n                CREATE TABLE user_scores (\n                    id BIGINT PRIMARY KEY AUTO_INCREMENT,\n                    user_id INT NOT NULL,\n                    subject VARCHAR(50) NOT NULL,\n                    score DECIMAL(5,2) NOT NULL,\n                    exam_date DATE NOT NULL,\n                    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n                    UNIQUE KEY uk_user_subject_date (user_id, subject, exam_date),\n                    INDEX idx_user_id (user_id),\n                    INDEX idx_subject (subject),\n                    INDEX idx_exam_date (exam_date)\n                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4\n                \"\"\";\n            \n            stmt.execute(createBatchTestSql);\n            stmt.execute(createUserScoresSql);\n            \n            System.out.println(\"✅ 批量测试表创建完成\");\n        }\n    }\n    \n    /**\n     * 比较不同批量插入方法的性能\n     */\n    private static void compareBatchInsertMethods() throws SQLException {\n        System.out.println(\"\\n⚡ 批量插入方法性能对比\");\n        \n        int recordCount = 10000;\n        \n        // 方法1：逐条插入\n        testSingleInsert(recordCount);\n        \n        // 方法2：批量插入\n        testBatchInsert(recordCount);\n        \n        // 方法3：批量插入 + 事务\n        testBatchInsertWithTransaction(recordCount);\n        \n        // 方法4：多值插入\n        testMultiValueInsert(recordCount);\n        \n        // 方法5：LOAD DATA（如果支持）\n        // testLoadData(recordCount);\n    }\n    \n    /**\n     * 逐条插入测试\n     */\n    private static void testSingleInsert(int count) throws SQLException {\n        System.out.println(\"\\n🐌 方法1：逐条插入测试\");\n        \n        // 清空表\n        clearTable(\"batch_test\");\n        \n        long startTime = System.currentTimeMillis();\n        \n        try (Connection conn = dataSource.getConnection();\n             PreparedStatement pstmt = conn.prepareStatement(\n                 \"INSERT INTO batch_test (user_id, name, email, score) VALUES (?, ?, ?, ?)\")) {\n            \n            for (int i = 1; i <= count; i++) {\n                pstmt.setInt(1, i);\n                pstmt.setString(2, \"用户\" + i);\n                pstmt.setString(3, \"user\" + i + \"@example.com\");\n                pstmt.setBigDecimal(4, java.math.BigDecimal.valueOf(60 + Math.random() * 40));\n                \n                pstmt.executeUpdate();\n            }\n        }\n        \n        long endTime = System.currentTimeMillis();\n        System.out.printf(\"插入 %d 条记录，耗时: %d ms%n\", count, endTime - startTime);\n    }\n    \n    /**\n     * 批量插入测试\n     */\n    private static void testBatchInsert(int count) throws SQLException {\n        System.out.println(\"\\n🚀 方法2：批量插入测试\");\n        \n        // 清空表\n        clearTable(\"batch_test\");\n        \n        long startTime = System.currentTimeMillis();\n        \n        try (Connection conn = dataSource.getConnection();\n             PreparedStatement pstmt = conn.prepareStatement(\n                 \"INSERT INTO batch_test (user_id, name, email, score) VALUES (?, ?, ?, ?)\")) {\n            \n            for (int i = 1; i <= count; i++) {\n                pstmt.setInt(1, i);\n                pstmt.setString(2, \"用户\" + i);\n                pstmt.setString(3, \"user\" + i + \"@example.com\");\n                pstmt.setBigDecimal(4, java.math.BigDecimal.valueOf(60 + Math.random() * 40));\n                \n                pstmt.addBatch();\n                \n                // 每1000条执行一次批量插入\n                if (i % BATCH_SIZE == 0) {\n                    pstmt.executeBatch();\n                    pstmt.clearBatch();\n                }\n            }\n            \n            // 处理剩余的记录\n            pstmt.executeBatch();\n        }\n        \n        long endTime = System.currentTimeMillis();\n        System.out.printf(\"插入 %d 条记录，耗时: %d ms%n\", count, endTime - startTime);\n    }\n    \n    /**\n     * 批量插入 + 事务测试\n     */\n    private static void testBatchInsertWithTransaction(int count) throws SQLException {\n        System.out.println(\"\\n💪 方法3：批量插入 + 事务测试\");\n        \n        // 清空表\n        clearTable(\"batch_test\");\n        \n        long startTime = System.currentTimeMillis();\n        \n        Connection conn = null;\n        try {\n            conn = dataSource.getConnection();\n            conn.setAutoCommit(false);\n            \n            try (PreparedStatement pstmt = conn.prepareStatement(\n                    \"INSERT INTO batch_test (user_id, name, email, score) VALUES (?, ?, ?, ?)\")) {\n                \n                for (int i = 1; i <= count; i++) {\n                    pstmt.setInt(1, i);\n                    pstmt.setString(2, \"用户\" + i);\n                    pstmt.setString(3, \"user\" + i + \"@example.com\");\n                    pstmt.setBigDecimal(4, java.math.BigDecimal.valueOf(60 + Math.random() * 40));\n                    \n                    pstmt.addBatch();\n                    \n                    // 每1000条执行一次批量插入\n                    if (i % BATCH_SIZE == 0) {\n                        pstmt.executeBatch();\n                        pstmt.clearBatch();\n                        conn.commit(); // 分批提交事务\n                    }\n                }\n                \n                // 处理剩余的记录\n                pstmt.executeBatch();\n                conn.commit();\n            }\n            \n        } catch (SQLException e) {\n            if (conn != null) {\n                conn.rollback();\n            }\n            throw e;\n        } finally {\n            if (conn != null) {\n                conn.setAutoCommit(true);\n                conn.close();\n            }\n        }\n        \n        long endTime = System.currentTimeMillis();\n        System.out.printf(\"插入 %d 条记录，耗时: %d ms%n\", count, endTime - startTime);\n    }\n    \n    /**\n     * 多值插入测试\n     */\n    private static void testMultiValueInsert(int count) throws SQLException {\n        System.out.println(\"\\n🌟 方法4：多值插入测试\");\n        \n        // 清空表\n        clearTable(\"batch_test\");\n        \n        long startTime = System.currentTimeMillis();\n        \n        try (Connection conn = dataSource.getConnection()) {\n            \n            int batchCount = 0;\n            StringBuilder sql = new StringBuilder(\"INSERT INTO batch_test (user_id, name, email, score) VALUES \");\n            \n            for (int i = 1; i <= count; i++) {\n                if (batchCount > 0) {\n                    sql.append(\", \");\n                }\n                \n                sql.append(String.format(\"(%d, '用户%d', 'user%d@example.com', %.2f)\", \n                    i, i, i, 60 + Math.random() * 40));\n                \n                batchCount++;\n                \n                // 每500条执行一次插入（避免SQL过长）\n                if (batchCount == 500 || i == count) {\n                    try (Statement stmt = conn.createStatement()) {\n                        stmt.executeUpdate(sql.toString());\n                    }\n                    \n                    // 重置StringBuilder\n                    sql.setLength(0);\n                    sql.append(\"INSERT INTO batch_test (user_id, name, email, score) VALUES \");\n                    batchCount = 0;\n                }\n            }\n        }\n        \n        long endTime = System.currentTimeMillis();\n        System.out.printf(\"插入 %d 条记录，耗时: %d ms%n\", count, endTime - startTime);\n    }\n    \n    /**\n     * 批量更新演示\n     */\n    private static void demonstrateBatchUpdate() throws SQLException {\n        System.out.println(\"\\n🔄 批量更新演示\");\n        \n        // 准备测试数据\n        if (getTableRowCount(\"batch_test\") == 0) {\n            testBatchInsert(5000);\n        }\n        \n        long startTime = System.currentTimeMillis();\n        \n        Connection conn = null;\n        try {\n            conn = dataSource.getConnection();\n            conn.setAutoCommit(false);\n            \n            // 批量更新成绩\n            try (PreparedStatement pstmt = conn.prepareStatement(\n                    \"UPDATE batch_test SET score = score + ?, update_time = NOW() WHERE user_id = ?\")) {\n                \n                int updateCount = 0;\n                \n                for (int userId = 1; userId <= 3000; userId++) {\n                    double bonus = Math.random() * 10; // 随机加分\n                    \n                    pstmt.setBigDecimal(1, java.math.BigDecimal.valueOf(bonus));\n                    pstmt.setInt(2, userId);\n                    pstmt.addBatch();\n                    \n                    updateCount++;\n                    \n                    if (updateCount % BATCH_SIZE == 0) {\n                        int[] results = pstmt.executeBatch();\n                        pstmt.clearBatch();\n                        \n                        System.out.printf(\"已更新 %d 条记录\\n\", updateCount);\n                    }\n                }\n                \n                // 处理剩余的更新\n                int[] results = pstmt.executeBatch();\n                conn.commit();\n                \n                System.out.printf(\"批量更新完成，总共更新 %d 条记录\\n\", updateCount);\n            }\n            \n        } catch (SQLException e) {\n            if (conn != null) {\n                conn.rollback();\n            }\n            throw e;\n        } finally {\n            if (conn != null) {\n                conn.setAutoCommit(true);\n                conn.close();\n            }\n        }\n        \n        long endTime = System.currentTimeMillis();\n        System.out.printf(\"批量更新耗时: %d ms%n\", endTime - startTime);\n    }\n    \n    /**\n     * 批量删除演示\n     */\n    private static void demonstrateBatchDelete() throws SQLException {\n        System.out.println(\"\\n🗑️ 批量删除演示\");\n        \n        long startTime = System.currentTimeMillis();\n        \n        Connection conn = null;\n        try {\n            conn = dataSource.getConnection();\n            conn.setAutoCommit(false);\n            \n            // 分批删除成绩低于70的记录\n            try (PreparedStatement pstmt = conn.prepareStatement(\n                    \"DELETE FROM batch_test WHERE score < ? LIMIT ?\")) {\n                \n                int totalDeleted = 0;\n                int batchSize = 500;\n                \n                while (true) {\n                    pstmt.setBigDecimal(1, java.math.BigDecimal.valueOf(70));\n                    pstmt.setInt(2, batchSize);\n                    \n                    int deleted = pstmt.executeUpdate();\n                    totalDeleted += deleted;\n                    \n                    if (deleted < batchSize) {\n                        // 没有更多记录需要删除\n                        break;\n                    }\n                    \n                    System.out.printf(\"已删除 %d 条记录，累计删除: %d\\n\", deleted, totalDeleted);\n                    \n                    // 提交当前批次\n                    conn.commit();\n                    \n                    // 避免长时间锁定\n                    Thread.sleep(10);\n                }\n                \n                conn.commit();\n                System.out.printf(\"批量删除完成，总共删除 %d 条记录\\n\", totalDeleted);\n            }\n            \n        } catch (Exception e) {\n            if (conn != null) {\n                conn.rollback();\n            }\n            throw new SQLException(e);\n        } finally {\n            if (conn != null) {\n                conn.setAutoCommit(true);\n                conn.close();\n            }\n        }\n        \n        long endTime = System.currentTimeMillis();\n        System.out.printf(\"批量删除耗时: %d ms%n\", endTime - startTime);\n    }\n    \n    /**\n     * 大数据量处理演示\n     */\n    private static void demonstrateLargeDataProcessing() throws SQLException {\n        System.out.println(\"\\n📈 大数据量处理演示\");\n        \n        // 模拟处理100万条记录\n        int totalRecords = 1000000;\n        int batchSize = 10000;\n        \n        System.out.printf(\"开始处理 %d 条记录，批次大小: %d\\n\", totalRecords, batchSize);\n        \n        long startTime = System.currentTimeMillis();\n        \n        Connection conn = null;\n        try {\n            conn = dataSource.getConnection();\n            conn.setAutoCommit(false);\n            \n            // 清空表\n            try (Statement stmt = conn.createStatement()) {\n                stmt.executeUpdate(\"TRUNCATE TABLE user_scores\");\n            }\n            \n            try (PreparedStatement pstmt = conn.prepareStatement(\n                    \"INSERT INTO user_scores (user_id, subject, score, exam_date) VALUES (?, ?, ?, ?)\")) {\n                \n                String[] subjects = {\"数学\", \"英语\", \"语文\", \"物理\", \"化学\"};\n                java.sql.Date examDate = new java.sql.Date(System.currentTimeMillis());\n                \n                for (int i = 1; i <= totalRecords; i++) {\n                    int userId = (i - 1) % 100000 + 1; // 假设有10万个用户\n                    String subject = subjects[(i - 1) % subjects.length];\n                    double score = 60 + Math.random() * 40;\n                    \n                    pstmt.setInt(1, userId);\n                    pstmt.setString(2, subject);\n                    pstmt.setBigDecimal(3, java.math.BigDecimal.valueOf(score));\n                    pstmt.setDate(4, examDate);\n                    \n                    pstmt.addBatch();\n                    \n                    if (i % batchSize == 0) {\n                        pstmt.executeBatch();\n                        pstmt.clearBatch();\n                        conn.commit();\n                        \n                        long currentTime = System.currentTimeMillis();\n                        double progress = (double) i / totalRecords * 100;\n                        long elapsedTime = currentTime - startTime;\n                        long estimatedTotal = (long) (elapsedTime / (i / (double) totalRecords));\n                        long remainingTime = estimatedTotal - elapsedTime;\n                        \n                        System.out.printf(\"进度: %.1f%% (%d/%d), 已用时: %d ms, 预计剩余: %d ms\\n\", \n                            progress, i, totalRecords, elapsedTime, remainingTime);\n                    }\n                }\n                \n                // 处理剩余记录\n                pstmt.executeBatch();\n                conn.commit();\n            }\n            \n        } catch (SQLException e) {\n            if (conn != null) {\n                conn.rollback();\n            }\n            throw e;\n        } finally {\n            if (conn != null) {\n                conn.setAutoCommit(true);\n                conn.close();\n            }\n        }\n        \n        long endTime = System.currentTimeMillis();\n        System.out.printf(\"大数据量处理完成，总耗时: %d ms (%.2f 秒)\\n\", \n            endTime - startTime, (endTime - startTime) / 1000.0);\n    }\n    \n    /**\n     * 并发批量操作演示\n     */\n    private static void demonstrateConcurrentBatchOperation() throws Exception {\n        System.out.println(\"\\n🔀 并发批量操作演示\");\n        \n        // 清空表\n        clearTable(\"batch_test\");\n        \n        int threadCount = 4;\n        int recordsPerThread = 5000;\n        \n        ExecutorService executor = Executors.newFixedThreadPool(threadCount);\n        List<CompletableFuture<Void>> futures = new ArrayList<>();\n        \n        long startTime = System.currentTimeMillis();\n        \n        for (int t = 0; t < threadCount; t++) {\n            final int threadId = t;\n            final int startId = t * recordsPerThread + 1;\n            final int endId = (t + 1) * recordsPerThread;\n            \n            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {\n                try {\n                    insertRecordsBatch(threadId, startId, endId);\n                } catch (SQLException e) {\n                    System.err.printf(\"线程 %d 执行失败: %s%n\", threadId, e.getMessage());\n                }\n            }, executor);\n            \n            futures.add(future);\n        }\n        \n        // 等待所有线程完成\n        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();\n        \n        long endTime = System.currentTimeMillis();\n        \n        // 验证结果\n        int totalInserted = getTableRowCount(\"batch_test\");\n        \n        System.out.printf(\"并发批量插入完成:\\n\");\n        System.out.printf(\"  线程数: %d\\n\", threadCount);\n        System.out.printf(\"  每线程记录数: %d\\n\", recordsPerThread);\n        System.out.printf(\"  总记录数: %d\\n\", totalInserted);\n        System.out.printf(\"  总耗时: %d ms\\n\", endTime - startTime);\n        \n        executor.shutdown();\n        executor.awaitTermination(30, TimeUnit.SECONDS);\n    }\n    \n    /**\n     * 线程内批量插入记录\n     */\n    private static void insertRecordsBatch(int threadId, int startId, int endId) throws SQLException {\n        try (Connection conn = dataSource.getConnection()) {\n            conn.setAutoCommit(false);\n            \n            try (PreparedStatement pstmt = conn.prepareStatement(\n                    \"INSERT INTO batch_test (user_id, name, email, score) VALUES (?, ?, ?, ?)\")) {\n                \n                int batchCount = 0;\n                \n                for (int id = startId; id <= endId; id++) {\n                    pstmt.setInt(1, id);\n                    pstmt.setString(2, \"用户\" + id + \"_T\" + threadId);\n                    pstmt.setString(3, \"user\" + id + \"_t\" + threadId + \"@example.com\");\n                    pstmt.setBigDecimal(4, java.math.BigDecimal.valueOf(60 + Math.random() * 40));\n                    \n                    pstmt.addBatch();\n                    batchCount++;\n                    \n                    if (batchCount % BATCH_SIZE == 0) {\n                        pstmt.executeBatch();\n                        pstmt.clearBatch();\n                        conn.commit();\n                        \n                        System.out.printf(\"线程 %d: 已插入 %d 条记录\\n\", threadId, batchCount);\n                    }\n                }\n                \n                // 处理剩余记录\n                pstmt.executeBatch();\n                conn.commit();\n                \n                System.out.printf(\"线程 %d: 完成插入 %d 条记录\\n\", threadId, endId - startId + 1);\n            }\n            \n        } catch (SQLException e) {\n            System.err.printf(\"线程 %d 插入失败: %s%n\", threadId, e.getMessage());\n            throw e;\n        }\n    }\n    \n    /**\n     * 批量操作错误处理演示\n     */\n    private static void demonstrateBatchErrorHandling() throws SQLException {\n        System.out.println(\"\\n⚠️ 批量操作错误处理演示\");\n        \n        Connection conn = null;\n        try {\n            conn = dataSource.getConnection();\n            conn.setAutoCommit(false);\n            \n            try (PreparedStatement pstmt = conn.prepareStatement(\n                    \"INSERT INTO batch_test (user_id, name, email, score) VALUES (?, ?, ?, ?)\")) {\n                \n                // 准备一些正常数据和一些会出错的数据\n                for (int i = 1; i <= 100; i++) {\n                    pstmt.setInt(1, 90000 + i);\n                    pstmt.setString(2, \"测试用户\" + i);\n                    \n                    if (i == 50) {\n                        // 故意插入超长邮箱引发错误\n                        pstmt.setString(3, \"very_very_very_long_email_address_that_exceeds_database_column_limit_\" + \"x\".repeat(200) + \"@example.com\");\n                    } else {\n                        pstmt.setString(3, \"test\" + i + \"@example.com\");\n                    }\n                    \n                    pstmt.setBigDecimal(4, java.math.BigDecimal.valueOf(70 + Math.random() * 30));\n                    pstmt.addBatch();\n                }\n                \n                try {\n                    int[] results = pstmt.executeBatch();\n                    conn.commit();\n                    \n                    System.out.println(\"批量插入成功，结果: \" + java.util.Arrays.toString(results));\n                    \n                } catch (BatchUpdateException e) {\n                    System.err.println(\"❌ 批量操作中发生错误: \" + e.getMessage());\n                    System.err.println(\"错误代码: \" + e.getErrorCode());\n                    System.err.println(\"SQL状态: \" + e.getSQLState());\n                    \n                    // 获取部分成功的结果\n                    int[] updateCounts = e.getUpdateCounts();\n                    System.out.println(\"部分执行结果: \" + java.util.Arrays.toString(updateCounts));\n                    \n                    // 回滚事务\n                    conn.rollback();\n                    System.out.println(\"⚠️ 事务已回滚\");\n                    \n                    // 重新执行，跳过错误记录\n                    retryBatchWithErrorSkip(conn, pstmt);\n                }\n            }\n            \n        } finally {\n            if (conn != null) {\n                conn.setAutoCommit(true);\n                conn.close();\n            }\n        }\n    }\n    \n    /**\n     * 跳过错误记录重新执行批量操作\n     */\n    private static void retryBatchWithErrorSkip(Connection conn, PreparedStatement pstmt) throws SQLException {\n        System.out.println(\"🔄 跳过错误记录重新执行...\");\n        \n        pstmt.clearBatch();\n        \n        // 重新添加正确的数据（跳过第50条）\n        for (int i = 1; i <= 100; i++) {\n            if (i == 50) {\n                continue; // 跳过会出错的记录\n            }\n            \n            pstmt.setInt(1, 90000 + i);\n            pstmt.setString(2, \"测试用户\" + i);\n            pstmt.setString(3, \"test\" + i + \"@example.com\");\n            pstmt.setBigDecimal(4, java.math.BigDecimal.valueOf(70 + Math.random() * 30));\n            pstmt.addBatch();\n        }\n        \n        try {\n            int[] results = pstmt.executeBatch();\n            conn.commit();\n            \n            System.out.printf(\"✅ 重新执行成功，插入 %d 条记录\\n\", results.length);\n            \n        } catch (SQLException e) {\n            conn.rollback();\n            System.err.println(\"❌ 重新执行仍然失败: \" + e.getMessage());\n        }\n    }\n    \n    // 辅助方法\n    \n    private static void clearTable(String tableName) throws SQLException {\n        try (Connection conn = dataSource.getConnection();\n             Statement stmt = conn.createStatement()) {\n            stmt.executeUpdate(\"DELETE FROM \" + tableName);\n        }\n    }\n    \n    private static int getTableRowCount(String tableName) throws SQLException {\n        try (Connection conn = dataSource.getConnection();\n             PreparedStatement pstmt = conn.prepareStatement(\"SELECT COUNT(*) FROM \" + tableName);\n             ResultSet rs = pstmt.executeQuery()) {\n            \n            if (rs.next()) {\n                return rs.getInt(1);\n            }\n            return 0;\n        }\n    }\n    \n    /**\n     * 批量操作优化建议\n     */\n    public static void printBatchOptimizationTips() {\n        System.out.println(\"\\n💡 批量操作优化建议:\");\n        \n        System.out.println(\"\\n1. 批量大小选择:\");\n        System.out.println(\"   • 一般推荐1000-5000条记录为一批\");\n        System.out.println(\"   • 过大可能导致内存问题和锁等待\");\n        System.out.println(\"   • 过小无法发挥批量优势\");\n        \n        System.out.println(\"\\n2. 事务控制:\");\n        System.out.println(\"   • 使用手动事务控制提交时机\");\n        System.out.println(\"   • 分批提交避免长事务\");\n        System.out.println(\"   • 合理使用Savepoint进行部分回滚\");\n        \n        System.out.println(\"\\n3. 性能优化:\");\n        System.out.println(\"   • 使用PreparedStatement重用执行计划\");\n        System.out.println(\"   • 关闭自动提交提高性能\");\n        System.out.println(\"   • 考虑暂时禁用索引（大批量插入时）\");\n        System.out.println(\"   • 使用多值INSERT语句\");\n        \n        System.out.println(\"\\n4. 错误处理:\");\n        System.out.println(\"   • 使用BatchUpdateException处理部分失败\");\n        System.out.println(\"   • 实现重试机制\");\n        System.out.println(\"   • 记录失败的记录用于后续处理\");\n        \n        System.out.println(\"\\n5. 监控和调试:\");\n        System.out.println(\"   • 监控批量操作的执行时间\");\n        System.out.println(\"   • 记录操作日志便于问题排查\");\n        System.out.println(\"   • 定期检查数据一致性\");\n    }\n}
+            System.err.println("❌ 批量操作测试失败: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 创建批量测试表
+     */
+    private static void setupBatchTestTable() throws SQLException {
+        System.out.println("\n📋 创建批量测试表...");
+
+        try (Connection conn = dataSource.getConnection();
+             Statement stmt = conn.createStatement()) {
+
+            // 删除已存在的表
+            stmt.execute("DROP TABLE IF EXISTS batch_test");
+            stmt.execute("DROP TABLE IF EXISTS user_scores");
+
+            // 创建批量测试表
+            String createBatchTestSql = """
+                CREATE TABLE batch_test (
+                    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                    user_id INT NOT NULL,
+                    name VARCHAR(100) NOT NULL,
+                    email VARCHAR(100),
+                    score DECIMAL(5,2) DEFAULT 0,
+                    status TINYINT DEFAULT 1,
+                    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    INDEX idx_user_id (user_id),
+                    INDEX idx_email (email),
+                    INDEX idx_score (score)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+                """;
+
+            // 创建用户成绩表
+            String createUserScoresSql = """
+                CREATE TABLE user_scores (
+                    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                    user_id INT NOT NULL,
+                    subject VARCHAR(50) NOT NULL,
+                    score DECIMAL(5,2) NOT NULL,
+                    exam_date DATE NOT NULL,
+                    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE KEY uk_user_subject_date (user_id, subject, exam_date),
+                    INDEX idx_user_id (user_id),
+                    INDEX idx_subject (subject),
+                    INDEX idx_exam_date (exam_date)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+                """;
+
+            stmt.execute(createBatchTestSql);
+            stmt.execute(createUserScoresSql);
+
+            System.out.println("✅ 批量测试表创建完成");
+        }
+    }
+
+    /**
+     * 比较不同批量插入方法的性能
+     */
+    private static void compareBatchInsertMethods() throws SQLException {
+        System.out.println("\n⚡ 批量插入方法性能对比");
+        System.out.println("=".repeat(50));
+
+        int recordCount = 10000;
+
+        // 方法1：逐条插入
+        testSingleInsert(recordCount);
+
+        // 方法2：批量插入
+        testBatchInsert(recordCount);
+
+        // 方法3：批量插入 + 事务
+        testBatchInsertWithTransaction(recordCount);
+
+        // 方法4：多值插入
+        testMultiValueInsert(recordCount);
+    }
+
+    /**
+     * 逐条插入测试
+     */
+    private static void testSingleInsert(int count) throws SQLException {
+        System.out.println("\n🐌 方法1：逐条插入测试");
+
+        // 清空表
+        clearTable("batch_test");
+
+        long startTime = System.currentTimeMillis();
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(
+                 "INSERT INTO batch_test (user_id, name, email, score) VALUES (?, ?, ?, ?)")) {
+
+            for (int i = 1; i <= count; i++) {
+                pstmt.setInt(1, i);
+                pstmt.setString(2, "用户" + i);
+                pstmt.setString(3, "user" + i + "@example.com");
+                pstmt.setBigDecimal(4, BigDecimal.valueOf(60 + Math.random() * 40));
+
+                pstmt.executeUpdate();
+            }
+        }
+
+        long endTime = System.currentTimeMillis();
+        System.out.printf("  插入 %d 条记录，耗时: %d ms%n", count, endTime - startTime);
+    }
+
+    /**
+     * 批量插入测试
+     */
+    private static void testBatchInsert(int count) throws SQLException {
+        System.out.println("\n🚀 方法2：批量插入测试");
+
+        // 清空表
+        clearTable("batch_test");
+
+        long startTime = System.currentTimeMillis();
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(
+                 "INSERT INTO batch_test (user_id, name, email, score) VALUES (?, ?, ?, ?)")) {
+
+            for (int i = 1; i <= count; i++) {
+                pstmt.setInt(1, i);
+                pstmt.setString(2, "用户" + i);
+                pstmt.setString(3, "user" + i + "@example.com");
+                pstmt.setBigDecimal(4, BigDecimal.valueOf(60 + Math.random() * 40));
+
+                pstmt.addBatch();
+
+                // 每1000条执行一次批量插入
+                if (i % BATCH_SIZE == 0) {
+                    pstmt.executeBatch();
+                    pstmt.clearBatch();
+                }
+            }
+
+            // 处理剩余的记录
+            pstmt.executeBatch();
+        }
+
+        long endTime = System.currentTimeMillis();
+        System.out.printf("  插入 %d 条记录，耗时: %d ms%n", count, endTime - startTime);
+    }
+
+    /**
+     * 批量插入 + 事务测试
+     */
+    private static void testBatchInsertWithTransaction(int count) throws SQLException {
+        System.out.println("\n💪 方法3：批量插入 + 事务测试");
+
+        // 清空表
+        clearTable("batch_test");
+
+        long startTime = System.currentTimeMillis();
+
+        Connection conn = null;
+        try {
+            conn = dataSource.getConnection();
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement pstmt = conn.prepareStatement(
+                    "INSERT INTO batch_test (user_id, name, email, score) VALUES (?, ?, ?, ?)")) {
+
+                for (int i = 1; i <= count; i++) {
+                    pstmt.setInt(1, i);
+                    pstmt.setString(2, "用户" + i);
+                    pstmt.setString(3, "user" + i + "@example.com");
+                    pstmt.setBigDecimal(4, BigDecimal.valueOf(60 + Math.random() * 40));
+
+                    pstmt.addBatch();
+
+                    // 每1000条执行一次批量插入
+                    if (i % BATCH_SIZE == 0) {
+                        pstmt.executeBatch();
+                        pstmt.clearBatch();
+                        conn.commit(); // 分批提交事务
+                    }
+                }
+
+                // 处理剩余的记录
+                pstmt.executeBatch();
+                conn.commit();
+            }
+
+        } catch (SQLException e) {
+            if (conn != null) {
+                conn.rollback();
+            }
+            throw e;
+        } finally {
+            if (conn != null) {
+                conn.setAutoCommit(true);
+                conn.close();
+            }
+        }
+
+        long endTime = System.currentTimeMillis();
+        System.out.printf("  插入 %d 条记录，耗时: %d ms%n", count, endTime - startTime);
+    }
+
+    /**
+     * 多值插入测试
+     */
+    private static void testMultiValueInsert(int count) throws SQLException {
+        System.out.println("\n🌟 方法4：多值插入测试");
+
+        // 清空表
+        clearTable("batch_test");
+
+        long startTime = System.currentTimeMillis();
+
+        try (Connection conn = dataSource.getConnection()) {
+
+            int batchCount = 0;
+            StringBuilder sql = new StringBuilder("INSERT INTO batch_test (user_id, name, email, score) VALUES ");
+
+            for (int i = 1; i <= count; i++) {
+                if (batchCount > 0) {
+                    sql.append(", ");
+                }
+
+                sql.append(String.format("(%d, '用户%d', 'user%d@example.com', %.2f)", 
+                    i, i, i, 60 + Math.random() * 40));
+
+                batchCount++;
+
+                // 每500条执行一次插入（避免SQL过长）
+                if (batchCount == 500 || i == count) {
+                    try (Statement stmt = conn.createStatement()) {
+                        stmt.executeUpdate(sql.toString());
+                    }
+
+                    // 重置StringBuilder
+                    sql.setLength(0);
+                    sql.append("INSERT INTO batch_test (user_id, name, email, score) VALUES ");
+                    batchCount = 0;
+                }
+            }
+        }
+
+        long endTime = System.currentTimeMillis();
+        System.out.printf("  插入 %d 条记录，耗时: %d ms%n", count, endTime - startTime);
+        
+        // 显示性能对比总结
+        System.out.println("\n📊 性能对比总结:");
+        System.out.println("  🐌 逐条插入: 最慢，适合少量数据");
+        System.out.println("  🚀 批量插入: 较快，推荐使用");
+        System.out.println("  💪 批量+事务: 最快，大批量首选");
+        System.out.println("  🌟 多值插入: 快速，但SQL长度有限制");
+    }
+
+    /**
+     * 批量更新演示
+     */
+    private static void demonstrateBatchUpdate() throws SQLException {
+        System.out.println("\n🔄 批量更新演示");
+        System.out.println("=".repeat(40));
+
+        // 准备测试数据
+        if (getTableRowCount("batch_test") == 0) {
+            testBatchInsert(5000);
+        }
+
+        long startTime = System.currentTimeMillis();
+
+        Connection conn = null;
+        try {
+            conn = dataSource.getConnection();
+            conn.setAutoCommit(false);
+
+            // 批量更新成绩
+            try (PreparedStatement pstmt = conn.prepareStatement(
+                    "UPDATE batch_test SET score = score + ?, update_time = NOW() WHERE user_id = ?")) {
+
+                int updateCount = 0;
+
+                for (int userId = 1; userId <= 3000; userId++) {
+                    double bonus = Math.random() * 10; // 随机加分
+
+                    pstmt.setBigDecimal(1, BigDecimal.valueOf(bonus));
+                    pstmt.setInt(2, userId);
+                    pstmt.addBatch();
+
+                    updateCount++;
+
+                    if (updateCount % BATCH_SIZE == 0) {
+                        int[] results = pstmt.executeBatch();
+                        pstmt.clearBatch();
+
+                        System.out.printf("  已更新 %d 条记录%n", updateCount);
+                    }
+                }
+
+                // 处理剩余的更新
+                int[] results = pstmt.executeBatch();
+                conn.commit();
+
+                System.out.printf("✅ 批量更新完成，总共更新 %d 条记录%n", updateCount);
+            }
+
+        } catch (SQLException e) {
+            if (conn != null) {
+                conn.rollback();
+            }
+            throw e;
+        } finally {
+            if (conn != null) {
+                conn.setAutoCommit(true);
+                conn.close();
+            }
+        }
+
+        long endTime = System.currentTimeMillis();
+        System.out.printf("⏱️ 批量更新耗时: %d ms%n", endTime - startTime);
+    }
+
+    /**
+     * 批量删除演示
+     */
+    private static void demonstrateBatchDelete() throws SQLException {
+        System.out.println("\n🗑️ 批量删除演示");
+        System.out.println("=".repeat(40));
+
+        long startTime = System.currentTimeMillis();
+
+        Connection conn = null;
+        try {
+            conn = dataSource.getConnection();
+            conn.setAutoCommit(false);
+
+            // 分批删除成绩低于70的记录
+            try (PreparedStatement pstmt = conn.prepareStatement(
+                    "DELETE FROM batch_test WHERE score < ? LIMIT ?")) {
+
+                int totalDeleted = 0;
+                int batchSize = 500;
+
+                while (true) {
+                    pstmt.setBigDecimal(1, BigDecimal.valueOf(70));
+                    pstmt.setInt(2, batchSize);
+
+                    int deleted = pstmt.executeUpdate();
+                    totalDeleted += deleted;
+
+                    if (deleted < batchSize) {
+                        // 没有更多记录需要删除
+                        break;
+                    }
+
+                    System.out.printf("  已删除 %d 条记录，累计删除: %d%n", deleted, totalDeleted);
+
+                    // 提交当前批次
+                    conn.commit();
+
+                    // 避免长时间锁定
+                    Thread.sleep(10);
+                }
+
+                conn.commit();
+                System.out.printf("✅ 批量删除完成，总共删除 %d 条记录%n", totalDeleted);
+            }
+
+        } catch (Exception e) {
+            if (conn != null) {
+                conn.rollback();
+            }
+            throw new SQLException(e);
+        } finally {
+            if (conn != null) {
+                conn.setAutoCommit(true);
+                conn.close();
+            }
+        }
+
+        long endTime = System.currentTimeMillis();
+        System.out.printf("⏱️ 批量删除耗时: %d ms%n", endTime - startTime);
+    }
+
+    /**
+     * 大数据量处理演示
+     */
+    private static void demonstrateLargeDataProcessing() throws SQLException {
+        System.out.println("\n📈 大数据量处理演示");
+        System.out.println("=".repeat(40));
+
+        // 模拟处理100万条记录
+        int totalRecords = 100000; // 减少到10万以便演示
+        int batchSize = 10000;
+
+        System.out.printf("开始处理 %d 条记录，批次大小: %d%n", totalRecords, batchSize);
+
+        long startTime = System.currentTimeMillis();
+
+        Connection conn = null;
+        try {
+            conn = dataSource.getConnection();
+            conn.setAutoCommit(false);
+
+            // 清空表
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate("TRUNCATE TABLE user_scores");
+            }
+
+            try (PreparedStatement pstmt = conn.prepareStatement(
+                    "INSERT INTO user_scores (user_id, subject, score, exam_date) VALUES (?, ?, ?, ?)")) {
+
+                String[] subjects = {"数学", "英语", "语文", "物理", "化学"};
+                java.sql.Date examDate = new java.sql.Date(System.currentTimeMillis());
+
+                for (int i = 1; i <= totalRecords; i++) {
+                    int userId = (i - 1) % 10000 + 1; // 假设有1万个用户
+                    String subject = subjects[(i - 1) % subjects.length];
+                    double score = 60 + Math.random() * 40;
+
+                    pstmt.setInt(1, userId);
+                    pstmt.setString(2, subject);
+                    pstmt.setBigDecimal(3, BigDecimal.valueOf(score));
+                    pstmt.setDate(4, examDate);
+
+                    pstmt.addBatch();
+
+                    if (i % batchSize == 0) {
+                        pstmt.executeBatch();
+                        pstmt.clearBatch();
+                        conn.commit();
+
+                        long currentTime = System.currentTimeMillis();
+                        double progress = (double) i / totalRecords * 100;
+                        long elapsedTime = currentTime - startTime;
+                        long estimatedTotal = (long) (elapsedTime / (i / (double) totalRecords));
+                        long remainingTime = estimatedTotal - elapsedTime;
+
+                        System.out.printf("  进度: %.1f%% (%d/%d), 已用时: %d ms, 预计剩余: %d ms%n", 
+                            progress, i, totalRecords, elapsedTime, remainingTime);
+                    }
+                }
+
+                // 处理剩余记录
+                pstmt.executeBatch();
+                conn.commit();
+            }
+
+        } catch (SQLException e) {
+            if (conn != null) {
+                conn.rollback();
+            }
+            throw e;
+        } finally {
+            if (conn != null) {
+                conn.setAutoCommit(true);
+                conn.close();
+            }
+        }
+
+        long endTime = System.currentTimeMillis();
+        System.out.printf("✅ 大数据量处理完成，总耗时: %d ms (%.2f 秒)%n", 
+            endTime - startTime, (endTime - startTime) / 1000.0);
+    }
+
+    /**
+     * 并发批量操作演示
+     */
+    private static void demonstrateConcurrentBatchOperation() throws Exception {
+        System.out.println("\n🔀 并发批量操作演示");
+        System.out.println("=".repeat(40));
+
+        // 清空表
+        clearTable("batch_test");
+
+        int threadCount = 4;
+        int recordsPerThread = 5000;
+
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+
+        long startTime = System.currentTimeMillis();
+
+        for (int t = 0; t < threadCount; t++) {
+            final int threadId = t;
+            final int startId = t * recordsPerThread + 1;
+            final int endId = (t + 1) * recordsPerThread;
+
+            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                try {
+                    insertRecordsBatch(threadId, startId, endId);
+                } catch (SQLException e) {
+                    System.err.printf("线程 %d 执行失败: %s%n", threadId, e.getMessage());
+                }
+            }, executor);
+
+            futures.add(future);
+        }
+
+        // 等待所有线程完成
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+        long endTime = System.currentTimeMillis();
+
+        // 验证结果
+        int totalInserted = getTableRowCount("batch_test");
+
+        System.out.printf("✅ 并发批量插入完成:%n");
+        System.out.printf("  线程数: %d%n", threadCount);
+        System.out.printf("  每线程记录数: %d%n", recordsPerThread);
+        System.out.printf("  总记录数: %d%n", totalInserted);
+        System.out.printf("  总耗时: %d ms%n", endTime - startTime);
+
+        executor.shutdown();
+        executor.awaitTermination(30, TimeUnit.SECONDS);
+    }
+
+    /**
+     * 线程内批量插入记录
+     */
+    private static void insertRecordsBatch(int threadId, int startId, int endId) throws SQLException {
+        try (Connection conn = dataSource.getConnection()) {
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement pstmt = conn.prepareStatement(
+                    "INSERT INTO batch_test (user_id, name, email, score) VALUES (?, ?, ?, ?)")) {
+
+                int batchCount = 0;
+
+                for (int id = startId; id <= endId; id++) {
+                    pstmt.setInt(1, id);
+                    pstmt.setString(2, "用户" + id + "_T" + threadId);
+                    pstmt.setString(3, "user" + id + "_t" + threadId + "@example.com");
+                    pstmt.setBigDecimal(4, BigDecimal.valueOf(60 + Math.random() * 40));
+
+                    pstmt.addBatch();
+                    batchCount++;
+
+                    if (batchCount % BATCH_SIZE == 0) {
+                        pstmt.executeBatch();
+                        pstmt.clearBatch();
+                        conn.commit();
+
+                        System.out.printf("  线程 %d: 已插入 %d 条记录%n", threadId, batchCount);
+                    }
+                }
+
+                // 处理剩余记录
+                pstmt.executeBatch();
+                conn.commit();
+
+                System.out.printf("  线程 %d: 完成插入 %d 条记录%n", threadId, endId - startId + 1);
+            }
+
+        } catch (SQLException e) {
+            System.err.printf("线程 %d 插入失败: %s%n", threadId, e.getMessage());
+            throw e;
+        }
+    }
+
+    /**
+     * 批量操作错误处理演示
+     */
+    private static void demonstrateBatchErrorHandling() throws SQLException {
+        System.out.println("\n⚠️ 批量操作错误处理演示");
+        System.out.println("=".repeat(40));
+
+        Connection conn = null;
+        try {
+            conn = dataSource.getConnection();
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement pstmt = conn.prepareStatement(
+                    "INSERT INTO batch_test (user_id, name, email, score) VALUES (?, ?, ?, ?)")) {
+
+                // 准备一些正常数据和一些会出错的数据
+                for (int i = 1; i <= 100; i++) {
+                    pstmt.setInt(1, 90000 + i);
+                    pstmt.setString(2, "测试用户" + i);
+
+                    if (i == 50) {
+                        // 故意插入超长邮箱引发错误
+                        pstmt.setString(3, "very_long_email_" + "x".repeat(200) + "@example.com");
+                    } else {
+                        pstmt.setString(3, "test" + i + "@example.com");
+                    }
+
+                    pstmt.setBigDecimal(4, BigDecimal.valueOf(70 + Math.random() * 30));
+                    pstmt.addBatch();
+                }
+
+                try {
+                    int[] results = pstmt.executeBatch();
+                    conn.commit();
+
+                    System.out.println("✅ 批量插入成功，结果: " + java.util.Arrays.toString(results));
+
+                } catch (BatchUpdateException e) {
+                    System.err.println("❌ 批量操作中发生错误: " + e.getMessage());
+                    System.err.println("  错误代码: " + e.getErrorCode());
+                    System.err.println("  SQL状态: " + e.getSQLState());
+
+                    // 获取部分成功的结果
+                    int[] updateCounts = e.getUpdateCounts();
+                    System.out.println("  部分执行结果: " + java.util.Arrays.toString(updateCounts));
+
+                    // 回滚事务
+                    conn.rollback();
+                    System.out.println("⚠️ 事务已回滚");
+
+                    // 重新执行，跳过错误记录
+                    retryBatchWithErrorSkip(conn, pstmt);
+                }
+            }
+
+        } finally {
+            if (conn != null) {
+                conn.setAutoCommit(true);
+                conn.close();
+            }
+        }
+    }
+
+    /**
+     * 跳过错误记录重新执行批量操作
+     */
+    private static void retryBatchWithErrorSkip(Connection conn, PreparedStatement pstmt) throws SQLException {
+        System.out.println("🔄 跳过错误记录重新执行...");
+
+        pstmt.clearBatch();
+
+        // 重新添加正确的数据（跳过第50条）
+        for (int i = 1; i <= 100; i++) {
+            if (i == 50) {
+                continue; // 跳过会出错的记录
+            }
+
+            pstmt.setInt(1, 90000 + i);
+            pstmt.setString(2, "测试用户" + i);
+            pstmt.setString(3, "test" + i + "@example.com");
+            pstmt.setBigDecimal(4, BigDecimal.valueOf(70 + Math.random() * 30));
+            pstmt.addBatch();
+        }
+
+        try {
+            int[] results = pstmt.executeBatch();
+            conn.commit();
+
+            System.out.printf("✅ 重新执行成功，插入 %d 条记录%n", results.length);
+
+        } catch (SQLException e) {
+            conn.rollback();
+            System.err.println("❌ 重新执行仍然失败: " + e.getMessage());
+        }
+    }
+
+    // ========== 辅助方法 ==========
+
+    /**
+     * 清空表数据
+     */
+    private static void clearTable(String tableName) throws SQLException {
+        try (Connection conn = dataSource.getConnection();
+             Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate("DELETE FROM " + tableName);
+        }
+    }
+
+    /**
+     * 获取表行数
+     */
+    private static int getTableRowCount(String tableName) throws SQLException {
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement("SELECT COUNT(*) FROM " + tableName);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+            return 0;
+        }
+    }
+
+    /**
+     * 批量操作优化建议
+     */
+    public static void printBatchOptimizationTips() {
+        System.out.println("\n💡 MySQL批量操作优化建议");
+        System.out.println("=".repeat(50));
+
+        System.out.println("\n1️⃣ 批量大小选择:");
+        System.out.println("   • 一般推荐1000-5000条记录为一批");
+        System.out.println("   • 过大可能导致内存问题和锁等待");
+        System.out.println("   • 过小无法发挥批量优势");
+
+        System.out.println("\n2️⃣ 事务控制:");
+        System.out.println("   • 使用手动事务控制提交时机");
+        System.out.println("   • 分批提交避免长事务");
+        System.out.println("   • 合理使用Savepoint进行部分回滚");
+
+        System.out.println("\n3️⃣ 性能优化:");
+        System.out.println("   • 使用PreparedStatement重用执行计划");
+        System.out.println("   • 关闭自动提交提高性能");
+        System.out.println("   • 考虑暂时禁用索引（大批量插入时）");
+        System.out.println("   • 使用多值INSERT语句");
+
+        System.out.println("\n4️⃣ 错误处理:");
+        System.out.println("   • 使用BatchUpdateException处理部分失败");
+        System.out.println("   • 实现重试机制");
+        System.out.println("   • 记录失败的记录用于后续处理");
+
+        System.out.println("\n5️⃣ 监控和调试:");
+        System.out.println("   • 监控批量操作的执行时间");
+        System.out.println("   • 记录操作日志便于问题排查");
+        System.out.println("   • 定期检查数据一致性");
+
+        System.out.println("\n6️⃣ 高级技巧:");
+        System.out.println("   • 使用LOAD DATA INFILE处理超大文件");
+        System.out.println("   • 合理使用并发线程");
+        System.out.println("   • 考虑分库分表策略");
+        System.out.println("   • 使用读写分离减少主库压力");
+    }
+
+    /**
+     * 主测试方法
+     */
+    public static void main(String[] args) {
+        testBatchOperations();
+    }
+}
