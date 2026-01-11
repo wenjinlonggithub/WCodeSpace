@@ -78,6 +78,55 @@ public class KafkaAlgorithms {
             int partition = chPartitioner.partition(keys[i]);
             System.out.println("     Key: " + keys[i] + " -> 分区 " + partition);
         }
+        
+        // 详细演示一致性哈希算法的优势
+        demonstrateConsistentHashingAdvantages();
+    }
+    
+    /**
+     * 演示一致性哈希算法的优势
+     */
+    private void demonstrateConsistentHashingAdvantages() {
+        System.out.println("   一致性哈希算法优势演示:");
+        
+        // 创建包含3个分区的一致性哈希分区器
+        ConsistentHashPartitioner originalPartitioner = new ConsistentHashPartitioner(3, 50);
+        
+        // 模拟15个键的分布
+        String[] testKeys = {
+            "user:1001", "user:1002", "user:1003", "user:1004", "user:1005",
+            "order:2001", "order:2002", "order:2003", "order:2004", "order:2005",
+            "product:3001", "product:3002", "product:3003", "product:3004", "product:3005"
+        };
+        
+        // 记录原始分布
+        Map<String, Integer> originalDistribution = new HashMap<>();
+        for (String key : testKeys) {
+            originalDistribution.put(key, originalPartitioner.partition(key));
+        }
+        
+        System.out.println("     扩容前分布情况:");
+        for (Map.Entry<String, Integer> entry : originalDistribution.entrySet()) {
+            System.out.println("       " + entry.getKey() + " -> 分区 " + entry.getValue());
+        }
+        
+        // 添加第4个分区
+        originalPartitioner.addNode("Partition-3");
+        
+        // 检查重新分配的情况
+        int reassignmentCount = 0;
+        System.out.println("     扩容后重新分配情况:");
+        for (String key : testKeys) {
+            int newPartition = originalPartitioner.partition(key);
+            int originalPartition = originalDistribution.get(key);
+            if (newPartition != originalPartition) {
+                System.out.println("       " + key + ": 分区 " + originalPartition + " -> 分区 " + newPartition + " (重新分配)");
+                reassignmentCount++;
+            }
+        }
+        
+        System.out.println("     重新分配比例: " + reassignmentCount + "/" + testKeys.length + 
+                          " = " + String.format("%.2f%%", (double) reassignmentCount/testKeys.length * 100));
     }
     
     /**
@@ -233,22 +282,25 @@ public class KafkaAlgorithms {
     }
     
     static class ConsistentHashPartitioner {
-        private final TreeMap<Integer, Integer> circle = new TreeMap<>();
+        private final TreeMap<Integer, String> circle = new TreeMap<>();
+        private final Map<String, Boolean> nodes = new HashMap<>();
         private final int numberOfReplicas;
         
         public ConsistentHashPartitioner(int numPartitions, int numberOfReplicas) {
             this.numberOfReplicas = numberOfReplicas;
             
             for (int i = 0; i < numPartitions; i++) {
-                addPartition(i);
+                String node = "Partition-" + i;
+                addNode(node);
             }
         }
         
-        private void addPartition(int partition) {
+        public void addNode(String node) {
+            nodes.put(node, true);
             for (int i = 0; i < numberOfReplicas; i++) {
-                String virtualNode = partition + "#" + i;
+                String virtualNode = node + "#" + i;
                 int hash = hash(virtualNode);
-                circle.put(hash, partition);
+                circle.put(hash, node);
             }
         }
         
@@ -258,17 +310,25 @@ public class KafkaAlgorithms {
             }
             
             int hash = hash(key);
-            SortedMap<Integer, Integer> tailMap = circle.tailMap(hash);
+            SortedMap<Integer, String> tailMap = circle.tailMap(hash);
             
             if (tailMap.isEmpty()) {
-                return circle.get(circle.firstKey());
+                String firstNode = circle.get(circle.firstKey());
+                return Integer.parseInt(firstNode.replace("Partition-", ""));
             } else {
-                return tailMap.get(tailMap.firstKey());
+                String targetNode = tailMap.get(tailMap.firstKey());
+                return Integer.parseInt(targetNode.replace("Partition-", ""));
             }
         }
         
         private int hash(String key) {
-            return key.hashCode();
+            // 使用改进的哈希算法，提供更好的分布均匀性
+            int hash = 0x811c9dc5; // FNV offset basis
+            for (char c : key.toCharArray()) {
+                hash ^= c;
+                hash *= 0x01000193; // FNV prime
+            }
+            return hash;
         }
     }
     
