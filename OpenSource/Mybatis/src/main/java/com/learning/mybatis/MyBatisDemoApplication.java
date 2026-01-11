@@ -1,3 +1,4 @@
+/*
 package com.learning.mybatis;
 
 import com.learning.mybatis.demo.*;
@@ -7,6 +8,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+*/
 /**
  * MyBatis学习演示应用主类
  * 
@@ -17,13 +19,14 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * - 插件机制
  * - 缓存机制
  * - 高级特性
- */
+ *//*
+
 @Slf4j
 @SpringBootApplication
 @RequiredArgsConstructor
 public class MyBatisDemoApplication implements CommandLineRunner {
     
-    private final BasicCrudDemo basicCrudDemo;
+    //private final BasicCrudDemo basicCrudDemo;
     private final DynamicSqlDemo dynamicSqlDemo;
     private final ResultMapDemo resultMapDemo;
     private final CacheDemo cacheDemo;
@@ -79,7 +82,7 @@ public class MyBatisDemoApplication implements CommandLineRunner {
         System.out.println("\n" + "=".repeat(60));
         System.out.println("         📝 MyBatis基础CRUD操作演示");
         System.out.println("=".repeat(60));
-        basicCrudDemo.demonstrateBasicCrud();
+        //basicCrudDemo.demonstrateBasicCrud();
     }
     
     private void runDynamicSqlDemo() {
@@ -109,4 +112,4 @@ public class MyBatisDemoApplication implements CommandLineRunner {
         System.out.println("=".repeat(60));
         advancedFeaturesDemo.demonstrateAdvancedFeatures();
     }
-}
+}*/

@@ -1,3 +1,4 @@
+/*
 package com.learning.mybatis.demo;
 
 import com.learning.mybatis.entity.User;
@@ -13,6 +14,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.util.StringUtils;
 
 
+*/
 /**
  * MyBatis基础CRUD操作演示
  * 
@@ -21,7 +23,8 @@ import org.springframework.util.StringUtils;
  * - 参数传递
  * - 结果映射
  * - 注解与XML两种配置方式
- */
+ *//*
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -49,9 +52,11 @@ public class BasicCrudDemo {
         demonstrateBatchOperations();
     }
     
-    /**
+    */
+/**
      * 创建操作演示
-     */
+     *//*
+
     @Transactional
     private void demonstrateCreate() {
         log.info("--- CREATE操作演示 ---");
@@ -102,9 +107,11 @@ public class BasicCrudDemo {
         log.info("注解方式插入用户成功，影响行数: {}，生成ID: {}", result3, user3.getId());
     }
     
-    /**
+    */
+/**
      * 查询操作演示
-     */
+     *//*
+
     private void demonstrateRead() {
         log.info("--- READ操作演示 ---");
         
@@ -149,9 +156,11 @@ public class BasicCrudDemo {
         log.info("统计查询 - 总用户数: {}, 启用用户数: {}", totalCount, enabledCount);
     }
     
-    /**
+    */
+/**
      * 更新操作演示
-     */
+     *//*
+
     @Transactional
     private void demonstrateUpdate() {
         log.info("--- UPDATE操作演示 ---");
@@ -187,9 +196,11 @@ public class BasicCrudDemo {
         log.info("根据条件更新用户年龄，影响行数: {}", conditionUpdateResult);
     }
     
-    /**
+    */
+/**
      * 删除操作演示
-     */
+     *//*
+
     @Transactional
     private void demonstrateDelete() {
         log.info("--- DELETE操作演示 ---");
@@ -243,9 +254,11 @@ public class BasicCrudDemo {
         }
     }
     
-    /**
+    */
+/**
      * 批量操作演示
-     */
+     *//*
+
     @Transactional
     private void demonstrateBatchOperations() {
         log.info("--- 批量操作演示 ---");
@@ -293,9 +306,11 @@ public class BasicCrudDemo {
         log.info("批量删除用户，影响行数: {}", batchDeleteResult);
     }
     
-    /**
+    */
+/**
      * 显示MyBatis基础配置说明
-     */
+     *//*
+
     public void showBasicConfiguration() {
         log.info("--- MyBatis基础配置说明 ---");
         log.info("1. Mapper接口 - 定义数据访问方法");
@@ -316,4 +331,4 @@ public class BasicCrudDemo {
         log.info("@One - 一对一关联");
         log.info("@Many - 一对多关联");
     }
-}
+}*/
