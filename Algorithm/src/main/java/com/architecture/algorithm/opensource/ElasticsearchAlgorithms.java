@@ -365,14 +365,16 @@ public class ElasticsearchAlgorithms {
                 if (term.isEmpty()) continue;
                 
                 // 计算项频率
+                final String finalTerm2 = term; // 使变量成为有效的最终变量
                 long termFreq = Arrays.stream(docTerms)
                                     .map(t -> t.replaceAll("[^a-zA-Z]", ""))
-                                    .filter(t -> t.equals(term))
+                                    .filter(t -> t.equals(finalTerm2))
                                     .count();
                 
                 // 计算包含该词的文档数
+                final String finalTerm = term; // 使变量成为有效的最终变量
                 long docsContainingTerm = corpus.stream()
-                                              .filter(d -> d.toLowerCase().contains(term))
+                                              .filter(d -> d.toLowerCase().contains(finalTerm))
                                               .count();
                 
                 // 计算IDF
