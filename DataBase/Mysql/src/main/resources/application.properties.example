@@ -1,0 +1,34 @@
+# Database Configuration Example
+# Copy this file to application.properties and update with your actual credentials
+
+# Database Connection Settings
+db.url=jdbc:mysql://localhost:3306/test_db?useSSL=false&serverTimezone=UTC&characterEncoding=utf8
+db.username=your_username
+db.password=your_password
+
+# Connection Pool Settings (HikariCP)
+db.pool.minimum-idle=5
+db.pool.maximum-pool-size=20
+db.pool.connection-timeout=30000
+db.pool.idle-timeout=600000
+db.pool.max-lifetime=1800000
+
+# Logging Configuration
+logging.level.com.architecture=INFO
+logging.level.org.springframework=WARN
+logging.level.root=WARN
+
+# Application Settings
+app.name=MySQL Architecture Demo
+app.version=1.0.0
+app.description=MySQL核心原理与架构演示项目
+
+# Security Settings (for production)
+app.security.encrypt-passwords=true
+app.security.use-ssl=true
+app.security.ssl-port=8443
+
+# Performance Tuning
+app.performance.enable-query-cache=true
+app.performance.max-connections=100
+app.performance.connection-timeout=30

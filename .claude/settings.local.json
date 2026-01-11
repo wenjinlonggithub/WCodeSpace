@@ -44,7 +44,16 @@
       "Bash(rm -rf target/classes/com/architecture/example/IndexOptimizationExample.class)",
       "Bash(find D:develop20WCodeSpace -type d -name \"target\" -exec rm -rf {} +)",
       "Bash(true)",
-      "Bash(find \"D:\\develop\\20\\WCodeSpace\" -name \"*.class\" -type f -delete)"
+      "Bash(find \"D:\\develop\\20\\WCodeSpace\" -name \"*.class\" -type f -delete)",
+      "Bash(cd \"D:\\develop\\20\\WCodeSpace\\DesignPattern\")",
+      "Bash(mvn compile -q)",
+      "Bash(find \"D:\\develop\\20\\WCodeSpace\\DesignPattern\\src\\main\\java\\com\\architecture\" -name \"*$pattern*\" -type f)",
+      "Bash(find \"D:\\develop\\20\\WCodeSpace\\DesignPattern\\src\\main\\java\\com\\architecture\" -name \"*designpattern${pattern}*\" -type f)",
+      "Bash(rm \"D:\\develop\\20\\WCodeSpace\\DesignPattern\\src\\main\\java\\com\\architecture\\designpattern$pattern${pattern^}InterviewQuestions.java\")",
+      "Bash(rm \"D:\\develop\\20\\WCodeSpace\\DesignPattern\\src\\main\\java\\com\\architecture\\designpattern$pattern${pattern^}SourceCodeAnalysis.java\")",
+      "Bash(rm \"D:\\develop\\20\\WCodeSpace\\DesignPattern\\src\\main\\java\\com\\architecture\\designpattern${pattern}${pattern^}InterviewQuestions.java\")",
+      "Bash(rm \"D:\\develop\\20\\WCodeSpace\\DesignPattern\\src\\main\\java\\com\\architecture\\designpattern${pattern}${pattern^}SourceCodeAnalysis.java\")",
+      "Bash(mvn clean compile)"
     ],
     "deny": []
   }

@@ -1,6 +1,15 @@
 package com.architecture.example;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.DatabaseMetaData;
+import java.sql.Timestamp;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 基础JDBC连接示例
@@ -8,9 +17,13 @@ import java.sql.*;
  */
 public class BasicJdbcExample {
     
-    private static final String URL = "jdbc:mysql://localhost:3306/test_db?useSSL=false&serverTimezone=UTC&characterEncoding=utf8";
-    private static final String USERNAME = "root";
-    private static final String PASSWORD = "password";
+    private static final Logger logger = LoggerFactory.getLogger(BasicJdbcExample.class);
+    
+    // TODO: 配置应该从外部配置文件或环境变量读取，而不是硬编码
+    private static final String URL = System.getProperty("db.url", 
+        "jdbc:mysql://localhost:3306/test_db?useSSL=false&serverTimezone=UTC&characterEncoding=utf8");
+    private static final String USERNAME = System.getProperty("db.username", "root");
+    private static final String PASSWORD = System.getProperty("db.password", "password");
     
     /**
      * 测试数据库连接
@@ -23,7 +36,7 @@ public class BasicJdbcExample {
             
             // 2. 建立连接
             connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
-            System.out.println("✅ 数据库连接成功!");
+            logger.info("数据库连接成功");
             
             // 3. 创建测试表
             createTestTable(connection);
@@ -41,17 +54,17 @@ public class BasicJdbcExample {
             deleteTestData(connection);
             
         } catch (ClassNotFoundException e) {
-            System.err.println("❌ 驱动加载失败: " + e.getMessage());
+            logger.error("驱动加载失败", e);
         } catch (SQLException e) {
-            System.err.println("❌ 数据库操作失败: " + e.getMessage());
+            logger.error("数据库操作失败", e);
         } finally {
             // 8. 关闭连接
             if (connection != null) {
                 try {
                     connection.close();
-                    System.out.println("✅ 数据库连接已关闭");
+                    logger.info("数据库连接已关闭");
                 } catch (SQLException e) {
-                    System.err.println("❌ 关闭连接失败: " + e.getMessage());
+                    logger.error("关闭连接失败", e);
                 }
             }
         }
@@ -75,7 +88,7 @@ public class BasicJdbcExample {
         
         try (Statement stmt = connection.createStatement()) {
             stmt.execute(sql);
-            System.out.println("✅ 测试表创建成功");
+            logger.info("测试表创建成功");
         }
     }
     
@@ -101,7 +114,7 @@ public class BasicJdbcExample {
             }
             
             int[] results = pstmt.executeBatch();
-            System.out.println("✅ 插入 " + results.length + " 条记录");
+            logger.info("插入 {} 条记录", results.length);
         }
     }
     
@@ -115,12 +128,12 @@ public class BasicJdbcExample {
             pstmt.setInt(1, 25);
             
             try (ResultSet rs = pstmt.executeQuery()) {
-                System.out.println("📋 查询结果:");
-                System.out.println("ID\t姓名\t邮箱\t\t\t年龄\t创建时间");
-                System.out.println("─".repeat(70));
+                    logger.info("查询结果:");
+                logger.info("ID\t姓名\t邮箱\t\t\t年龄\t创建时间");
+                logger.info("─".repeat(70));
                 
                 while (rs.next()) {
-                    System.out.printf("%d\t%s\t%s\t%d\t%s%n",
+                    logger.info("{}\t{}\t{}\t{}\t{}",
                         rs.getInt("id"),
                         rs.getString("name"),
                         rs.getString("email"),
@@ -141,7 +154,7 @@ public class BasicJdbcExample {
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, "张三");
             int affected = pstmt.executeUpdate();
-            System.out.println("✅ 更新了 " + affected + " 条记录");
+            logger.info("更新了 {} 条记录", affected);
         }
     }
     
@@ -154,7 +167,7 @@ public class BasicJdbcExample {
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, "wangwu@example.com");
             int affected = pstmt.executeUpdate();
-            System.out.println("✅ 删除了 " + affected + " 条记录");
+            logger.info("删除了 {} 条记录", affected);
         }
     }
     
@@ -165,16 +178,16 @@ public class BasicJdbcExample {
         try (Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD)) {
             DatabaseMetaData metaData = connection.getMetaData();
             
-            System.out.println("📊 数据库信息:");
-            System.out.println("数据库产品名: " + metaData.getDatabaseProductName());
-            System.out.println("数据库版本: " + metaData.getDatabaseProductVersion());
-            System.out.println("驱动名称: " + metaData.getDriverName());
-            System.out.println("驱动版本: " + metaData.getDriverVersion());
-            System.out.println("最大连接数: " + metaData.getMaxConnections());
-            System.out.println("是否支持事务: " + metaData.supportsTransactions());
+            logger.info("数据库信息:");
+            logger.info("数据库产品名: {}", metaData.getDatabaseProductName());
+            logger.info("数据库版本: {}", metaData.getDatabaseProductVersion());
+            logger.info("驱动名称: {}", metaData.getDriverName());
+            logger.info("驱动版本: {}", metaData.getDriverVersion());
+            logger.info("最大连接数: {}", metaData.getMaxConnections());
+            logger.info("是否支持事务: {}", metaData.supportsTransactions());
             
         } catch (SQLException e) {
-            System.err.println("❌ 获取元数据失败: " + e.getMessage());
+            logger.error("获取元数据失败", e);
         }
     }
     
@@ -190,12 +203,11 @@ public class BasicJdbcExample {
              ResultSet rs = pstmt.executeQuery()) {
             
             if (rs.next()) {
-                System.out.println("用户总数: " + rs.getInt("count"));
+                logger.info("用户总数: {}", rs.getInt("count"));
             }
             
         } catch (SQLException e) {
-            System.err.println("❌ 查询失败: " + e.getMessage());
-            // 生产环境中应该记录日志
+            logger.error("查询失败", e);
         }
         // 资源会自动关闭，无需手动close
     }

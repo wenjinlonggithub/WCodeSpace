@@ -1,6 +1,8 @@
 package com.architecture.concurrency;
 
 import java.util.concurrent.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -8,6 +10,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.function.Supplier;
 
 /**
  * Java并发编程核心概念和实现
@@ -257,6 +260,7 @@ class ProducerConsumerExample {
 }
 
 public class ConcurrencyBasics {
+    private static final Logger logger = LoggerFactory.getLogger(ConcurrencyBasics.class);
     public static void main(String[] args) throws InterruptedException, ExecutionException {
         System.out.println("=== Thread Creation Examples ===");
         
@@ -283,7 +287,8 @@ public class ConcurrencyBasics {
         executor.shutdown();
         
         System.out.println("\n=== Synchronization Examples ===");
-        
+
+        /*
         // synchronized示例
         Counter syncCounter = new Counter();
         testCounter("Synchronized Counter", 
@@ -300,7 +305,9 @@ public class ConcurrencyBasics {
         AtomicCounter atomicCounter = new AtomicCounter();
         testCounter("Atomic Counter",
             () -> atomicCounter.increment(),
-            () -> atomicCounter.getCount());
+            () -> {
+                return atomicCounter.getCount();
+            });*/
         
         System.out.println("\n=== Read-Write Lock Example ===");
         ReadWriteCounter rwCounter = new ReadWriteCounter();
@@ -313,7 +320,13 @@ public class ConcurrencyBasics {
             rwExecutor.submit(() -> {
                 for (int j = 0; j < 3; j++) {
                     rwCounter.increment();
-                    try { Thread.sleep(100); } catch (InterruptedException e) {}
+                    try { 
+                        Thread.sleep(100); 
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        logger.warn("Thread interrupted during increment operation", e);
+                        break;
+                    }
                 }
             });
         }
@@ -323,7 +336,13 @@ public class ConcurrencyBasics {
             rwExecutor.submit(() -> {
                 for (int j = 0; j < 5; j++) {
                     rwCounter.getCount();
-                    try { Thread.sleep(50); } catch (InterruptedException e) {}
+                    try { 
+                        Thread.sleep(50); 
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        logger.warn("Thread interrupted during read operation", e);
+                        break;
+                    }
                 }
             });
         }
@@ -336,7 +355,7 @@ public class ConcurrencyBasics {
         pcExample.start();
     }
     
-    private static void testCounter(String name, Runnable incrementTask, Supplier<Integer> getCount) 
+    private static void testCounter(String name, Runnable incrementTask, Supplier<Integer> getCount)
             throws InterruptedException {
         System.out.println("\nTesting " + name);
         
@@ -359,7 +378,3 @@ public class ConcurrencyBasics {
     }
 }
 
-@FunctionalInterface
-interface Supplier<T> {
-    T get();
-}
