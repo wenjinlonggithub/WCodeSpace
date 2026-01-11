@@ -4,6 +4,10 @@
   <groupId>com.architecture</groupId>
   <artifactId>DataBase</artifactId>
   <version>1.0-SNAPSHOT</version>
-  <name>Archetype - DataBase</name>
+    <packaging>pom</packaging>
+    <name>Archetype - DataBase</name>
   <url>http://maven.apache.org</url>
+    <modules>
+        <module>Mysql</module>
+    </modules>
 </project>
