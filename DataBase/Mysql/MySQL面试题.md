@@ -475,3 +475,323 @@ CREATE TABLE `order` (
    - 趋势递增，性能高
 5. **美团 Leaf**：号段模式或雪花模式
 6. **百度 UidGenerator**：基于雪花算法
+
+### 31. 如何处理 MySQL 的字符集和排序规则？
+
+**常用字符集**：
+- `latin1`：Latin-1 字符集，每字符1字节
+- `utf8`：UTF-8 编码，每字符最多3字节（不完整的UTF-8）
+- `utf8mb4`：完整的 UTF-8 编码，每字符最多4字节（推荐）
+
+**排序规则**：
+- `utf8mb4_general_ci`：不区分大小写
+- `utf8mb4_bin`：区分大小写
+- `utf8mb4_unicode_ci`：基于Unicode标准
+
+```sql
+-- 查看字符集
+SHOW CHARACTER SET;
+SHOW COLLATION;
+
+-- 设置字符集
+CREATE DATABASE db_name CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+### 32. MySQL JSON 数据类型的使用？
+
+**JSON 数据类型特点**：
+- 原生支持（MySQL 5.7+）
+- 自动验证JSON格式
+- 高效的二进制存储
+- 支持索引和函数操作
+
+```sql
+-- 创建表
+CREATE TABLE users (
+  id INT PRIMARY KEY,
+  profile JSON
+);
+
+-- 插入数据
+INSERT INTO users VALUES (1, '{"name": "John", "age": 30, "skills": ["Java", "MySQL"]}');
+
+-- 查询JSON字段
+SELECT JSON_EXTRACT(profile, '$.name') as name FROM users;
+SELECT profile->'$.name' as name FROM users;
+
+-- 创建JSON索引
+ALTER TABLE users ADD INDEX idx_name ((JSON_EXTRACT(profile, '$.name')));
+```
+
+### 33. MySQL 8.0 的新特性有哪些？
+
+**主要新特性**：
+1. **窗口函数**：ROW_NUMBER(), RANK(), LAG(), LEAD()
+2. **公用表表达式（CTE）**：WITH 语句
+3. **角色管理**：更灵活的权限控制
+4. **隐藏索引**：在线测试索引效果
+5. **降序索引**：真正的降序索引
+6. **函数索引**：支持表达式索引
+7. **克隆插件**：快速复制数据库
+8. **资源组**：CPU 资源管理
+
+```sql
+-- 窗口函数示例
+SELECT name, score, 
+       ROW_NUMBER() OVER (ORDER BY score DESC) as rank
+FROM students;
+
+-- CTE示例
+WITH RECURSIVE cte AS (
+  SELECT 1 as n
+  UNION ALL
+  SELECT n + 1 FROM cte WHERE n < 10
+)
+SELECT * FROM cte;
+```
+
+### 34. 如何进行 MySQL 安全配置？
+
+**安全配置要点**：
+
+1. **用户权限管理**：
+```sql
+-- 创建专用用户
+CREATE USER 'app_user'@'localhost' IDENTIFIED BY 'strong_password';
+GRANT SELECT, INSERT, UPDATE, DELETE ON app_db.* TO 'app_user'@'localhost';
+
+-- 移除默认账户
+DROP USER ''@'localhost';
+DROP USER 'root'@'%';
+```
+
+2. **网络安全**：
+```ini
+# 绑定特定IP
+bind-address = 127.0.0.1
+
+# 禁用不安全的功能
+skip-show-database
+local-infile = 0
+```
+
+3. **SSL连接**：
+```sql
+-- 启用SSL
+REQUIRE SSL
+```
+
+4. **审计日志**：
+```ini
+# 开启日志
+general_log = ON
+general_log_file = /var/log/mysql/general.log
+```
+
+### 35. 如何监控 MySQL 性能？
+
+**关键指标**：
+
+1. **连接相关**：
+```sql
+SHOW STATUS LIKE 'Connections';
+SHOW STATUS LIKE 'Threads_connected';
+SHOW STATUS LIKE 'Threads_running';
+```
+
+2. **查询相关**：
+```sql
+SHOW STATUS LIKE 'Queries';
+SHOW STATUS LIKE 'Slow_queries';
+SHOW STATUS LIKE 'Com_select';
+```
+
+3. **InnoDB相关**：
+```sql
+SHOW STATUS LIKE 'Innodb_buffer_pool_read_requests';
+SHOW STATUS LIKE 'Innodb_buffer_pool_reads';
+SHOW STATUS LIKE 'Innodb_rows_read';
+```
+
+**监控工具**：
+- MySQL Enterprise Monitor
+- Percona Monitoring and Management (PMM)
+- Prometheus + Grafana
+- Zabbix
+- Nagios
+
+### 36. 如何处理 MySQL 的时区问题？
+
+**时区设置**：
+```sql
+-- 查看时区
+SELECT @@global.time_zone, @@session.time_zone;
+
+-- 设置时区
+SET GLOBAL time_zone = '+8:00';
+SET time_zone = '+8:00';
+```
+
+**最佳实践**：
+1. 数据库统一使用UTC时区
+2. 应用层处理时区转换
+3. 使用TIMESTAMP自动转换
+4. 避免使用DATETIME存储跨时区数据
+
+```sql
+-- 时区转换函数
+SELECT CONVERT_TZ('2024-01-01 12:00:00', '+00:00', '+08:00');
+```
+
+### 37. MySQL 中的触发器（Trigger）使用场景？
+
+**触发器类型**：
+- BEFORE INSERT/UPDATE/DELETE
+- AFTER INSERT/UPDATE/DELETE
+
+**使用场景**：
+1. **审计日志**：记录数据变更
+2. **数据验证**：复杂的业务规则检查
+3. **自动更新**：维护关联表数据
+4. **缓存更新**：数据变更时清理缓存
+
+```sql
+-- 创建触发器示例
+DELIMITER $$
+CREATE TRIGGER user_audit_trigger 
+AFTER UPDATE ON users
+FOR EACH ROW
+BEGIN
+    INSERT INTO user_audit (user_id, old_name, new_name, change_time)
+    VALUES (NEW.id, OLD.name, NEW.name, NOW());
+END$$
+DELIMITER ;
+```
+
+**注意事项**：
+- 触发器会影响性能
+- 难以调试和维护
+- 可能导致递归调用
+- 建议在应用层处理复杂逻辑
+
+### 38. MySQL 存储过程和函数的使用？
+
+**存储过程示例**：
+```sql
+DELIMITER $$
+CREATE PROCEDURE GetUserOrders(IN user_id INT)
+BEGIN
+    DECLARE total_amount DECIMAL(10,2) DEFAULT 0;
+    
+    SELECT SUM(amount) INTO total_amount 
+    FROM orders 
+    WHERE user_id = user_id;
+    
+    SELECT *, total_amount as total FROM orders WHERE user_id = user_id;
+END$$
+DELIMITER ;
+
+-- 调用存储过程
+CALL GetUserOrders(123);
+```
+
+**函数示例**：
+```sql
+DELIMITER $$
+CREATE FUNCTION CalculateAge(birth_date DATE) 
+RETURNS INT
+READS SQL DATA
+DETERMINISTIC
+BEGIN
+    RETURN TIMESTAMPDIFF(YEAR, birth_date, CURDATE());
+END$$
+DELIMITER ;
+
+-- 使用函数
+SELECT name, CalculateAge(birth_date) as age FROM users;
+```
+
+**优缺点**：
+- 优点：性能好，减少网络传输，业务逻辑集中
+- 缺点：难以维护，版本控制困难，数据库耦合度高
+
+### 39. 如何进行 MySQL 的容量规划？
+
+**容量规划考虑因素**：
+
+1. **数据增长**：
+   - 当前数据量
+   - 增长率
+   - 保留策略
+
+2. **存储需求**：
+```sql
+-- 查看表大小
+SELECT 
+    table_schema,
+    table_name,
+    ROUND(((data_length + index_length) / 1024 / 1024), 2) as size_mb
+FROM information_schema.tables 
+ORDER BY (data_length + index_length) DESC;
+```
+
+3. **性能需求**：
+   - QPS/TPS
+   - 并发连接数
+   - 响应时间要求
+
+4. **硬件规划**：
+   - CPU：计算密集 vs IO密集
+   - 内存：innodb_buffer_pool_size
+   - 存储：IOPS要求、容量增长
+
+**规划建议**：
+- 预留 30-50% 增长空间
+- 定期监控和评估
+- 制定数据归档策略
+- 考虑分库分表时机
+
+### 40. MySQL 与 NoSQL 的选择标准？
+
+**MySQL 适用场景**：
+- 需要 ACID 事务
+- 复杂查询和 JOIN
+- 数据一致性要求高
+- 结构化数据
+- 历史悠久，生态成熟
+
+**NoSQL 适用场景**：
+- 大数据量，高并发
+- 灵活的数据模型
+- 水平扩展需求
+- 读写性能要求极高
+- 数据结构经常变化
+
+**选择矩阵**：
+
+| 需求 | MySQL | MongoDB | Redis | Cassandra |
+|------|-------|---------|-------|-----------|
+| 事务 | ✅ | 有限支持 | ❌ | ❌ |
+| 复杂查询 | ✅ | 良好 | 有限 | 有限 |
+| 水平扩展 | 有限 | ✅ | ✅ | ✅ |
+| 读性能 | 良好 | 良好 | ✅ | ✅ |
+| 写性能 | 良好 | 良好 | ✅ | ✅ |
+| 一致性 | 强一致 | 最终一致 | 最终一致 | 最终一致 |
+
+**混合架构**：
+- MySQL 作为主要数据存储
+- Redis 作为缓存层
+- ES 作为搜索引擎
+- MongoDB 存储非结构化数据
+
+## 总结
+
+这份MySQL面试题涵盖了从基础到高级的各个层面，包括：
+
+1. **基础概念**：存储引擎、索引、事务等
+2. **性能优化**：慢查询、索引优化、配置调优等
+3. **高可用**：主从复制、分库分表、监控等
+4. **实战经验**：问题排查、架构设计、容量规划等
+5. **新特性**：MySQL 8.0、JSON、窗口函数等
+
+掌握这些知识点，能够应对大部分MySQL相关的面试场景。在实际工作中，也要结合具体业务场景，灵活运用这些技术点。
