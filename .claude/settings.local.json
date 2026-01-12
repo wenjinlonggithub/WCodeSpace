@@ -54,7 +54,11 @@
       "Bash(rm \"D:\\develop\\20\\WCodeSpace\\DesignPattern\\src\\main\\java\\com\\architecture\\designpattern${pattern}${pattern^}InterviewQuestions.java\")",
       "Bash(rm \"D:\\develop\\20\\WCodeSpace\\DesignPattern\\src\\main\\java\\com\\architecture\\designpattern${pattern}${pattern^}SourceCodeAnalysis.java\")",
       "Bash(mvn clean compile)",
-      "Bash(mvn clean compile:*)"
+      "Bash(mvn clean compile:*)",
+      "Bash(tree:*)",
+      "Bash(dir:*)",
+      "Bash(findstr:*)",
+      "Bash(mvn compile:*)"
     ],
     "deny": []
   }

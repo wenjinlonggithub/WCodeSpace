@@ -9,5 +9,6 @@
   <url>http://maven.apache.org</url>
     <modules>
         <module>DDD</module>
+        <module>Case</module>
     </modules>
 </project>
