@@ -384,6 +384,26 @@ public class LinkedListImplementation<T> {
      *
      * <p>这是一个经典的面试题（LeetCode #206）
      *
+     * <p>算法过程演示:
+     * <pre>
+     * 初始状态: 1 -> 2 -> 3 -> 4 -> null
+     *          head
+     *
+     * 步骤1: prev=null, current=1, next=2
+     *        null <- 1    2 -> 3 -> 4 -> null
+     *
+     * 步骤2: prev=1, current=2, next=3
+     *        null <- 1 <- 2    3 -> 4 -> null
+     *
+     * 步骤3: prev=2, current=3, next=4
+     *        null <- 1 <- 2 <- 3    4 -> null
+     *
+     * 步骤4: prev=3, current=4, next=null
+     *        null <- 1 <- 2 <- 3 <- 4    null
+     *
+     * 最终: head = 4 -> 3 -> 2 -> 1 -> null
+     * </pre>
+     *
      * 时间复杂度: O(n)
      * 空间复杂度: O(1) - 原地反转
      */
