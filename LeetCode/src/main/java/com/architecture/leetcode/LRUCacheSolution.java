@@ -26,7 +26,7 @@ public class LRUCacheSolution {
      * 5. 重写removeEldestEntry方法可控制缓存容量，当size > capacity时自动删除最老元素
      * LinkedHashMap可以保持插入顺序或访问顺序
      */
-    static class LRUCache {
+    public static class LRUCache {
         private final int capacity;
         private final LinkedHashMap<Integer, Integer> cache;
 
