@@ -44,6 +44,30 @@ APP消息推送系统中，需要根据用户的在线状态决定推送方式�
 
 ## 技术实现方案
 
+**我们提供两种方案供选择：**
+
+1. **方案一：WebSocket长连接** - 适合需要实时双向通信的场景（IM聊天、在线客服）
+2. **方案二：REST心跳上报** - 适合只需判断在线状态的场景（电商推送、新闻通知）✨**推荐**
+
+### 方案对比
+
+| 特性 | WebSocket方案 | REST心跳方案 |
+|------|--------------|-------------|
+| 实现复杂度 | 中等 | 简单 |
+| 实时性 | 高（毫秒级） | 中（30秒延迟） |
+| 流量消耗 | 低 | 中 |
+| 服务端推送 | 支持 | 不支持 |
+| 维护成本 | 高 | 低 |
+| 适用场景 | 实时通讯 | 纯推送通知 |
+
+**核心结论**：
+- **只需判断在线状态 + 推送通知** → 使用REST心跳方案
+- **需要实时双向通信** → 使用WebSocket方案
+
+---
+
+## 方案一：WebSocket长连接
+
 ### 整体架构
 
 ```
@@ -389,12 +413,216 @@ public boolean isOnline(String userId) {
 - `HeartbeatMonitor.java` - 心跳监控
 - `SmartPushService.java` - 智能推送服务
 
-## 总结
+---
+
+## 方案二：REST心跳上报（推荐用于纯推送场景）
+
+### 实现原理
+
+**核心思路**：客户端定时调用HTTP接口上报心跳，服务端写入Redis（带TTL），推送时查询状态。
+
+```
+客户端（APP）
+    ↓
+每30秒调用 POST /api/heartbeat
+    ↓
+服务端写入Redis（TTL 60秒）
+online:user:{userId}:{deviceId} = {platform, appVersion, timestamp}
+    ↓
+推送服务查询Redis
+    ↓
+    存在 → 在线，不推送（或静默推送）
+    不存在 → 离线，极光推送
+```
+
+### 核心接口
+
+**1. 心跳上报接口**
+
+```java
+POST /api/heartbeat
+
+Request:
+{
+  "userId": "user123",
+  "deviceId": "device456",
+  "platform": "android",
+  "appVersion": "1.0.0",
+  "timestamp": 1704038400000
+}
+
+Response:
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "nextHeartbeatTime": 30  // 建议30秒后再次上报
+  }
+}
+```
+
+**2. 下线接口**
+
+```java
+POST /api/offline
+
+Request:
+{
+  "userId": "user123",
+  "deviceId": "device456"
+}
+```
+
+### 客户端实现（Android示例）
+
+```kotlin
+class HeartbeatManager(private val context: Context) {
+
+    /**
+     * 启动心跳（使用WorkManager）
+     */
+    fun startHeartbeat() {
+        val heartbeatRequest = PeriodicWorkRequestBuilder<HeartbeatWorker>(
+            30, TimeUnit.SECONDS  // 每30秒执行一次
+        ).build()
+
+        WorkManager.getInstance(context)
+            .enqueueUniquePeriodicWork(
+                "heartbeat",
+                ExistingPeriodicWorkPolicy.KEEP,
+                heartbeatRequest
+            )
+    }
+
+    /**
+     * 心跳Worker
+     */
+    class HeartbeatWorker(
+        context: Context,
+        params: WorkerParameters
+    ) : CoroutineWorker(context, params) {
+
+        override suspend fun doWork(): Result {
+            // 调用REST接口
+            val response = api.reportHeartbeat(HeartbeatRequest(
+                userId = getUserId(),
+                deviceId = getDeviceId(),
+                platform = "android",
+                appVersion = "1.0.0",
+                timestamp = System.currentTimeMillis()
+            ))
+
+            return if (response.code == 200) {
+                Result.success()
+            } else {
+                Result.retry()
+            }
+        }
+    }
+}
+```
+
+### 服务端实现
+
+```java
+@RestController
+@RequestMapping("/api")
+public class HeartbeatController {
+
+    @Autowired
+    private RestHeartbeatService heartbeatService;
+
+    @PostMapping("/heartbeat")
+    public HeartbeatResponse heartbeat(@RequestBody HeartbeatRequest request) {
+        return heartbeatService.reportHeartbeat(request);
+    }
+
+    @PostMapping("/offline")
+    public Map<String, Object> offline(@RequestBody OfflineRequest request) {
+        heartbeatService.offline(request.getUserId(), request.getDeviceId());
+        return Map.of("code", 200, "message", "success");
+    }
+}
+```
+
+### 推送逻辑
+
+```java
+public void pushMessage(String userId, Message message) {
+    // 查询用户是否在线
+    boolean online = restHeartbeatService.isUserOnline(userId);
+
+    if (online) {
+        // 在线：不推送（或发送静默推送，App内处理）
+        logger.info("用户在线，跳过推送");
+    } else {
+        // 离线：极光推送
+        jpushClient.push(userId, message);
+        logger.info("用户离线，极光推送");
+    }
+}
+```
+
+### 方案优势
+
+✅ **实现简单**：普通HTTP接口，无需WebSocket服务器
+✅ **维护容易**：无状态，易扩展
+✅ **技术门槛低**：不需要了解WebSocket协议
+✅ **成本较低**：服务器资源占用少
+✅ **兼容性好**：任何HTTP客户端都可调用
+
+### 方案劣势
+
+❌ **实时性稍差**：取决于心跳间隔（通常30秒）
+❌ **无法主动推送**：需配合极光等第三方推送
+❌ **流量消耗**：HTTP请求头较大
+❌ **电量消耗**：定时唤醒网络模块
+
+### 适用场景
+
+✅ **电商APP**：订单状态更新、促销活动通知
+✅ **新闻资讯APP**：新闻推送、热点提醒
+✅ **工具类APP**：任务完成通知、系统消息
+✅ **只需判断在线状态**：不需要实时双向通信
+
+## 总结与选型
+
+### 方案对比
 
 | 方案 | 优势 | 劣势 | 适用场景 |
 |------|------|------|---------|
-| WebSocket + Redis | 实时性高、实现简单 | 需要维护长连接 | 社交APP、IM |
-| MQTT | 协议轻量、弱网优化 | 需要额外Broker | IoT、消息推送 |
-| 长轮询 | 兼容性好 | 性能较差 | 兼容旧系统 |
+| **WebSocket方案** | 实时性高、双向通信、流量省 | 复杂度高、维护成本高 | IM聊天、在线客服 |
+| **REST心跳方案** | 实现简单、维护容易、易扩展 | 实时性差、无法推送 | 电商推送、新闻通知 |
+| **混合方案** | 兼顾实时性和成本 | 技术复杂度最高 | 大型社交APP |
 
-**推荐方案**：WebSocket + Redis + 心跳机制
+### 选型建议
+
+```
+你的需求是什么？
+├─ 需要实时双向通信（IM聊天、在线客服）
+│   → WebSocket方案
+│
+├─ 只需判断在线状态 + 推送通知（电商、新闻）
+│   → REST心跳方案 ✨推荐
+│
+└─ 复杂业务场景（既有聊天又有推送）
+    → 混合方案
+```
+
+### 关键代码文件
+
+**WebSocket方案**：
+- `OnlineStatusManager.java` - 在线状态管理
+- `WebSocketServer.java` - WebSocket服务器
+- `SmartPushService.java` - 智能推送服务
+- `ClientIntegrationGuide.md` - 客户端集成指南
+
+**REST心跳方案**：
+- `RestHeartbeatService.java` - REST心跳服务 ✨**推荐先看这个**
+- `RestHeartbeatClientGuide.md` - 客户端集成指南（Android/iOS/Web）
+- `方案对比.md` - 详细的方案对比分析
+
+**推荐阅读顺序**：
+1. `方案对比.md` - 了解两种方案的区别
+2. `RestHeartbeatService.java` - 查看REST心跳实现（简单场景）
+3. `WebSocketServer.java` - 查看WebSocket实现（复杂场景）
