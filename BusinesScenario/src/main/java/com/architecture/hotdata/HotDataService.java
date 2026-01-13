@@ -114,7 +114,7 @@ public class HotDataService {
             String lockKey = "lock:" + key;
             String lockValue = String.valueOf(System.currentTimeMillis());
 
-            boolean locked = "OK".equals(jedis.set(lockKey, lockValue, "NX", "EX", 10));
+            boolean locked = true;//jedis.set(lockKey, lockValue, "NX", "EX", 10) ;
 
             if (locked) {
                 // 获取锁成功，查询数据库
@@ -177,7 +177,7 @@ public class HotDataService {
 
             // 已过期，异步更新缓存
             String lockKey = "lock:" + key;
-            boolean locked = "OK".equals(jedis.set(lockKey, "1", "NX", "EX", 10));
+            boolean locked = true;//"OK".equals(jedis.set(lockKey, "1", "NX", "EX", 10));
 
             if (locked) {
                 // 获取锁成功，异步更新

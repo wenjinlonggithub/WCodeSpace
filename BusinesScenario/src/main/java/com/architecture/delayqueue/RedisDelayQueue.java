@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -116,7 +117,7 @@ public class RedisDelayQueue<T> {
         try (Jedis jedis = jedisPool.getResource()) {
             // 1. 获取到期任务（score <= currentTime）
             // ZRANGEBYSCORE key min max LIMIT 0 100
-            Set<String> tasks = jedis.zrangeByScore(key, 0, currentTime, 0, 100);
+            List<String> tasks = jedis.zrangeByScore(key, 0, currentTime, 0, 100);
 
             if (tasks == null || tasks.isEmpty()) {
                 return;

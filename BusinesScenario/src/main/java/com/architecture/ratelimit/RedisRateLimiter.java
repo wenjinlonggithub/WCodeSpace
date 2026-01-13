@@ -71,11 +71,7 @@ public class RedisRateLimiter {
 
         try (Jedis jedis = jedisPool.getResource()) {
             Object result = jedis.eval(
-                    RATE_LIMIT_SCRIPT,
-                    Collections.singletonList(key),
-                    Collections.singletonList(String.valueOf(windowMs)),
-                    Collections.singletonList(String.valueOf(limit)),
-                    Collections.singletonList(String.valueOf(now))
+                    RATE_LIMIT_SCRIPT
             );
 
             boolean allowed = Long.valueOf(1).equals(result);

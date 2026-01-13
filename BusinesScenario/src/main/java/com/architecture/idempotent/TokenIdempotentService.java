@@ -192,8 +192,8 @@ public class TokenIdempotentService {
         // 2. 用户填写订单信息并提交（第一次）
         CreateOrderRequest request = new CreateOrderRequest();
         request.setToken(token);
-        request.setUserId("user123");
-        request.setProductId("product456");
+        //request.setUserId("user123");
+        //request.setProductId("product456");
 
         String result1 = controller.createOrder(request);
         logger.info("第一次提交结果: {}", result1);
