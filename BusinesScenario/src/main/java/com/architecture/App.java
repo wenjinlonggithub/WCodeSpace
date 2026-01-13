@@ -3,7 +3,7 @@ package com.architecture;
 /**
  * 大厂面试 - 业务场景疑难杂症解决方案
  *
- * 本项目整理了大厂面试中常见的7大核心场景及其技术实现方案
+ * 本项目整理了大厂面试中常见的8大核心场景及其技术实现方案
  *
  * 场景列表：
  * 1. 高并发秒杀系统      - com.architecture.seckill
@@ -13,6 +13,7 @@ package com.architecture;
  * 5. 接口幂等性         - com.architecture.idempotent
  * 6. 热点数据处理       - com.architecture.hotdata
  * 7. 分布式ID生成       - com.architecture.distributedid
+ * 8. APP在线状态检测与智能推送 - com.architecture.apppush
  *
  * 每个场景包含：
  * - README.md：业务背景、问题分析、技术方案对比
@@ -67,6 +68,12 @@ public class App {
         System.out.println("  核心技术：雪花算法（Snowflake）");
         System.out.println("  性能指标：单机QPS 1000万，趋势递增，69年可用");
         System.out.println("  代码位置：com.architecture.distributedid");
+        System.out.println();
+
+        System.out.println("场景八：APP在线状态检测与智能推送");
+        System.out.println("  核心技术：WebSocket长连接 + Redis状态存储 + 心跳机制");
+        System.out.println("  推送策略：在线WebSocket推送，离线极光推送");
+        System.out.println("  代码位置：com.architecture.apppush");
         System.out.println();
 
         System.out.println("=".repeat(80));

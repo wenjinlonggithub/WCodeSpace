@@ -20,7 +20,8 @@ BusinesScenario/
 │   ├── ratelimit/        # 场景四：限流算法
 │   ├── idempotent/       # 场景五：接口幂等性
 │   ├── hotdata/          # 场景六：热点数据处理
-│   └── distributedid/    # 场景七：分布式ID生成
+│   ├── distributedid/    # 场景七：分布式ID生成
+│   └── apppush/          # 场景八：APP在线状态检测与智能推送
 └── pom.xml
 ```
 
@@ -207,6 +208,62 @@ BusinesScenario/
 - 单机QPS：1000万
 - 时间精度：毫秒级
 - 可用时间：69年
+
+---
+
+### 场景八：APP在线状态检测与智能推送
+
+**业务背景**：APP消息推送系统，根据用户在线状态决定推送方式
+
+**业务需求**：
+- 用户在线：通过WebSocket实时推送
+- 用户离线：通过极光/FCM推送到系统通知栏
+- 避免重复推送，节省推送成本
+
+**核心问题**：
+- 如何判断用户是否在线？
+- 网络抖动、APP切后台如何处理？
+- 分布式环境下的状态同步
+- 心跳检测策略
+
+**技术方案**：
+- **WebSocket长连接**：建立持久连接，实时通信
+- **Redis状态存储**：全局共享在线状态
+- **心跳机制**：每30秒心跳，60秒超时
+- **智能推送**：在线WebSocket，离线极光推送
+
+**核心文件**：
+- `apppush/OnlineStatusManager.java` - 在线状态管理
+- `apppush/WebSocketServer.java` - WebSocket服务器
+- `apppush/SmartPushService.java` - 智能推送服务
+- `apppush/ClientIntegrationGuide.md` - 客户端集成指南（Android/iOS/Web）
+
+**系统架构**：
+```
+客户端 → WebSocket建立连接 → Redis记录在线状态 → 心跳保活
+                                    ↓
+                          推送服务查询在线状态
+                          ↙              ↘
+                   在线：WebSocket推送    离线：极光推送
+```
+
+**关键技术点**：
+1. **在线状态维护**：Redis存储 userId:deviceId -> {serverId, connectTime, platform}
+2. **心跳机制**：客户端30秒心跳，服务端60秒TTL自动过期
+3. **多端登录**：支持手机+平板+PC同时在线
+4. **网络抖动**：断线5秒缓冲期，给重连机会
+5. **状态同步**：通过Redis Pub/Sub跨服务器转发消息
+
+**性能优化**：
+- 批量查询在线状态（Redis Pipeline）
+- 本地缓存（Caffeine缓存1秒）
+- 分离推送（在线用户WebSocket，离线用户批量极光推送）
+
+**适用场景**：
+- IM聊天系统
+- 消息推送系统
+- 实时通知系统
+- 社交APP
 
 ---
 
