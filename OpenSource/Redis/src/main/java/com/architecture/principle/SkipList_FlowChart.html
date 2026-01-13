@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>跳表数据结构 - 核心流程图</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+        h2 {
+            color: #764ba2;
+            margin-top: 40px;
+            border-left: 5px solid #764ba2;
+            padding-left: 15px;
+        }
+        h3 {
+            color: #667eea;
+            margin-top: 30px;
+        }
+        .toc {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .toc li {
+            margin: 10px 0;
+        }
+        .toc a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        .toc a:hover {
+            color: #764ba2;
+        }
+        .structure-diagram {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 20px 0;
+            border: 2px solid #667eea;
+        }
+        .explanation {
+            background: #e7f3ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 5px solid #2196F3;
+        }
+        .note {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 5px solid #ffc107;
+        }
+        .tip {
+            background: #d4edda;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 5px solid #28a745;
+        }
+        .mermaid {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background: #667eea;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #e83e8c;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin: 0 5px;
+        }
+        .badge-success { background: #28a745; color: white; }
+        .badge-info { background: #17a2b8; color: white; }
+        .badge-warning { background: #ffc107; color: black; }
+        .badge-danger { background: #dc3545; color: white; }
+        .summary-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin: 40px 0;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+        .summary-box h2 {
+            color: white;
+            border-left: 5px solid white;
+        }
+        .emoji {
+            font-size: 1.2em;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 跳表（Skip List）核心流程图</h1>
+
+        <div class="toc">
+            <h3>📚 目录</h3>
+            <ul>
+                <li><a href="#structure">1. 跳表结构示意图</a></li>
+                <li><a href="#insert">2. 插入操作流程</a></li>
+                <li><a href="#delete">3. 删除操作流程</a></li>
+                <li><a href="#search">4. 查找操作流程</a></li>
+                <li><a href="#range">5. 范围查询流程</a></li>
+                <li><a href="#rank">6. 排名查询流程</a></li>
+                <li><a href="#scenarios">7. 业务场景应用</a></li>
+                <li><a href="#performance">8. 性能对比</a></li>
+                <li><a href="#summary">9. 总结</a></li>
+            </ul>
+        </div>
+
+        <h2 id="structure">1. 跳表结构示意图</h2>
+        <div class="structure-diagram">
+<pre>
+跳表多层索引结构：
+
+Level 3: head ---------------------------------> node(2500)
+                |                                    |
+Level 2: head --------> node(1800) -------------> node(2500)
+                |           |                        |
+Level 1: head --------> node(1800) -> node(2100) -> node(2500)
+                |           |            |             |
+Level 0: head -> node(1500) -> node(1800) -> node(1900) -> node(2100) -> node(2200) -> node(2500)
+
+<span style="color: #28a745;">✅ 说明：</span>
+• head：哨兵节点（不存储数据）
+• 每个节点包含：value（数据）、score（分数）、forward[]（前向指针数组）
+• 层级越高，跳跃的距离越大，查找速度越快
+• 最底层（Level 0）包含所有节点，是完整的有序链表
+</pre>
+        </div>
+
+        <h2 id="insert">2. 插入操作流程</h2>
+        <div class="mermaid">
+flowchart TD
+    Start([开始: insert value, score]) --> Init[初始化 update 数组<br/>用于记录每层的前驱节点]
+    Init --> SetCurrent[设置 current = head<br/>从最高层开始]
+
+    SetCurrent --> LoopLevel{遍历每一层<br/>i = level-1 down to 0}
+
+    LoopLevel -->|每层| SearchForward{current.forward[i] != null<br/>且 score 更大?}
+    SearchForward -->|是| MoveForward[current = current.forward[i]<br/>继续向前搜索]
+    MoveForward --> SearchForward
+
+    SearchForward -->|否| RecordUpdate[update[i] = current<br/>记录该层的前驱节点]
+    RecordUpdate --> NextLevel{还有下一层?}
+    NextLevel -->|是| LoopLevel
+
+    NextLevel -->|否| RandomLevel[随机生成新节点层数<br/>newLevel = randomLevel]
+
+    RandomLevel --> CheckLevel{newLevel > level?}
+    CheckLevel -->|是| UpdateHead[将新层的 update<br/>指向 head]
+    CheckLevel -->|否| CreateNode[创建新节点<br/>newNode score, value, newLevel]
+    UpdateHead --> UpdateLevel[更新跳表层数<br/>level = newLevel]
+    UpdateLevel --> CreateNode
+
+    CreateNode --> InsertLoop{遍历新节点的每一层<br/>i = 0 to newLevel-1}
+
+    InsertLoop -->|每层| LinkNode1[newNode.forward[i] = update[i].forward[i]]
+    LinkNode1 --> LinkNode2[update[i].forward[i] = newNode]
+    LinkNode2 --> InsertNext{还有层?}
+    InsertNext -->|是| InsertLoop
+    InsertNext -->|否| End([插入完成])
+
+    style Start fill:#90EE90
+    style End fill:#FFB6C1
+    style RandomLevel fill:#FFD700
+    style CreateNode fill:#87CEEB
+        </div>
+
+        <div class="explanation">
+            <h3>📝 插入操作详细步骤</h3>
+            <ol>
+                <li><strong>初始化阶段</strong>
+                    <ul>
+                        <li>创建 update[MAX_LEVEL] 数组</li>
+                        <li>用于记录每层需要更新的前驱节点</li>
+                    </ul>
+                </li>
+                <li><strong>查找插入位置（从高到低）</strong>
+                    <ul>
+                        <li>Level 3: 快速跳跃，找到大致区域</li>
+                        <li>Level 2: 继续缩小范围</li>
+                        <li>Level 1: 进一步定位</li>
+                        <li>Level 0: 精确定位插入位置</li>
+                    </ul>
+                </li>
+                <li><strong>随机层数生成</strong>
+                    <ul>
+                        <li>P = 0.25 的概率晋升到下一层</li>
+                        <li>最大层数 = 32</li>
+                        <li>期望层数 = log₁/ₚ(N) ≈ log₄(N)</li>
+                    </ul>
+                </li>
+                <li><strong>创建并插入新节点</strong>
+                    <ul>
+                        <li>从 Level 0 到 Level newLevel-1</li>
+                        <li>每层更新前驱节点的 forward 指针</li>
+                        <li>新节点的 forward 指针指向原后继节点</li>
+                    </ul>
+                </li>
+            </ol>
+            <p><span class="badge badge-success">时间复杂度: O(logN)</span> <span class="badge badge-info">空间复杂度: O(1)</span></p>
+        </div>
+
+        <h2 id="delete">3. 删除操作流程</h2>
+        <div class="mermaid">
+flowchart TD
+    Start([开始: delete value, score]) --> Init[初始化 update 数组]
+    Init --> SetCurrent[current = head<br/>从最高层开始]
+
+    SetCurrent --> LoopLevel{遍历每一层<br/>i = level-1 down to 0}
+
+    LoopLevel -->|每层| SearchForward{current.forward[i] != null<br/>且 score 更大?}
+    SearchForward -->|是| MoveForward[current = current.forward[i]]
+    MoveForward --> SearchForward
+
+    SearchForward -->|否| RecordUpdate[update[i] = current]
+    RecordUpdate --> NextLevel{还有下一层?}
+    NextLevel -->|是| LoopLevel
+
+    NextLevel -->|否| GetTarget[current = current.forward[0]<br/>获取目标节点]
+
+    GetTarget --> CheckTarget{current != null 且<br/>score 匹配 且<br/>value 匹配?}
+
+    CheckTarget -->|否| NotFound([返回 false<br/>节点不存在])
+
+    CheckTarget -->|是| DeleteLoop{遍历每一层<br/>i = 0 to level-1}
+
+    DeleteLoop -->|每层| CheckUpdate{update[i].forward[i]<br/>== current?}
+    CheckUpdate -->|否| BreakLoop[跳出循环<br/>更高层没有此节点]
+    CheckUpdate -->|是| UpdateLink[update[i].forward[i] = current.forward[i]<br/>删除指针连接]
+
+    UpdateLink --> DeleteNext{还有层?}
+    DeleteNext -->|是| DeleteLoop
+    DeleteNext -->|否| AdjustLevel{检查层数}
+
+    BreakLoop --> AdjustLevel
+
+    AdjustLevel --> CheckEmpty{head.forward[level-1]<br/>== null?}
+    CheckEmpty -->|是| DecreaseLevel[level--<br/>降低跳表层数]
+    DecreaseLevel --> CheckEmpty
+    CheckEmpty -->|否| Success([返回 true<br/>删除成功])
+
+    style Start fill:#90EE90
+    style NotFound fill:#FFB6C1
+    style Success fill:#90EE90
+    style DeleteLoop fill:#FFD700
+        </div>
+
+        <div class="note">
+            <h3>⚠️ 删除操作关键点</h3>
+            <ul>
+                <li>必须从 Level 0 到最高层都删除节点的引用</li>
+                <li>删除后需要检查并调整跳表的层数</li>
+                <li>如果最高层为空，则层数减1</li>
+                <li>时间复杂度：O(logN)</li>
+            </ul>
+        </div>
+
+        <h2 id="search">4. 查找操作流程</h2>
+        <div class="mermaid">
+flowchart TD
+    Start([开始: search score]) --> SetCurrent[current = head<br/>从最高层开始]
+
+    SetCurrent --> LoopLevel{遍历每一层<br/>i = level-1 down to 0}
+
+    LoopLevel -->|每层| CheckForward{current.forward[i] != null<br/>且 score 更大?}
+
+    CheckForward -->|是| MoveForward[current = current.forward[i]<br/>向前跳跃]
+    MoveForward --> CheckForward
+
+    CheckForward -->|否| NextLevel{还有下一层?}
+    NextLevel -->|是| LoopLevel
+
+    NextLevel -->|否| GetNode[current = current.forward[0]<br/>移动到 Level 0 的下一个节点]
+
+    GetNode --> CheckMatch{current != null 且<br/>current.score == score?}
+
+    CheckMatch -->|是| Found([返回 current<br/>找到目标节点])
+    CheckMatch -->|否| NotFound([返回 null<br/>未找到])
+
+    style Start fill:#90EE90
+    style Found fill:#90EE90
+    style NotFound fill:#FFB6C1
+    style MoveForward fill:#87CEEB
+        </div>
+
+        <div class="structure-diagram">
+<pre>
+<span style="color: #667eea; font-weight: bold;">查找过程示例（查找 score = 2100）：</span>
+
+Level 3: head ─────────────────────────────────→ node(2500)
+                                                    ↓ (2500 > 2100，停止)
+Level 2: head ─────────→ node(1800) ─────────────→ node(2500)
+                            ↓ (继续向下)
+Level 1: head ─────────→ node(1800) → node(2100)
+                                         ↓ (找到！)
+Level 0: head → node(1500) → node(1800) → node(1900) → <span style="color: #28a745; font-weight: bold;">node(2100) ✓</span>
+
+<span style="color: #28a745;">关键点：</span>
+1. 从高层开始，快速跳过小于目标的节点
+2. 遇到大于等于目标的节点，转到下一层
+3. 重复过程直到 Level 0
+4. 在 Level 0 验证是否精确匹配
+</pre>
+        </div>
+
+        <h2 id="range">5. 范围查询流程</h2>
+        <div class="mermaid">
+flowchart TD
+    Start([开始: rangeByScore<br/>minScore, maxScore]) --> InitList[创建结果列表<br/>result = new ArrayList]
+
+    InitList --> SetCurrent[current = head<br/>从最高层开始]
+
+    SetCurrent --> FindStart{查找第一个 >= minScore 的节点}
+
+    FindStart --> LoopLevel{遍历每一层<br/>i = level-1 down to 0}
+
+    LoopLevel -->|每层| CheckForward{current.forward[i] != null<br/>且 score < minScore?}
+
+    CheckForward -->|是| MoveForward[current = current.forward[i]<br/>继续向前]
+    MoveForward --> CheckForward
+
+    CheckForward -->|否| NextLevel{还有下一层?}
+    NextLevel -->|是| LoopLevel
+
+    NextLevel -->|否| MoveToStart[current = current.forward[0]<br/>移到 Level 0 的起始节点]
+
+    MoveToStart --> CollectLoop{current != null 且<br/>score <= maxScore?}
+
+    CollectLoop -->|是| AddToResult[result.add current<br/>添加到结果列表]
+    AddToResult --> MoveNext[current = current.forward[0]<br/>移动到下一个节点]
+    MoveNext --> CollectLoop
+
+    CollectLoop -->|否| Return([返回 result<br/>返回结果列表])
+
+    style Start fill:#90EE90
+    style Return fill:#90EE90
+    style FindStart fill:#FFD700
+    style CollectLoop fill:#87CEEB
+        </div>
+
+        <div class="tip">
+            <h3>💡 范围查询性能优势</h3>
+            <p><strong>时间复杂度：O(logN + M)</strong></p>
+            <ul>
+                <li>定位起始点：O(logN) - 利用跳表快速定位</li>
+                <li>收集结果：O(M) - M为结果数量，顺序遍历</li>
+            </ul>
+            <p><strong>应用场景：</strong></p>
+            <ul>
+                <li><span class="emoji">🎮</span> 游戏排行榜：查询分数在 1000-2000 的玩家</li>
+                <li><span class="emoji">⏰</span> 延迟任务：获取当前时间前的所有任务</li>
+                <li><span class="emoji">💰</span> 价格区间：查询价格在 50-100 的商品</li>
+            </ul>
+        </div>
+
+        <h2 id="rank">6. 排名查询流程</h2>
+        <div class="mermaid">
+flowchart TD
+    Start([开始: getRank score]) --> Init[初始化<br/>current = head<br/>rank = 0]
+
+    Init --> LoopLevel{遍历每一层<br/>i = level-1 down to 0}
+
+    LoopLevel -->|每层| CheckForward{current.forward[i] != null<br/>且 score 更大?}
+
+    CheckForward -->|是| CountNodes[统计跨越的节点数<br/>从 current 到 current.forward[i]]
+
+    CountNodes --> TempLoop[temp = current]
+    TempLoop --> CountCheck{temp.forward[0]<br/>!= current.forward[i]?}
+    CountCheck -->|是| IncrRank1[rank++<br/>temp = temp.forward[0]]
+    IncrRank1 --> CountCheck
+
+    CountCheck -->|否| IncrRank2[rank++<br/>计入 forward[i] 本身]
+    IncrRank2 --> MoveForward[current = current.forward[i]]
+    MoveForward --> CheckForward
+
+    CheckForward -->|否| NextLevel{还有下一层?}
+    NextLevel -->|是| LoopLevel
+
+    NextLevel -->|否| Return([返回 rank<br/>返回排名])
+
+    style Start fill:#90EE90
+    style Return fill:#90EE90
+    style CountNodes fill:#FFD700
+    style LoopLevel fill:#87CEEB
+        </div>
+
+        <h2 id="scenarios">7. 业务场景应用流程</h2>
+
+        <h3>场景1：游戏排行榜更新流程</h3>
+        <div class="mermaid">
+flowchart TD
+    Start([玩家完成任务]) --> GetOldScore[查询玩家旧分数]
+    GetOldScore --> HasOld{存在旧记录?}
+
+    HasOld -->|是| DeleteOld[删除旧分数记录<br/>delete oldScore]
+    HasOld -->|否| CalcNew[计算新分数<br/>newScore = oldScore + reward]
+    DeleteOld --> CalcNew
+
+    CalcNew --> Insert[插入新分数<br/>insert playerId, newScore]
+    Insert --> UpdateCache[更新排行榜缓存<br/>如 TOP 100]
+
+    UpdateCache --> CheckRank{需要查询排名?}
+    CheckRank -->|是| GetRank[getRank newScore]
+    GetRank --> Notify[通知玩家<br/>您当前排名第 X 名]
+
+    CheckRank -->|否| End([完成])
+    Notify --> End
+
+    style Start fill:#90EE90
+    style End fill:#90EE90
+    style Insert fill:#FFD700
+        </div>
+
+        <h3>场景2：延迟任务执行流程</h3>
+        <div class="mermaid">
+flowchart TD
+    Start([定时器触发]) --> GetTime[获取当前时间<br/>now = currentTimeMillis]
+
+    GetTime --> RangeQuery[范围查询<br/>rangeByScore 0, now]
+
+    RangeQuery --> CheckTasks{有到期任务?}
+
+    CheckTasks -->|否| Sleep([休眠等待])
+
+    CheckTasks -->|是| LoopTasks{遍历每个任务}
+
+    LoopTasks --> ExecTask[执行任务<br/>task.execute]
+
+    ExecTask --> DeleteTask[删除任务<br/>delete taskId, executeTime]
+
+    DeleteTask --> NextTask{还有任务?}
+    NextTask -->|是| LoopTasks
+    NextTask -->|否| Sleep
+
+    Sleep --> Start
+
+    style Start fill:#90EE90
+    style ExecTask fill:#FFD700
+    style RangeQuery fill:#87CEEB
+        </div>
+
+        <h2 id="performance">8. 性能对比</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>操作</th>
+                    <th>跳表</th>
+                    <th>平衡树</th>
+                    <th>链表</th>
+                    <th>数组</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>插入</strong></td>
+                    <td><span class="badge badge-success">O(logN)</span></td>
+                    <td><span class="badge badge-success">O(logN)</span></td>
+                    <td><span class="badge badge-danger">O(N)</span></td>
+                    <td><span class="badge badge-danger">O(N)</span></td>
+                </tr>
+                <tr>
+                    <td><strong>删除</strong></td>
+                    <td><span class="badge badge-success">O(logN)</span></td>
+                    <td><span class="badge badge-success">O(logN)</span></td>
+                    <td><span class="badge badge-danger">O(N)</span></td>
+                    <td><span class="badge badge-danger">O(N)</span></td>
+                </tr>
+                <tr>
+                    <td><strong>查找</strong></td>
+                    <td><span class="badge badge-success">O(logN)</span></td>
+                    <td><span class="badge badge-success">O(logN)</span></td>
+                    <td><span class="badge badge-danger">O(N)</span></td>
+                    <td><span class="badge badge-success">O(logN)*</span></td>
+                </tr>
+                <tr>
+                    <td><strong>范围查询</strong></td>
+                    <td><span class="badge badge-success">O(logN+M)</span></td>
+                    <td><span class="badge badge-success">O(logN+M)</span></td>
+                    <td><span class="badge badge-danger">O(N)</span></td>
+                    <td><span class="badge badge-success">O(logN+M)*</span></td>
+                </tr>
+                <tr>
+                    <td><strong>空间复杂度</strong></td>
+                    <td><span class="badge badge-info">O(N)</span></td>
+                    <td><span class="badge badge-info">O(N)</span></td>
+                    <td><span class="badge badge-info">O(N)</span></td>
+                    <td><span class="badge badge-info">O(N)</span></td>
+                </tr>
+                <tr>
+                    <td><strong>实现难度</strong></td>
+                    <td><span class="badge badge-success">简单</span></td>
+                    <td><span class="badge badge-danger">复杂</span></td>
+                    <td><span class="badge badge-success">简单</span></td>
+                    <td><span class="badge badge-success">简单</span></td>
+                </tr>
+                <tr>
+                    <td><strong>缓存友好</strong></td>
+                    <td><span class="badge badge-warning">中等</span></td>
+                    <td><span class="badge badge-danger">差</span></td>
+                    <td><span class="badge badge-success">好</span></td>
+                    <td><span class="badge badge-success">好</span></td>
+                </tr>
+            </tbody>
+        </table>
+        <p style="font-size: 0.9em; color: #666;">* 数组需要有序且使用二分查找</p>
+
+        <h2 id="summary">9. 总结</h2>
+        <div class="summary-box">
+            <h2><span class="emoji">🎯</span> 跳表核心特点</h2>
+            <ul>
+                <li><span class="emoji">✅</span> 实现简单，易于理解和维护</li>
+                <li><span class="emoji">✅</span> 性能稳定，所有操作 O(logN)</li>
+                <li><span class="emoji">✅</span> 支持高效的范围查询</li>
+                <li><span class="emoji">✅</span> 并发友好（相比平衡树）</li>
+                <li><span class="emoji">✅</span> 内存占用合理</li>
+            </ul>
+
+            <h3><span class="emoji">🚀</span> 适用场景</h3>
+            <ul>
+                <li><span class="emoji">🎮</span> 排行榜系统（游戏积分、销售排行）</li>
+                <li><span class="emoji">⏰</span> 延迟任务队列（定时任务调度）</li>
+                <li><span class="emoji">💰</span> 实时竞价系统（广告竞价）</li>
+                <li><span class="emoji">📊</span> 有序数据维护（时间序列）</li>
+                <li><span class="emoji">🔍</span> 范围查询需求（分数段查询）</li>
+            </ul>
+
+            <h3><span class="emoji">💡</span> Redis 选择跳表的原因</h3>
+            <ol>
+                <li><strong>实现简单</strong>：代码可维护性好，比AVL树、红黑树简单</li>
+                <li><strong>范围查询优秀</strong>：ZRANGE 命令性能出色</li>
+                <li><strong>支持高效排名</strong>：ZRANK 命令时间复杂度 O(logN)</li>
+                <li><strong>内存可接受</strong>：平均每个元素 1.33 个指针</li>
+                <li><strong>适合持久化</strong>：结构简单，易于序列化</li>
+                <li><strong>并发性能好</strong>：锁粒度可以做到很细</li>
+            </ol>
+        </div>
+
+        <div class="tip">
+            <h3><span class="emoji">📚</span> 学习建议</h3>
+            <ol>
+                <li>先理解跳表的基本结构和索引层原理</li>
+                <li>手动模拟插入、删除、查找的完整过程</li>
+                <li>理解随机层数生成的概率分析</li>
+                <li>实践编写代码，调试观察节点变化</li>
+                <li>对比跳表与其他数据结构的优劣</li>
+                <li>分析 Redis ZSet 的源码实现</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            }
+        });
+    </script>
+</body>
+</html>

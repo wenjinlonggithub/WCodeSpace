@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>跳表可视化动画演示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .control-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            height: fit-content;
+        }
+
+        .control-section {
+            margin-bottom: 25px;
+        }
+
+        .control-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 5px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .control-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .control-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: black;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4);
+        }
+
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: #138496;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(23, 162, 184, 0.4);
+        }
+
+        .visualization-area {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        #canvas-container {
+            background: #ffffff;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            position: relative;
+            min-height: 500px;
+        }
+
+        #skiplist-canvas {
+            display: block;
+            cursor: pointer;
+        }
+
+        .info-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .info-panel h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        #step-info {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            min-height: 80px;
+            border-left: 4px solid #667eea;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .stat-card .label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .speed-control input[type="range"] {
+            flex: 1;
+        }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 2px solid #333;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: #f8f9fa;
+            border: none;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s;
+            color: #666;
+        }
+
+        .tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab:hover:not(.active) {
+            background: #e9ecef;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .example-btn {
+            margin: 5px 0;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .pulsing {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 跳表可视化动画演示</h1>
+            <p>交互式学习跳表数据结构 - 实时动画展示插入、删除、查找等操作</p>
+        </div>
+
+        <div class="main-content">
+            <!-- 左侧控制面板 -->
+            <div class="control-panel">
+                <!-- 操作选择 -->
+                <div class="control-section">
+                    <h3>🎮 操作控制</h3>
+                    <div class="control-group">
+                        <label>节点值:</label>
+                        <input type="text" id="nodeValue" placeholder="例如: user1">
+                    </div>
+                    <div class="control-group">
+                        <label>分数:</label>
+                        <input type="number" id="nodeScore" placeholder="例如: 100" step="10">
+                    </div>
+                    <button class="btn btn-primary" onclick="insertNode()">➕ 插入节点</button>
+                    <button class="btn btn-danger" onclick="deleteNode()">➖ 删除节点</button>
+                    <button class="btn btn-success" onclick="searchNode()">🔍 查找节点</button>
+                    <button class="btn btn-info" onclick="rangeQuery()">📊 范围查询</button>
+                </div>
+
+                <!-- 快速示例 -->
+                <div class="control-section">
+                    <h3>⚡ 快速示例</h3>
+                    <button class="btn btn-warning example-btn" onclick="demoInsert()">演示插入</button>
+                    <button class="btn btn-warning example-btn" onclick="demoDelete()">演示删除</button>
+                    <button class="btn btn-warning example-btn" onclick="demoSearch()">演示查找</button>
+                    <button class="btn btn-warning example-btn" onclick="demoRange()">演示范围查询</button>
+                    <button class="btn btn-danger" onclick="clearSkipList()">🗑️ 清空跳表</button>
+                </div>
+
+                <!-- 动画控制 -->
+                <div class="control-section">
+                    <h3>⚙️ 动画设置</h3>
+                    <div class="speed-control">
+                        <label>速度:</label>
+                        <input type="range" id="speed" min="1" max="10" value="5">
+                        <span id="speedValue">5</span>
+                    </div>
+                    <button class="btn btn-primary" id="playPauseBtn" onclick="togglePlayPause()" style="margin-top: 10px;">
+                        ⏸️ 暂停
+                    </button>
+                    <button class="btn btn-info" onclick="stepForward()">⏭️ 下一步</button>
+                    <button class="btn btn-info" onclick="resetAnimation()">🔄 重置</button>
+                </div>
+
+                <!-- 图例 -->
+                <div class="control-section">
+                    <h3>📖 图例说明</h3>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #90EE90;"></div>
+                            <span>正常节点</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #FFD700;"></div>
+                            <span>当前节点</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #FF6B6B;"></div>
+                            <span>目标节点</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #87CEEB;"></div>
+                            <span>访问过的</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧可视化区域 -->
+            <div class="visualization-area">
+                <!-- 标签页 -->
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('visualization')">🎨 可视化动画</button>
+                    <button class="tab" onclick="switchTab('flowchart')">📊 流程图</button>
+                    <button class="tab" onclick="switchTab('code')">💻 代码实现</button>
+                </div>
+
+                <!-- 可视化标签页 -->
+                <div id="visualization" class="tab-content active">
+                    <div id="canvas-container">
+                        <canvas id="skiplist-canvas"></canvas>
+                    </div>
+
+                    <!-- 步骤说明 -->
+                    <div class="info-panel">
+                        <h3>📝 操作步骤</h3>
+                        <div id="step-info">点击上方按钮开始操作，或选择快速示例查看动画演示</div>
+                    </div>
+
+                    <!-- 统计信息 -->
+                    <div class="stats">
+                        <div class="stat-card">
+                            <div class="label">节点总数</div>
+                            <div class="value" id="nodeCount">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="label">最大层数</div>
+                            <div class="value" id="maxLevel">1</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="label">操作次数</div>
+                            <div class="value" id="operationCount">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="label">当前步骤</div>
+                            <div class="value" id="currentStep">0/0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 流程图标签页 -->
+                <div id="flowchart" class="tab-content">
+                    <iframe src="SkipList_FlowChart.html" style="width: 100%; height: 800px; border: none; border-radius: 10px;"></iframe>
+                </div>
+
+                <!-- 代码实现标签页 -->
+                <div id="code" class="tab-content">
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                        <h3 style="color: #667eea; margin-bottom: 15px;">跳表核心实现代码</h3>
+                        <pre style="background: #282c34; color: #abb2bf; padding: 20px; border-radius: 8px; overflow-x: auto; line-height: 1.6;"><code>class SkipListNode {
+    constructor(value, score, level) {
+        this.value = value;
+        this.score = score;
+        this.forward = new Array(level).fill(null);
+    }
+}
+
+class SkipList {
+    constructor() {
+        this.maxLevel = 16;
+        this.probability = 0.25;
+        this.level = 1;
+        this.head = new SkipListNode(null, -Infinity, this.maxLevel);
+    }
+
+    // 随机生成层数
+    randomLevel() {
+        let level = 1;
+        while (Math.random() < this.probability && level < this.maxLevel) {
+            level++;
+        }
+        return level;
+    }
+
+    // 插入节点
+    insert(value, score) {
+        const update = new Array(this.maxLevel).fill(null);
+        let current = this.head;
+
+        // 从最高层开始查找插入位置
+        for (let i = this.level - 1; i >= 0; i--) {
+            while (current.forward[i] && current.forward[i].score < score) {
+                current = current.forward[i];
+            }
+            update[i] = current;
+        }
+
+        // 随机生成新节点的层数
+        const newLevel = this.randomLevel();
+        if (newLevel > this.level) {
+            for (let i = this.level; i < newLevel; i++) {
+                update[i] = this.head;
+            }
+            this.level = newLevel;
+        }
+
+        // 创建新节点并插入
+        const newNode = new SkipListNode(value, score, newLevel);
+        for (let i = 0; i < newLevel; i++) {
+            newNode.forward[i] = update[i].forward[i];
+            update[i].forward[i] = newNode;
+        }
+    }
+
+    // 查找节点
+    search(score) {
+        let current = this.head;
+        for (let i = this.level - 1; i >= 0; i--) {
+            while (current.forward[i] && current.forward[i].score < score) {
+                current = current.forward[i];
+            }
+        }
+        current = current.forward[0];
+        return current && current.score === score ? current : null;
+    }
+
+    // 删除节点
+    delete(value, score) {
+        const update = new Array(this.maxLevel).fill(null);
+        let current = this.head;
+
+        for (let i = this.level - 1; i >= 0; i--) {
+            while (current.forward[i] && current.forward[i].score < score) {
+                current = current.forward[i];
+            }
+            update[i] = current;
+        }
+
+        current = current.forward[0];
+        if (current && current.score === score && current.value === value) {
+            for (let i = 0; i < this.level; i++) {
+                if (update[i].forward[i] !== current) break;
+                update[i].forward[i] = current.forward[i];
+            }
+
+            while (this.level > 1 && !this.head.forward[this.level - 1]) {
+                this.level--;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    // 范围查询
+    rangeByScore(minScore, maxScore) {
+        const result = [];
+        let current = this.head;
+
+        // 快速定位到起始位置
+        for (let i = this.level - 1; i >= 0; i--) {
+            while (current.forward[i] && current.forward[i].score < minScore) {
+                current = current.forward[i];
+            }
+        }
+
+        // 收集范围内的节点
+        current = current.forward[0];
+        while (current && current.score <= maxScore) {
+            result.push(current);
+            current = current.forward[0];
+        }
+
+        return result;
+    }
+}</code></pre>
+                        <div style="margin-top: 20px; padding: 15px; background: #e7f3ff; border-radius: 8px; border-left: 4px solid #2196F3;">
+                            <h4 style="color: #2196F3; margin-bottom: 10px;">💡 代码说明</h4>
+                            <ul style="line-height: 1.8; color: #333;">
+                                <li><strong>时间复杂度：</strong>插入、删除、查找都是 O(logN)</li>
+                                <li><strong>空间复杂度：</strong>O(N)，期望每个节点 1.33 个指针</li>
+                                <li><strong>概率因子：</strong>P=0.25，平衡空间和时间</li>
+                                <li><strong>最大层数：</strong>16层，支持约 65536 个节点</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== 跳表数据结构实现 ====================
+        class SkipListNode {
+            constructor(value, score, level) {
+                this.value = value;
+                this.score = score;
+                this.forward = new Array(level).fill(null);
+                this.x = 0;
+                this.y = 0;
+            }
+        }
+
+        class SkipList {
+            constructor() {
+                this.maxLevel = 16;
+                this.probability = 0.25;
+                this.level = 1;
+                this.head = new SkipListNode('HEAD', -Infinity, this.maxLevel);
+                this.nodeCount = 0;
+            }
+
+            randomLevel() {
+                let level = 1;
+                while (Math.random() < this.probability && level < this.maxLevel) {
+                    level++;
+                }
+                return level;
+            }
+
+            insert(value, score) {
+                const steps = [];
+                const update = new Array(this.maxLevel).fill(null);
+                let current = this.head;
+
+                steps.push({
+                    type: 'init',
+                    message: `开始插入节点 ${value}(${score})，从最高层 Level ${this.level - 1} 开始查找插入位置`
+                });
+
+                for (let i = this.level - 1; i >= 0; i--) {
+                    steps.push({
+                        type: 'search',
+                        level: i,
+                        current: current,
+                        message: `在 Level ${i} 层查找插入位置`
+                    });
+
+                    while (current.forward[i] && current.forward[i].score < score) {
+                        current = current.forward[i];
+                        steps.push({
+                            type: 'move',
+                            level: i,
+                            current: current,
+                            message: `移动到节点 ${current.value}(${current.score})`
+                        });
+                    }
+                    update[i] = current;
+                }
+
+                const newLevel = this.randomLevel();
+                steps.push({
+                    type: 'random_level',
+                    level: newLevel,
+                    message: `随机生成层数: ${newLevel}`
+                });
+
+                if (newLevel > this.level) {
+                    for (let i = this.level; i < newLevel; i++) {
+                        update[i] = this.head;
+                    }
+                    this.level = newLevel;
+                }
+
+                const newNode = new SkipListNode(value, score, newLevel);
+                for (let i = 0; i < newLevel; i++) {
+                    newNode.forward[i] = update[i].forward[i];
+                    update[i].forward[i] = newNode;
+                }
+
+                steps.push({
+                    type: 'insert_complete',
+                    node: newNode,
+                    message: `成功插入节点 ${value}(${score})，层数: ${newLevel}`
+                });
+
+                this.nodeCount++;
+                return steps;
+            }
+
+            search(score) {
+                const steps = [];
+                let current = this.head;
+
+                steps.push({
+                    type: 'init',
+                    message: `开始查找分数为 ${score} 的节点`
+                });
+
+                for (let i = this.level - 1; i >= 0; i--) {
+                    steps.push({
+                        type: 'search',
+                        level: i,
+                        current: current,
+                        message: `在 Level ${i} 层查找`
+                    });
+
+                    while (current.forward[i] && current.forward[i].score < score) {
+                        current = current.forward[i];
+                        steps.push({
+                            type: 'move',
+                            level: i,
+                            current: current,
+                            message: `移动到节点 ${current.value}(${current.score})`
+                        });
+                    }
+                }
+
+                current = current.forward[0];
+                if (current && current.score === score) {
+                    steps.push({
+                        type: 'found',
+                        node: current,
+                        message: `✅ 找到节点 ${current.value}(${current.score})`
+                    });
+                    return { found: true, steps, node: current };
+                } else {
+                    steps.push({
+                        type: 'not_found',
+                        message: `❌ 未找到分数为 ${score} 的节点`
+                    });
+                    return { found: false, steps };
+                }
+            }
+
+            delete(value, score) {
+                const steps = [];
+                const update = new Array(this.maxLevel).fill(null);
+                let current = this.head;
+
+                steps.push({
+                    type: 'init',
+                    message: `开始删除节点 ${value}(${score})`
+                });
+
+                for (let i = this.level - 1; i >= 0; i--) {
+                    while (current.forward[i] && current.forward[i].score < score) {
+                        current = current.forward[i];
+                    }
+                    update[i] = current;
+                }
+
+                current = current.forward[0];
+                if (current && current.score === score && current.value === value) {
+                    for (let i = 0; i < this.level; i++) {
+                        if (update[i].forward[i] !== current) break;
+                        update[i].forward[i] = current.forward[i];
+                        steps.push({
+                            type: 'delete_level',
+                            level: i,
+                            message: `删除 Level ${i} 层的连接`
+                        });
+                    }
+
+                    while (this.level > 1 && !this.head.forward[this.level - 1]) {
+                        this.level--;
+                    }
+
+                    steps.push({
+                        type: 'delete_complete',
+                        message: `✅ 成功删除节点 ${value}(${score})`
+                    });
+
+                    this.nodeCount--;
+                    return { success: true, steps };
+                } else {
+                    steps.push({
+                        type: 'not_found',
+                        message: `❌ 未找到节点 ${value}(${score})`
+                    });
+                    return { success: false, steps };
+                }
+            }
+
+            rangeByScore(minScore, maxScore) {
+                const steps = [];
+                const result = [];
+                let current = this.head;
+
+                steps.push({
+                    type: 'init',
+                    message: `开始范围查询 [${minScore}, ${maxScore}]`
+                });
+
+                for (let i = this.level - 1; i >= 0; i--) {
+                    while (current.forward[i] && current.forward[i].score < minScore) {
+                        current = current.forward[i];
+                    }
+                }
+
+                current = current.forward[0];
+                while (current && current.score <= maxScore) {
+                    result.push(current);
+                    steps.push({
+                        type: 'collect',
+                        node: current,
+                        message: `收集节点 ${current.value}(${current.score})`
+                    });
+                    current = current.forward[0];
+                }
+
+                steps.push({
+                    type: 'complete',
+                    count: result.length,
+                    message: `✅ 找到 ${result.length} 个节点`
+                });
+
+                return { result, steps };
+            }
+
+            getAllNodes() {
+                const nodes = [];
+                let current = this.head.forward[0];
+                while (current) {
+                    nodes.push(current);
+                    current = current.forward[0];
+                }
+                return nodes;
+            }
+
+            clear() {
+                this.level = 1;
+                this.head = new SkipListNode('HEAD', -Infinity, this.maxLevel);
+                this.nodeCount = 0;
+            }
+        }
+
+        // ==================== 可视化引擎 ====================
+        class SkipListVisualizer {
+            constructor(canvasId) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.skipList = new SkipList();
+                this.animationSteps = [];
+                this.currentStepIndex = 0;
+                this.isPlaying = false;
+                this.animationSpeed = 1000;
+                this.operationCount = 0;
+
+                this.nodeWidth = 80;
+                this.nodeHeight = 40;
+                this.levelHeight = 60;
+                this.startX = 50;
+                this.startY = 50;
+
+                this.colors = {
+                    normal: '#90EE90',
+                    current: '#FFD700',
+                    target: '#FF6B6B',
+                    visited: '#87CEEB',
+                    head: '#DDA0DD'
+                };
+
+                this.resizeCanvas();
+                this.draw();
+
+                // 监听速度滑块
+                document.getElementById('speed').addEventListener('input', (e) => {
+                    const speed = parseInt(e.target.value);
+                    document.getElementById('speedValue').textContent = speed;
+                    this.animationSpeed = 2000 / speed;
+                });
+            }
+
+            resizeCanvas() {
+                const container = document.getElementById('canvas-container');
+                const nodes = this.skipList.getAllNodes();
+                const minWidth = container.clientWidth - 4;
+                const requiredWidth = this.startX + (nodes.length + 1) * (this.nodeWidth + 30) + 50;
+
+                this.canvas.width = Math.max(minWidth, requiredWidth);
+                this.canvas.height = this.skipList.level * this.levelHeight + 100;
+            }
+
+            draw() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.resizeCanvas();
+
+                // 绘制层级标签
+                for (let i = this.skipList.level - 1; i >= 0; i--) {
+                    const y = this.startY + (this.skipList.level - 1 - i) * this.levelHeight;
+                    this.ctx.fillStyle = '#666';
+                    this.ctx.font = 'bold 14px Arial';
+                    this.ctx.fillText(`L${i}`, 10, y + 20);
+                }
+
+                // 计算所有节点的位置
+                const nodes = [this.skipList.head, ...this.skipList.getAllNodes()];
+                let xPos = this.startX;
+                nodes.forEach(node => {
+                    node.x = xPos;
+                    xPos += this.nodeWidth + 30;
+                });
+
+                // 绘制所有层的连接线
+                for (let level = this.skipList.level - 1; level >= 0; level--) {
+                    let current = this.skipList.head;
+                    const y = this.startY + (this.skipList.level - 1 - level) * this.levelHeight;
+
+                    while (current) {
+                        if (current.forward[level]) {
+                            const nextNode = current.forward[level];
+                            this.drawArrow(
+                                current.x + this.nodeWidth,
+                                y + this.nodeHeight / 2,
+                                nextNode.x,
+                                y + this.nodeHeight / 2,
+                                '#999'
+                            );
+                        }
+                        current = current.forward[level];
+                    }
+                }
+
+                // 绘制所有节点
+                nodes.forEach(node => {
+                    for (let i = 0; i < node.forward.length && i < this.skipList.level; i++) {
+                        const y = this.startY + (this.skipList.level - 1 - i) * this.levelHeight;
+                        const color = node === this.skipList.head ? this.colors.head : this.colors.normal;
+                        this.drawNode(node, node.x, y, color);
+                    }
+                });
+
+                this.updateStats();
+            }
+
+            drawNode(node, x, y, color) {
+                // 绘制矩形
+                this.ctx.fillStyle = color;
+                this.ctx.fillRect(x, y, this.nodeWidth, this.nodeHeight);
+                this.ctx.strokeStyle = '#333';
+                this.ctx.lineWidth = 2;
+                this.ctx.strokeRect(x, y, this.nodeWidth, this.nodeHeight);
+
+                // 绘制文本
+                this.ctx.fillStyle = '#000';
+                this.ctx.font = 'bold 12px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
+
+                if (node === this.skipList.head) {
+                    this.ctx.fillText('HEAD', x + this.nodeWidth / 2, y + this.nodeHeight / 2);
+                } else {
+                    this.ctx.fillText(node.value, x + this.nodeWidth / 2, y + this.nodeHeight / 2 - 8);
+                    this.ctx.font = '10px Arial';
+                    this.ctx.fillText(`(${node.score})`, x + this.nodeWidth / 2, y + this.nodeHeight / 2 + 8);
+                }
+            }
+
+            drawArrow(fromX, fromY, toX, toY, color) {
+                this.ctx.strokeStyle = color;
+                this.ctx.lineWidth = 2;
+                this.ctx.beginPath();
+                this.ctx.moveTo(fromX, fromY);
+                this.ctx.lineTo(toX, toY);
+                this.ctx.stroke();
+
+                // 箭头
+                const angle = Math.atan2(toY - fromY, toX - fromX);
+                const arrowSize = 8;
+                this.ctx.beginPath();
+                this.ctx.moveTo(toX, toY);
+                this.ctx.lineTo(
+                    toX - arrowSize * Math.cos(angle - Math.PI / 6),
+                    toY - arrowSize * Math.sin(angle - Math.PI / 6)
+                );
+                this.ctx.moveTo(toX, toY);
+                this.ctx.lineTo(
+                    toX - arrowSize * Math.cos(angle + Math.PI / 6),
+                    toY - arrowSize * Math.sin(angle + Math.PI / 6)
+                );
+                this.ctx.stroke();
+            }
+
+            highlightNode(node, level, color) {
+                if (!node || node === this.skipList.head) return;
+                const y = this.startY + (this.skipList.level - 1 - level) * this.levelHeight;
+                this.drawNode(node, node.x, y, color);
+            }
+
+            async playAnimation(steps) {
+                this.animationSteps = steps;
+                this.currentStepIndex = 0;
+                this.isPlaying = true;
+                this.updatePlayPauseButton();
+
+                for (let i = 0; i < steps.length && this.isPlaying; i++) {
+                    this.currentStepIndex = i;
+                    await this.executeStep(steps[i]);
+                    this.updateStepInfo(steps[i]);
+                    document.getElementById('currentStep').textContent = `${i + 1}/${steps.length}`;
+                    await this.sleep(this.animationSpeed);
+                }
+
+                this.isPlaying = false;
+                this.updatePlayPauseButton();
+                this.draw();
+            }
+
+            async executeStep(step) {
+                this.draw();
+
+                switch (step.type) {
+                    case 'search':
+                    case 'move':
+                        if (step.current && step.level !== undefined) {
+                            this.highlightNode(step.current, step.level, this.colors.current);
+                        }
+                        break;
+                    case 'found':
+                    case 'insert_complete':
+                        if (step.node) {
+                            for (let i = 0; i < step.node.forward.length; i++) {
+                                this.highlightNode(step.node, i, this.colors.target);
+                            }
+                        }
+                        break;
+                    case 'collect':
+                        if (step.node) {
+                            this.highlightNode(step.node, 0, this.colors.visited);
+                        }
+                        break;
+                }
+            }
+
+            updateStepInfo(step) {
+                const stepInfo = document.getElementById('step-info');
+                stepInfo.textContent = step.message || '执行中...';
+                stepInfo.className = 'slide-in';
+                setTimeout(() => stepInfo.className = '', 500);
+            }
+
+            updateStats() {
+                document.getElementById('nodeCount').textContent = this.skipList.nodeCount;
+                document.getElementById('maxLevel').textContent = this.skipList.level;
+                document.getElementById('operationCount').textContent = this.operationCount;
+            }
+
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            pause() {
+                this.isPlaying = false;
+                this.updatePlayPauseButton();
+            }
+
+            resume() {
+                if (this.animationSteps.length > 0 && this.currentStepIndex < this.animationSteps.length) {
+                    this.isPlaying = true;
+                    this.updatePlayPauseButton();
+                    this.continueAnimation();
+                }
+            }
+
+            async continueAnimation() {
+                for (let i = this.currentStepIndex; i < this.animationSteps.length && this.isPlaying; i++) {
+                    this.currentStepIndex = i;
+                    await this.executeStep(this.animationSteps[i]);
+                    this.updateStepInfo(this.animationSteps[i]);
+                    document.getElementById('currentStep').textContent = `${i + 1}/${this.animationSteps.length}`;
+                    await this.sleep(this.animationSpeed);
+                }
+                this.isPlaying = false;
+                this.updatePlayPauseButton();
+                this.draw();
+            }
+
+            stepForward() {
+                if (this.animationSteps.length > 0 && this.currentStepIndex < this.animationSteps.length - 1) {
+                    this.currentStepIndex++;
+                    this.executeStep(this.animationSteps[this.currentStepIndex]);
+                    this.updateStepInfo(this.animationSteps[this.currentStepIndex]);
+                    document.getElementById('currentStep').textContent =
+                        `${this.currentStepIndex + 1}/${this.animationSteps.length}`;
+                }
+            }
+
+            reset() {
+                this.pause();
+                this.currentStepIndex = 0;
+                document.getElementById('currentStep').textContent = '0/0';
+                document.getElementById('step-info').textContent = '已重置';
+                this.draw();
+            }
+
+            updatePlayPauseButton() {
+                const btn = document.getElementById('playPauseBtn');
+                btn.textContent = this.isPlaying ? '⏸️ 暂停' : '▶️ 继续';
+            }
+        }
+
+        // ==================== 全局实例和控制函数 ====================
+        let visualizer;
+
+        window.onload = function() {
+            visualizer = new SkipListVisualizer('skiplist-canvas');
+            // 初始化一些示例数据
+            const initData = [
+                { value: 'A', score: 10 },
+                { value: 'B', score: 30 },
+                { value: 'C', score: 50 },
+                { value: 'D', score: 70 }
+            ];
+
+            initData.forEach(data => {
+                visualizer.skipList.insert(data.value, data.score);
+            });
+            visualizer.draw();
+        };
+
+        // 插入节点
+        async function insertNode() {
+            const value = document.getElementById('nodeValue').value;
+            const score = parseFloat(document.getElementById('nodeScore').value);
+
+            if (!value || isNaN(score)) {
+                alert('请输入节点值和分数！');
+                return;
+            }
+
+            visualizer.operationCount++;
+            const steps = visualizer.skipList.insert(value, score);
+            await visualizer.playAnimation(steps);
+        }
+
+        // 删除节点
+        async function deleteNode() {
+            const value = document.getElementById('nodeValue').value;
+            const score = parseFloat(document.getElementById('nodeScore').value);
+
+            if (!value || isNaN(score)) {
+                alert('请输入要删除的节点值和分数！');
+                return;
+            }
+
+            visualizer.operationCount++;
+            const result = visualizer.skipList.delete(value, score);
+            await visualizer.playAnimation(result.steps);
+        }
+
+        // 查找节点
+        async function searchNode() {
+            const score = parseFloat(document.getElementById('nodeScore').value);
+
+            if (isNaN(score)) {
+                alert('请输入要查找的分数！');
+                return;
+            }
+
+            visualizer.operationCount++;
+            const result = visualizer.skipList.search(score);
+            await visualizer.playAnimation(result.steps);
+        }
+
+        // 范围查询
+        async function rangeQuery() {
+            const minScore = parseFloat(prompt('请输入最小分数:', '20'));
+            const maxScore = parseFloat(prompt('请输入最大分数:', '60'));
+
+            if (isNaN(minScore) || isNaN(maxScore)) {
+                return;
+            }
+
+            visualizer.operationCount++;
+            const result = visualizer.skipList.rangeByScore(minScore, maxScore);
+            await visualizer.playAnimation(result.steps);
+        }
+
+        // 演示插入
+        async function demoInsert() {
+            const demos = [
+                { value: 'P1', score: 25 },
+                { value: 'P2', score: 45 },
+                { value: 'P3', score: 65 }
+            ];
+
+            for (const demo of demos) {
+                document.getElementById('nodeValue').value = demo.value;
+                document.getElementById('nodeScore').value = demo.score;
+                await insertNode();
+                await visualizer.sleep(500);
+            }
+        }
+
+        // 演示删除
+        async function demoDelete() {
+            const nodes = visualizer.skipList.getAllNodes();
+            if (nodes.length === 0) {
+                alert('跳表为空，请先添加节点！');
+                return;
+            }
+
+            const node = nodes[Math.floor(nodes.length / 2)];
+            document.getElementById('nodeValue').value = node.value;
+            document.getElementById('nodeScore').value = node.score;
+            await deleteNode();
+        }
+
+        // 演示查找
+        async function demoSearch() {
+            const nodes = visualizer.skipList.getAllNodes();
+            if (nodes.length === 0) {
+                alert('跳表为空，请先添加节点！');
+                return;
+            }
+
+            const node = nodes[Math.floor(Math.random() * nodes.length)];
+            document.getElementById('nodeScore').value = node.score;
+            await searchNode();
+        }
+
+        // 演示范围查询
+        async function demoRange() {
+            const nodes = visualizer.skipList.getAllNodes();
+            if (nodes.length < 2) {
+                alert('节点数量不足，请先添加更多节点！');
+                return;
+            }
+
+            const minIdx = Math.floor(nodes.length * 0.25);
+            const maxIdx = Math.floor(nodes.length * 0.75);
+
+            visualizer.operationCount++;
+            const result = visualizer.skipList.rangeByScore(
+                nodes[minIdx].score,
+                nodes[maxIdx].score
+            );
+            await visualizer.playAnimation(result.steps);
+        }
+
+        // 清空跳表
+        function clearSkipList() {
+            if (confirm('确定要清空跳表吗？')) {
+                visualizer.skipList.clear();
+                visualizer.animationSteps = [];
+                visualizer.currentStepIndex = 0;
+                visualizer.operationCount = 0;
+                visualizer.draw();
+                document.getElementById('step-info').textContent = '跳表已清空';
+            }
+        }
+
+        // 播放/暂停控制
+        function togglePlayPause() {
+            if (visualizer.isPlaying) {
+                visualizer.pause();
+            } else {
+                visualizer.resume();
+            }
+        }
+
+        // 下一步
+        function stepForward() {
+            visualizer.stepForward();
+        }
+
+        // 重置动画
+        function resetAnimation() {
+            visualizer.reset();
+        }
+
+        // 切换标签页
+        function switchTab(tabName) {
+            // 移除所有活动状态
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            // 激活选中的标签
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+    </script>
+</body>
+</html>
