@@ -146,7 +146,8 @@ public class DynamicArrayDemo {
             array.add(i);
             System.out.println("添加元素 " + i + " 后 -> 容量: " + array.capacity() +
                              ", 大小: " + array.size() +
-                             ", 负载因子: " + String.format("%.2f", (double)array.size() / array.capacity()));
+                             ", 负载因子: " + String.format("%.2f", (double)array.size() / array.capacity()) + 
+                             " (已用空间占比)");
         }
 
         System.out.println("\n最终数组内容: " + array);
