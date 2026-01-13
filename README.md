@@ -574,10 +574,10 @@ Permission is hereby granted, free of charge, to any person obtaining a copy...
 ## 📞 联系方式
 
 ### 🤝 加入我们
-- 📧 **邮箱**: wcodespace@example.com
+- 📧 **邮箱**: 18519733556@163.com
 - 💬 **微信群**: 扫码加入技术交流群
-- 🐙 **GitHub**: [@your-username](https://github.com/your-username)
-- 🐦 **Twitter**: [@your-handle](https://twitter.com/your-handle)
+- 🐙 **GitHub**: [@wenjinlonggithub](https://github.com/wenjinlonggithub)
+- 🐦 **Twitter**: [@AiInvest](https://x.com/W__Unlimited)
 
 ### 💼 商务合作
 - 🎯 **技术咨询** - 架构设计与优化
