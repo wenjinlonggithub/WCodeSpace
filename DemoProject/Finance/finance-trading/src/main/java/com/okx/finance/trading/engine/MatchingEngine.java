@@ -39,6 +39,11 @@ public class MatchingEngine {
 
     private void executeMarketOrder(Order order) {
         String symbol = order.getSymbol();
+
+        // 使用PriorityQueue是因为它能自动根据订单价格进行排序，保证最优先的订单在队列头部
+        // 对于买单，价格高的优先（出价高者得）
+        // 对于卖单，价格低的优先（报价低者得）
+        // 这样在匹配时能够快速找到最优的交易对手方订单
         PriorityQueue<Order> oppositeBook;
 
         if (OrderSide.BUY.equals(order.getSide())) {
