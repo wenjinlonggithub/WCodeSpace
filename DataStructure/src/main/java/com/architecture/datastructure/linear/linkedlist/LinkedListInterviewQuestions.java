@@ -103,18 +103,46 @@ public class LinkedListInterviewQuestions {
      * 给定一个链表，判断链表中是否有环。
      *
      * <p>解题思路:
-     * 快慢指针法 (Floyd判圈算法):
+     * 快慢指针法 (Floyd判圈算法/龟兔赛跑算法):
      * <ol>
-     *   <li>slow指针每次移动1步</li>
-     *   <li>fast指针每次移动2步</li>
-     *   <li>如果有环，fast一定会追上slow</li>
-     *   <li>如果无环，fast会先到达null</li>
+     *   <li>定义两个指针：slow和fast，都从头节点开始</li>
+     *   <li>slow指针每次移动1步，fast指针每次移动2步</li>
+     *   <li>如果链表无环，fast指针最终会遇到null，说明链表无环</li>
+     *   <li>如果链表有环，在某个时刻，fast指针一定会追上slow指针</li>
+     *   <li>就像两个人在圆形跑道上跑步，速度快的人最终会追上速度慢的人</li>
      * </ol>
+     *
+     * <p>算法原理详解:
+     * <pre>
+     * 假设链表结构如下:
+     * A -> B -> C -> D -> E
+     *           ^         |
+     *           |_________|
+     *
+     * slow指针每次走1步，fast指针每次走2步
+     * - 如果没有环: fast会先走到null，返回false
+     * - 如果有环: 
+     *   - 当slow进入环时，fast已经在环中某处
+     *   - 由于fast比slow快1步(相对速度)，所以fast会逐渐追上slow
+     *   - 在环中，fast相对于slow以1步的速度前进
+     *   - 最终fast会追上slow，此时返回true
+     * </pre>
      *
      * @param head 链表头节点
      * @return true if the list has a cycle
-     * 时间复杂度: O(n)
-     * 空间复杂度: O(1)
+     * 时间复杂度: O(n) - 在最坏情况下，每个节点最多被访问常数次
+     * 空间复杂度: O(1) - 只使用了两个指针的额外空间
+     *
+     * 面试要点:
+     * <ol>
+     *   <li>快慢指针技巧：slow每次移动一步，fast每次移动两步</li>
+     *   <li>时间复杂度O(n)，空间复杂度O(1)，是最优解</li>
+     *   <li>关键在于理解为什么快指针能追上慢指针：在有环的情况下，快指针在环中相对于慢指针以1步/轮的速度追赶</li>
+     *   <li>面试时可以画图辅助说明：画出链表结构，标出快慢指针的位置变化</li>
+     *   <li>扩展问题：如何找到环的入口点？（可选）</li>
+     * </ol>
+     * 
+     *
      */
     public static <T> boolean hasCycle(Node<T> head) {
         if (head == null || head.next == null) {
