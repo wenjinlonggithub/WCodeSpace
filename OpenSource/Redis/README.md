@@ -11,7 +11,11 @@ OpenSource/Redis
 │   │   ├── SkipList.java                   # 跳表实现
 │   │   ├── SimpleDynamicString.java        # SDS简单动态字符串
 │   │   ├── PersistenceRDB.java             # RDB持久化
-│   │   └── PersistenceAOF.java             # AOF持久化
+│   │   ├── PersistenceAOF.java             # AOF持久化
+│   │   ├── RedisReplication.java           # 主从复制（完整版）
+│   │   ├── SimpleReplicationDemo.java      # 主从复制（简化版）
+│   │   ├── SkipList_Interactive.html       # 跳表可视化动画
+│   │   └── 相关文档（*.md）                # 详细文档和学习指南
 │   │
 │   ├── interview/          # 面试题
 │   │   └── RedisInterviewQuestions.java    # Redis面试题集锦
@@ -85,6 +89,148 @@ rdb.bgsave();
 PersistenceAOF aof = new PersistenceAOF("appendonly.aof", SyncPolicy.EVERYSEC);
 aof.set("key1", "value1");
 ```
+
+### 5. 主从复制 ⭐ 新增
+提供两个版本的实现，适合不同学习阶段：
+
+#### 简化版 (SimpleReplicationDemo) - 推荐新手
+- 300行精简代码
+- 核心概念清晰
+- 无网络通信复杂度
+- 快速理解原理
+
+**特性：**
+- ✅ Replication ID（复制ID）
+- ✅ Replication Offset（复制偏移量）
+- ✅ Replication Backlog（复制积压缓冲区）
+- ✅ PSYNC协议（简化版）
+- ✅ 全量复制（FULLRESYNC）
+- ✅ 增量复制（CONTINUE）
+- ✅ 命令传播（Command Propagation）
+
+**运行示例：**
+```bash
+# Windows
+./run_simple_replication.bat
+
+# 或使用命令行
+javac -d target/classes -sourcepath src/main/java src/main/java/com/architecture/principle/SimpleReplicationDemo.java
+java -cp target/classes com.architecture.principle.SimpleReplicationDemo
+```
+
+**输出示例：**
+```
+【步骤3】从节点1连接 - 触发全量复制
+🔵 从节点 [Slave-1] 已启动
+🔌 [Slave-1] 连接到主节点...
+🔄 [主节点] 执行全量复制
+📤 [主节点] 发送所有数据 (3 条)
+✅ [主节点] 全量复制完成
+
+【步骤10】模拟从节点3断线重连 - 触发增量复制
+🔄 [主节点] 执行增量复制
+📤 [主节点] 发送增量命令 (2 条)
+✅ [主节点] 增量复制完成
+```
+
+#### 完整版 (RedisReplication) - 进阶学习
+- 900行完整实现
+- 真实TCP Socket通信
+- RDB文件生成和传输
+- 环形缓冲区实现
+
+**特性：**
+- ✅ TCP Socket通信
+- ✅ 真实PSYNC协议
+- ✅ RDB快照生成
+- ✅ RDB文件传输
+- ✅ 环形缓冲区Backlog
+- ✅ 多从节点支持
+- ✅ 心跳检测（REPLCONF ACK）
+
+**运行示例：**
+```bash
+# Windows
+./run_full_replication.bat
+
+# 或使用命令行
+javac -d target/classes -sourcepath src/main/java src/main/java/com/architecture/principle/RedisReplication.java
+java -cp target/classes com.architecture.principle.RedisReplication
+```
+
+**输出示例：**
+```
+🟢 [Master] 启动成功
+    Replication ID: 20336f56-ec82-46d4-b171-ce50b20ff2b1
+    Port: 6379
+🔌 [Slave] 连接到主节点...
+📨 [Slave] 发送PSYNC: PSYNC ? -1
+🔄 [Master] 执行全量复制 (FULLRESYNC)
+📦 RDB数据发送完成，大小: 144 bytes
+📡 [Master] 传播命令给 2 个从节点
+```
+
+#### 配套文档
+
+| 文档 | 说明 | 适合人群 |
+|------|------|---------|
+| **SkipList_SimpleExplanation.md** | 大白话讲跳表 | 所有人 |
+| **README_Replication.md** | 学习指南 | 所有人 |
+| **RedisReplication_Explanation.md** | 详细原理解析 | 进阶学习者 |
+| **REPLICATION_VERIFICATION.md** | 验证报告 | 深入研究者 |
+
+#### 学习路径（约3-4小时）
+
+```
+Step 1: 阅读 README_Replication.md（10分钟）
+        ↓ 了解整体架构
+
+Step 2: 运行 SimpleReplicationDemo（5分钟）
+        ↓ 观察实际输出
+
+Step 3: 阅读 SimpleReplicationDemo.java（30分钟）
+        ↓ 理解核心逻辑
+
+Step 4: 阅读 RedisReplication_Explanation.md（60分钟）
+        ↓ 深入原理细节
+
+Step 5: 运行 RedisReplication（10分钟）
+        ↓ 观察网络通信
+
+Step 6: 阅读 RedisReplication.java（90分钟）
+        ↓ 掌握完整实现
+```
+
+#### 核心概念速记
+
+**三个关键指标：**
+```
+1. Replication ID - 唯一标识一个数据集
+   用途：判断是否连接的是原来的主节点
+
+2. Replication Offset - 记录已复制的字节数
+   用途：判断主从数据是否一致，确定增量复制起点
+
+3. Replication Backlog - 环形缓冲区，保存最近的写命令
+   用途：支持增量复制（默认1MB）
+```
+
+**两种复制方式：**
+```
+全量复制（FULLRESYNC）
+  触发时机：首次连接、ID不匹配、offset太旧
+  传输内容：所有数据（RDB格式）
+
+增量复制（CONTINUE）
+  触发时机：短暂断线重连、offset在backlog范围内
+  传输内容：只传输缺失的命令
+```
+
+**使用场景：**
+- ✅ 高可用架构：主从自动切换
+- ✅ 读写分离：主节点写，从节点读
+- ✅ 数据备份：防止数据丢失
+- ✅ 负载均衡：多从节点分担读请求
 
 ## 二、面试题 (interview)
 
