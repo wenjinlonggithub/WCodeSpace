@@ -13,8 +13,8 @@ public class HashSetImplementation<T> {
         map = new HashMapImplementation<>();
     }
 
-    public boolean add(T element) {
-        return map.put(element, PRESENT) == null;
+    public void add(T element) {
+        map.put(element, PRESENT);
     }
 
     public boolean contains(T element) {
@@ -25,6 +25,11 @@ public class HashSetImplementation<T> {
         return map.remove(element) != null;
     }
 
-    public int size() { return map.size(); }
-    public boolean isEmpty() { return map.isEmpty(); }
+    public int size() {
+        return map.size();
+    }
+
+    public boolean isEmpty() {
+        return map.isEmpty();
+    }
 }
