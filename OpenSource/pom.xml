@@ -11,6 +11,7 @@
     <module>Spring</module>
     <module>Kafka</module>
     <module>Mybatis</module>
+      <module>Redis</module>
   </modules>
   <dependencies>
     <dependency>
