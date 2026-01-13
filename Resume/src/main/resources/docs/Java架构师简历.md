@@ -46,39 +46,113 @@
 
 ---
 
-## 技术栈概览
+## 技术栈概览（基于实际项目代码）
 
-### 核心技术
-- **编程语言**：Java 17/21（主力）、Python（辅助）
-- **框架**：Spring Boot 3.x、Spring Cloud 2023、MyBatis 3.x、Spring Security
-- **微服务治理**：Eureka、OpenFeign、Spring Cloud Gateway、Nacos、Apollo
+### 核心技术（版本精确到实战项目）
+- **编程语言**：Java 17（主力，Finance/Middleware/DDD项目）、Python（辅助）
+- **框架版本**：
+  - Spring Boot 3.2.0 (Finance) / 3.2.1 (Middleware) / 3.5.5 (DDD)
+  - Spring Cloud 2023.0.0 (微服务治理)
+  - Spring 6.2.10 (最新版)
+  - MyBatis 3.0.3 (持久层)
+  - Spring Data JPA (DDD项目ORM)
+- **微服务治理**：
+  - Eureka (服务注册与发现)
+  - OpenFeign (声明式HTTP客户端)
+  - Spring Cloud Gateway (API网关，反应式编程)
+  - Nacos 2.2.4 (配置中心 + 服务发现)
+  - Apollo 2.3.0 (携程配置中心)
 
-### 中间件生态
-- **消息队列**：Kafka、RabbitMQ、RocketMQ、ActiveMQ
-- **缓存**：Redis Cluster、Memcached、Caffeine
-- **数据库**：MySQL 8.0（主从复制）、MongoDB、Druid连接池
-- **RPC框架**：Dubbo、gRPC（Protocol Buffers）、Thrift
-- **协调服务**：Zookeeper + Curator、Nacos、Apollo
-- **任务调度**：XXL-Job、Spring Quartz
-- **分布式事务**：Seata（AT/TCC/Saga）
+### 中间件生态（Middleware项目全栈实战）
 
-### 架构与设计
-- **架构模式**：微服务架构、DDD四层架构、CQRS、事件驱动
-- **设计模式**：23种设计模式实战（单例、工厂、策略、观察者、仓储等）
-- **分布式算法**：一致性哈希、Snowflake ID生成、Raft/Paxos理解
+#### 消息队列（5种实战经验）
+- **RabbitMQ**：Spring Boot AMQP Starter（Finance医院项目）
+- **Kafka**：Spring Kafka（Finance行情推送、订单异步处理）
+- **RocketMQ 2.2.3**：事务消息、顺序消息
+- **ActiveMQ 6.0.1**：传统JMS消息队列
+- **ZeroMQ (JeroMQ 0.6.0)**：轻量级消息传递
+
+#### 缓存（3层缓存实战）
+- **Redis 3.2.0**：Spring Data Redis + Jedis客户端
+  - Finance项目：分布式session、热点行情缓存（QPS 10万+）
+  - 集群模式：主从复制、哨兵高可用
+- **Memcached (XMemcached 2.4.8)**：高性能分布式缓存
+- **Caffeine**：本地高性能缓存（读多写少场景）
+
+#### 数据库与ORM
+- **MySQL 8.0.33**：主从集群、读写分离
+- **MyBatis 3.0.3**：动态SQL、二级缓存、批量操作
+- **Druid 1.2.21**：数据库连接池、SQL监控、慢查询分析
+- **Spring Data JPA**：ORM映射、懒加载优化、N+1问题解决
+
+#### RPC框架（3种跨语言RPC）
+- **Apache Dubbo 3.3.0**：分布式服务框架、SPI扩展
+- **gRPC 1.61.0**：高性能RPC、Protocol Buffers序列化（性能提升3倍）
+- **Apache Thrift 0.20.0**：跨语言RPC服务
+
+#### 分布式协调（3种协调服务）
+- **Apache Zookeeper 3.9.1**：分布式协调、分布式锁
+  - Curator 5.6.0：Zookeeper客户端框架
+  - 理解ZAB协议、Watch机制
+- **Nacos 2.2.4**：动态配置、服务注册、灰度发布
+- **Apollo 2.3.0**：配置版本管理、实时推送
+
+#### 任务调度与分布式事务
+- **XXL-Job 2.4.1**：分布式任务调度、任务监控、失败重试
+- **Spring Quartz**：定时任务调度框架
+- **Seata 1.7.1**：分布式事务解决方案（AT/TCC/Saga模式）
+
+#### 搜索与日志
+- **Elasticsearch 8.12.0**：分布式搜索引擎
+- **Logstash 7.4**：日志收集与处理（LogStash Logback Encoder）
+- **Spring Data Elasticsearch**：ES集成
+
+#### 工具库
+- **JWT (io.jsonwebtoken) 0.11.5**：身份认证
+- **FastJSON 2.0.43**：JSON序列化/反序列化
+- **Lombok 1.18.30**：减少样板代码
+
+### 架构与设计（实战验证）
+- **架构模式**：
+  - 微服务架构（Finance 9微服务实战）
+  - DDD四层架构（聚合根、值对象、仓储）
+  - CQRS、事件驱动
+- **设计模式**：
+  - 23种设计模式实战（DesignPattern项目完整实现）
+  - 观察者模式（MatchListener）、策略模式（OrderType）
+  - 工厂模式、门面模式、仓储模式、值对象模式
+- **分布式算法**：
+  - Snowflake ID生成（自研，单机4096 ID/ms）
+  - 一致性哈希
+  - Raft/Paxos理解（DistributedSystem项目）
 
 ### DevOps与监控
 - **容器化**：Docker、Kubernetes（K8s）
 - **CI/CD**：Jenkins Pipeline、GitLab CI
-- **监控体系**：Prometheus + Grafana、ELK Stack（Elasticsearch/Logstash/Kibana）
+- **监控体系**：
+  - Prometheus + Grafana（指标监控）
+  - ELK Stack（Elasticsearch 8.12.0 + Logstash 7.4 + Kibana）
+  - JVM监控：jps、jstat、jmap、jstack、VisualVM、Arthas
 - **链路追踪**：Jaeger、Zipkin
-- **版本管理**：Git、Maven、Gradle
+- **版本管理**：Git、Maven 3.x、Gradle
 
-### 性能优化
-- **JVM调优**：G1/ZGC垃圾收集器、内存分析、线程分析
-- **并发编程**：线程池、并发容器（ConcurrentHashMap/BlockingQueue）、锁优化
-- **数据库优化**：索引设计、SQL调优、慢查询分析、连接池调优
-- **缓存优化**：多级缓存、缓存穿透/击穿/雪崩防护、Lua脚本
+### 性能优化（实战经验）
+- **JVM调优**：
+  - G1/ZGC垃圾收集器参数调优
+  - 堆内存分析（Eden/Survivor/Old）
+  - Full GC排查与优化
+- **并发编程**：
+  - 线程池（ThreadPoolExecutor，动态调整核心数）
+  - 并发容器（ConcurrentHashMap、BlockingQueue、PriorityQueue）
+  - 锁优化（Synchronized、ReentrantLock、RedLock分布式锁）
+- **数据库优化**：
+  - 索引设计（B+树、联合索引、覆盖索引）
+  - SQL调优（执行计划分析）
+  - Druid连接池调优（连接复用率提升50%）
+- **缓存优化**：
+  - 多级缓存架构（Caffeine本地缓存 + Redis分布式缓存）
+  - 缓存穿透/击穿/雪崩防护
+  - Lua脚本原子操作、Pipeline批量操作
 
 ---
 
@@ -127,54 +201,90 @@
 
 ### 🔧 中间件技术专家技能
 
-#### 消息中间件（实战经验）
-- **Apache Kafka**：高吞吐量消息队列、分区策略设计、集群运维管理
+#### 消息中间件（5种实战经验 - Middleware项目）
+- **Apache Kafka (Spring Kafka)**：高吞吐量消息队列、分区策略设计、集群运维管理
   - 项目应用：OKX交易所异步订单处理、行情数据分发
   - 技术深度：消息顺序性保证、事务性消息、零拷贝优化
-- **RabbitMQ**：消息路由设计、可靠性保证、集群架构部署
+  - 性能指标：日均处理消息100万条
+- **RabbitMQ (Spring Boot AMQP)**：消息路由设计、可靠性保证、集群架构部署
   - 项目应用：互联网医院订单通知、支付回调
   - 技术深度：死信队列、消息持久化、发布确认机制
-- **RocketMQ**：事务消息、顺序消息、延时消息实现
+  - 交换器类型：Direct、Topic、Fanout、Headers
+- **RocketMQ 2.2.3**：事务消息、顺序消息、延时消息实现
   - 项目应用：分布式事务最终一致性保证
-- **ActiveMQ / ZeroMQ**：轻量级消息队列实践
+  - 技术深度：消息可靠性（同步刷盘、异步刷盘）
+- **ActiveMQ 6.0.1**：传统JMS消息队列、点对点/发布订阅模式
+- **ZeroMQ (JeroMQ 0.6.0)**：轻量级消息传递库、无Broker架构
 
-#### RPC与服务治理（全栈掌握）
-- **Apache Dubbo**：分布式服务框架、服务注册与发现、负载均衡
+#### RPC与服务治理（3种RPC框架全栈掌握）
+- **Apache Dubbo 3.3.0**：分布式服务框架、服务注册与发现、负载均衡
   - 技术深度：SPI扩展机制、Filter链路拦截、泛化调用
-- **gRPC**：高性能RPC框架、Protocol Buffers序列化
+  - 协议支持：Dubbo协议、HTTP协议、REST协议
+  - 负载均衡：随机、轮询、最少活跃调用、一致性哈希
+- **gRPC 1.61.0**：高性能RPC框架、Protocol Buffers序列化
   - 项目应用：OKX微服务间通信性能优化（相比JSON提升3倍）
-- **Apache Thrift**：跨语言RPC服务调用
+  - 技术深度：HTTP/2多路复用、双向流式传输
+  - 组件：grpc-netty-shaded、grpc-protobuf、grpc-stub
+- **Apache Thrift 0.20.0**：跨语言RPC服务调用
+  - 支持语言：Java、Python、C++、Go等
 
-#### 数据库中间件与调优
-- **MyBatis**：ORM框架深度应用、动态SQL、插件机制
+#### 数据库中间件与调优（持久层全链路）
+- **MyBatis 3.0.3**：ORM框架深度应用、动态SQL、插件机制
   - 项目应用：所有微服务项目的持久层框架
-  - 技术深度：二级缓存、批量操作优化、结果映射
-- **Druid连接池**：数据库连接池管理、SQL监控、慢查询分析
+  - 技术深度：二级缓存、批量操作优化、结果映射、TypeHandler
+  - XML映射：动态SQL（if/choose/foreach/trim）
+- **Druid 1.2.21**：数据库连接池管理、SQL监控、慢查询分析
   - 项目应用：Finance项目数据库连接池优化，连接复用率提升50%
-- **ShardingSphere**：分库分表策略、读写分离、分布式事务处理（研究）
-- **数据库调优**：索引设计优化、SQL性能调优、执行计划分析
+  - 功能：内置监控统计、防SQL注入、加密配置
+- **Spring Data JPA**：基于Hibernate的ORM框架
+  - 项目应用：DDD项目持久化层
+  - 技术深度：懒加载优化、N+1问题解决、Criteria动态查询
+- **MySQL 8.0.33**：关系型数据库
+  - 架构：主从复制、读写分离
+  - 调优：索引设计优化、SQL性能调优、执行计划分析
 
-#### 缓存中间件（生产级应用）
-- **Redis集群**：主从复制、哨兵高可用、Cluster分片集群、性能调优
+#### 缓存中间件（3层缓存架构 - 生产级应用）
+- **Redis 3.2.0 集群**：Spring Data Redis + Jedis客户端
   - 项目应用：OKX交易所分布式session、热点行情缓存（QPS 10万+）
   - 技术深度：Lua脚本原子操作、Pipeline批量操作、RedLock分布式锁
-- **Memcached**：高性能内存缓存系统
+  - 数据结构：String、Hash、List、Set、ZSet、HyperLogLog、Bitmap
+  - 集群模式：主从复制、哨兵高可用、Cluster分片集群
+- **Memcached (XMemcached 2.4.8)**：高性能分布式内存缓存系统
+  - 应用场景：Session共享、热点数据缓存
 - **Caffeine**：本地高性能缓存（读多写少场景）
-- **缓存架构设计**：多级缓存（本地+Redis）、缓存一致性、缓存穿透/击穿/雪崩防护
+  - 淘汰策略：LRU、LFU、FIFO
+- **缓存架构设计**：
+  - 多级缓存（Caffeine本地 + Redis分布式）
+  - 缓存一致性（Cache-Aside、Read-Through、Write-Through）
+  - 缓存穿透/击穿/雪崩防护（布隆过滤器、互斥锁、熔断降级）
 
-#### 分布式协调与配置中心
-- **Apache Zookeeper**：分布式协调服务、服务注册发现、分布式锁
-  - 技术深度：Curator框架应用、ZAB协议理解
-- **Nacos**：动态配置管理、服务注册发现、灰度发布
-  - 项目应用：微服务配置中心、环境隔离
-- **Apollo**：携程开源配置中心、配置版本管理
+#### 分布式协调与配置中心（3种协调服务）
+- **Apache Zookeeper 3.9.1**：分布式协调服务、服务注册发现、分布式锁
+  - Curator 5.6.0：Zookeeper客户端框架（分布式锁、Leader选举、分布式队列）
+  - 技术深度：ZAB协议理解、Watch机制、临时节点/持久节点
+- **Nacos 2.2.4**：动态配置管理、服务注册发现、灰度发布
+  - 项目应用：微服务配置中心、环境隔离（dev/test/prod）
+  - 功能：配置热更新、版本管理、权限控制
+- **Apollo 2.3.0**：携程开源配置中心、配置版本管理
+  - 功能：实时推送、灰度发布、权限管理、配置继承
 
 #### 任务调度与分布式事务
-- **XXL-Job**：分布式任务调度平台、任务监控、失败重试
-  - 项目应用：定时对账、数据同步任务
+- **XXL-Job 2.4.1**：分布式任务调度平台、任务监控、失败重试
+  - 项目应用：定时对账、数据同步任务、报表生成
+  - 功能：任务分片、动态扩容、执行器自动注册
 - **Spring Quartz**：定时任务调度框架
-- **Seata**：分布式事务解决方案（AT/TCC/Saga模式）
-  - 技术理解：两阶段提交、事务补偿机制
+  - 功能：Cron表达式、持久化存储、集群部署
+- **Seata 1.7.1**：分布式事务解决方案
+  - 模式：AT（自动模式）、TCC（补偿模式）、Saga（长事务）
+  - 技术理解：两阶段提交、事务补偿机制、全局锁
+
+#### 搜索与日志（ELK Stack）
+- **Elasticsearch 8.12.0**：分布式搜索引擎、全文检索
+  - 技术深度：倒排索引、分词器、聚合查询
+  - Spring Data Elasticsearch 集成
+- **Logstash 7.4**：日志收集与处理
+  - LogStash Logback Encoder：日志格式化
+  - 管道：Input → Filter → Output
 
 ### ⚡ Java性能优化专项技能
 
