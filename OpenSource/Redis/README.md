@@ -8,14 +8,22 @@
 OpenSource/Redis
 ├── src/main/java/com/architecture
 │   ├── principle/          # 原理实现
-│   │   ├── SkipList.java                   # 跳表实现
-│   │   ├── SimpleDynamicString.java        # SDS简单动态字符串
-│   │   ├── PersistenceRDB.java             # RDB持久化
-│   │   ├── PersistenceAOF.java             # AOF持久化
-│   │   ├── RedisReplication.java           # 主从复制（完整版）
-│   │   ├── SimpleReplicationDemo.java      # 主从复制（简化版）
-│   │   ├── SkipList_Interactive.html       # 跳表可视化动画
-│   │   └── 相关文档（*.md）                # 详细文档和学习指南
+│   │   ├── skiplist/       # 跳表
+│   │   │   ├── SkipList.java
+│   │   │   ├── SkipList_Interactive.html（可视化动画）
+│   │   │   └── README.md
+│   │   ├── replication/    # 主从复制
+│   │   │   ├── SimpleReplicationDemo.java（简化版）
+│   │   │   ├── RedisReplication.java（完整版）
+│   │   │   └── README.md
+│   │   ├── persistence/    # 持久化
+│   │   │   ├── PersistenceRDB.java
+│   │   │   ├── PersistenceAOF.java
+│   │   │   └── README.md
+│   │   ├── sds/           # 简单动态字符串
+│   │   │   ├── SimpleDynamicString.java
+│   │   │   └── README.md
+│   │   └── README.md      # 原理模块总导航
 │   │
 │   ├── interview/          # 面试题
 │   │   └── RedisInterviewQuestions.java    # Redis面试题集锦
@@ -39,198 +47,130 @@ OpenSource/Redis
 
 ## 一、原理实现 (principle)
 
-### 1. 跳表 (SkipList)
+**📂 已按功能分类整理，详见：** [principle/README.md](src/main/java/com/architecture/principle/README.md)
+
+```
+principle/
+├── skiplist/      # 跳表（含可视化动画）
+├── replication/   # 主从复制（双版本实现）
+├── persistence/   # 持久化（RDB + AOF）
+└── sds/          # 简单动态字符串
+```
+
+### 1. 跳表 (SkipList) 🎯
+
+**位置：** `principle/skiplist/`
+
 - Redis ZSet底层数据结构之一
 - 时间复杂度：O(logN)
 - 支持快速查找、插入、删除
 
-**运行示例：**
-```java
-SkipList<String> skipList = new SkipList<>();
-skipList.insert("user1", 100.0);
-skipList.insert("user2", 200.0);
-skipList.print();
+**特色：**
+- ⭐ 交互式动画演示（`SkipList_Interactive.html`）
+- ⭐ 大白话讲解（`SkipList_SimpleExplanation.md`）
+- ⭐ 3个业务场景（游戏排行榜、延迟队列、竞价系统）
+
+**快速开始：**
+```bash
+# 观看动画（推荐！）
+打开: src/main/java/com/architecture/principle/skiplist/SkipList_Interactive.html
+
+# 或运行代码
+javac src/main/java/com/architecture/principle/skiplist/SkipList.java
+java -cp target/classes com.architecture.principle.skiplist.SkipList
 ```
 
-### 2. 简单动态字符串 (SDS)
+**详细文档：** [skiplist/README.md](src/main/java/com/architecture/principle/skiplist/README.md)
+
+---
+
+### 2. 简单动态字符串 (SDS) 📝
+
+**位置：** `principle/sds/`
+
 - Redis String的底层实现
-- 特点：
-  - O(1)时间获取长度
-  - 空间预分配
-  - 惰性空间释放
-  - 二进制安全
+- 核心优势：
+  - ✅ O(1)时间获取长度
+  - ✅ 空间预分配（减少内存分配）
+  - ✅ 惰性空间释放
+  - ✅ 二进制安全
 
 **运行示例：**
-```java
-SimpleDynamicString sds = new SimpleDynamicString("Hello");
-sds.append(" World");
-System.out.println(sds.getMemoryInfo());
+```bash
+javac src/main/java/com/architecture/principle/sds/SimpleDynamicString.java
+java -cp target/classes com.architecture.principle.sds.SimpleDynamicString
 ```
 
-### 3. RDB持久化
-- 全量快照
+**详细文档：** [sds/README.md](src/main/java/com/architecture/principle/sds/README.md)
+
+---
+
+### 3. 持久化 (Persistence) 💾
+
+**位置：** `principle/persistence/`
+
+#### RDB（快照）
+- 全量快照，文件小，恢复快
 - SAVE（同步）和BGSAVE（异步）
-- 恢复速度快
+
+#### AOF（日志）
+- 增量日志，数据更安全
+- 三种同步策略：ALWAYS / EVERYSEC / NO
 
 **运行示例：**
-```java
-PersistenceRDB rdb = new PersistenceRDB("dump.rdb");
-rdb.set("key1", "value1");
-rdb.bgsave();
+```bash
+# RDB
+javac src/main/java/com/architecture/principle/persistence/PersistenceRDB.java
+java -cp target/classes com.architecture.principle.persistence.PersistenceRDB
+
+# AOF
+javac src/main/java/com/architecture/principle/persistence/PersistenceAOF.java
+java -cp target/classes com.architecture.principle.persistence.PersistenceAOF
 ```
 
-### 4. AOF持久化
-- 日志追加
-- 三种同步策略：always/everysec/no
-- 支持AOF重写
+**详细文档：** [persistence/README.md](src/main/java/com/architecture/principle/persistence/README.md)
 
-**运行示例：**
-```java
-PersistenceAOF aof = new PersistenceAOF("appendonly.aof", SyncPolicy.EVERYSEC);
-aof.set("key1", "value1");
-```
+---
 
-### 5. 主从复制 ⭐ 新增
+### 4. 主从复制 (Replication) 🔄
+
+**位置：** `principle/replication/`
+
 提供两个版本的实现，适合不同学习阶段：
 
-#### 简化版 (SimpleReplicationDemo) - 推荐新手
-- 300行精简代码
-- 核心概念清晰
-- 无网络通信复杂度
-- 快速理解原理
+#### 🌟 简化版 (SimpleReplicationDemo) - 推荐新手
+- 300行精简代码，核心概念清晰
+- 无网络通信复杂度，快速理解原理
 
-**特性：**
-- ✅ Replication ID（复制ID）
-- ✅ Replication Offset（复制偏移量）
-- ✅ Replication Backlog（复制积压缓冲区）
+**核心特性：**
+- ✅ Replication ID、Offset、Backlog
 - ✅ PSYNC协议（简化版）
-- ✅ 全量复制（FULLRESYNC）
-- ✅ 增量复制（CONTINUE）
-- ✅ 命令传播（Command Propagation）
+- ✅ 全量复制 + 增量复制
+- ✅ 命令传播
+
+#### 🚀 完整版 (RedisReplication) - 进阶学习
+- 900行完整实现，真实TCP Socket通信
+- RDB文件生成和传输，环形缓冲区
 
 **运行示例：**
 ```bash
-# Windows
+# 简化版（推荐新手）
 ./run_simple_replication.bat
 
-# 或使用命令行
-javac -d target/classes -sourcepath src/main/java src/main/java/com/architecture/principle/SimpleReplicationDemo.java
-java -cp target/classes com.architecture.principle.SimpleReplicationDemo
-```
-
-**输出示例：**
-```
-【步骤3】从节点1连接 - 触发全量复制
-🔵 从节点 [Slave-1] 已启动
-🔌 [Slave-1] 连接到主节点...
-🔄 [主节点] 执行全量复制
-📤 [主节点] 发送所有数据 (3 条)
-✅ [主节点] 全量复制完成
-
-【步骤10】模拟从节点3断线重连 - 触发增量复制
-🔄 [主节点] 执行增量复制
-📤 [主节点] 发送增量命令 (2 条)
-✅ [主节点] 增量复制完成
-```
-
-#### 完整版 (RedisReplication) - 进阶学习
-- 900行完整实现
-- 真实TCP Socket通信
-- RDB文件生成和传输
-- 环形缓冲区实现
-
-**特性：**
-- ✅ TCP Socket通信
-- ✅ 真实PSYNC协议
-- ✅ RDB快照生成
-- ✅ RDB文件传输
-- ✅ 环形缓冲区Backlog
-- ✅ 多从节点支持
-- ✅ 心跳检测（REPLCONF ACK）
-
-**运行示例：**
-```bash
-# Windows
+# 完整版（进阶学习）
 ./run_full_replication.bat
-
-# 或使用命令行
-javac -d target/classes -sourcepath src/main/java src/main/java/com/architecture/principle/RedisReplication.java
-java -cp target/classes com.architecture.principle.RedisReplication
 ```
 
-**输出示例：**
-```
-🟢 [Master] 启动成功
-    Replication ID: 20336f56-ec82-46d4-b171-ce50b20ff2b1
-    Port: 6379
-🔌 [Slave] 连接到主节点...
-📨 [Slave] 发送PSYNC: PSYNC ? -1
-🔄 [Master] 执行全量复制 (FULLRESYNC)
-📦 RDB数据发送完成，大小: 144 bytes
-📡 [Master] 传播命令给 2 个从节点
-```
+**核心概念：**
+- **Replication ID** - 标识数据集版本
+- **Replication Offset** - 复制进度（字节数）
+- **Replication Backlog** - 环形缓冲区，支持增量复制
+- **全量复制** - 传输所有数据（RDB）
+- **增量复制** - 只传输缺失命令
 
-#### 配套文档
+**详细文档：** [replication/README.md](src/main/java/com/architecture/principle/replication/README.md)
 
-| 文档 | 说明 | 适合人群 |
-|------|------|---------|
-| **SkipList_SimpleExplanation.md** | 大白话讲跳表 | 所有人 |
-| **README_Replication.md** | 学习指南 | 所有人 |
-| **RedisReplication_Explanation.md** | 详细原理解析 | 进阶学习者 |
-| **REPLICATION_VERIFICATION.md** | 验证报告 | 深入研究者 |
-
-#### 学习路径（约3-4小时）
-
-```
-Step 1: 阅读 README_Replication.md（10分钟）
-        ↓ 了解整体架构
-
-Step 2: 运行 SimpleReplicationDemo（5分钟）
-        ↓ 观察实际输出
-
-Step 3: 阅读 SimpleReplicationDemo.java（30分钟）
-        ↓ 理解核心逻辑
-
-Step 4: 阅读 RedisReplication_Explanation.md（60分钟）
-        ↓ 深入原理细节
-
-Step 5: 运行 RedisReplication（10分钟）
-        ↓ 观察网络通信
-
-Step 6: 阅读 RedisReplication.java（90分钟）
-        ↓ 掌握完整实现
-```
-
-#### 核心概念速记
-
-**三个关键指标：**
-```
-1. Replication ID - 唯一标识一个数据集
-   用途：判断是否连接的是原来的主节点
-
-2. Replication Offset - 记录已复制的字节数
-   用途：判断主从数据是否一致，确定增量复制起点
-
-3. Replication Backlog - 环形缓冲区，保存最近的写命令
-   用途：支持增量复制（默认1MB）
-```
-
-**两种复制方式：**
-```
-全量复制（FULLRESYNC）
-  触发时机：首次连接、ID不匹配、offset太旧
-  传输内容：所有数据（RDB格式）
-
-增量复制（CONTINUE）
-  触发时机：短暂断线重连、offset在backlog范围内
-  传输内容：只传输缺失的命令
-```
-
-**使用场景：**
-- ✅ 高可用架构：主从自动切换
-- ✅ 读写分离：主节点写，从节点读
-- ✅ 数据备份：防止数据丢失
-- ✅ 负载均衡：多从节点分担读请求
+**快速参考：** [replication/QUICK_REFERENCE.md](src/main/java/com/architecture/principle/replication/QUICK_REFERENCE.md)
 
 ## 二、面试题 (interview)
 
