@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
+import java.util.Set;
+
 /**
  * 基于REST API的心跳上报服务
  *
@@ -133,7 +135,7 @@ public class RestHeartbeatService {
             }
 
             // 获取所有设备，逐一检查是否在线
-            var devices = jedis.smembers(devicesKey);
+            Set<String> devices = jedis.smembers(devicesKey);
             if (devices == null || devices.isEmpty()) {
                 return false;
             }
@@ -235,7 +237,7 @@ public class RestHeartbeatService {
     public long getOnlineUserCount() {
         try (Jedis jedis = jedisPool.getResource()) {
             // 统计所有在线设备前缀的key数量
-            var keys = jedis.keys(ONLINE_DEVICES_PREFIX + "*");
+            Set<String> keys = jedis.keys(ONLINE_DEVICES_PREFIX + "*");
             return keys != null ? keys.size() : 0;
         } catch (Exception e) {
             logger.error("获取在线用户数失败", e);

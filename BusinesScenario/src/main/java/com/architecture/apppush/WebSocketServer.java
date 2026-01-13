@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -164,7 +165,7 @@ public class WebSocketServer {
     public void sendToUser(String userId, Object message) {
 
         // 获取用户的所有在线设备
-        var devices = statusManager.getOnlineDevices(userId);
+        Set<String> devices = statusManager.getOnlineDevices(userId);
 
         int successCount = 0;
         for (String deviceId : devices) {
