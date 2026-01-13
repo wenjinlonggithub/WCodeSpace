@@ -1,0 +1,44 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: finance-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: user-service
+          uri: lb://finance-user
+          predicates:
+            - Path=/api/user/**
+        - id: account-service
+          uri: lb://finance-account
+          predicates:
+            - Path=/api/account/**
+        - id: trading-service
+          uri: lb://finance-trading
+          predicates:
+            - Path=/api/trading/**
+        - id: market-service
+          uri: lb://finance-market
+          predicates:
+            - Path=/api/market/**
+        - id: wallet-service
+          uri: lb://finance-wallet
+          predicates:
+            - Path=/api/wallet/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG

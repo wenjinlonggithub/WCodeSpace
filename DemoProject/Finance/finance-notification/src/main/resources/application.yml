@@ -1,0 +1,11 @@
+server:
+  port: 8087
+
+spring:
+  application:
+    name: finance-notification
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: your-email@gmail.com
+    password: your-password

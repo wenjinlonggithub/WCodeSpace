@@ -5,12 +5,17 @@
   <groupId>com.architecture</groupId>
   <artifactId>DemoProject</artifactId>
   <version>1.0-SNAPSHOT</version>
-  <packaging>jar</packaging>
+  <packaging>pom</packaging>
 
   <name>DemoProject</name>
   <url>http://maven.apache.org</url>
+    <modules>
+        <module>Medical</module>
+      <module>Finance</module>
+      <module>Recommend</module>
+    </modules>
 
-  <properties>
+    <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
