@@ -21,7 +21,8 @@ BusinesScenario/
 │   ├── idempotent/       # 场景五：接口幂等性
 │   ├── hotdata/          # 场景六：热点数据处理
 │   ├── distributedid/    # 场景七：分布式ID生成
-│   └── apppush/          # 场景八：APP在线状态检测与智能推送
+│   ├── apppush/          # 场景八：APP在线状态检测与智能推送
+│   └── esignature/       # 场景九：电子签名回调重复日志问题
 └── pom.xml
 ```
 
@@ -267,6 +268,83 @@ BusinesScenario/
 
 ---
 
+### 场景九：电子签名回调重复日志问题
+
+**业务背景**：医疗系统中,医生完成电子签名后,第三方平台(易签宝)回调业务系统。系统使用Redis分布式锁和异步处理来更新签署状态和记录日志。
+
+**核心问题**：
+- 同一次签署产生两条日志记录
+- 数据冗余,审计混乱
+- Redis锁的作用范围不足
+
+**技术方案**：
+- **数据库唯一约束**：唯一索引 + 异常捕获(推荐)
+- **锁覆盖异步任务**：分布式锁保护整个流程
+- **Token幂等性**：防止回调重试
+- **状态机**：CAS操作保证状态只流转一次
+- **先查后插**：查询存在性 + 分布式锁
+
+**核心文件**：
+- `esignature/场景说明_电子签名回调重复日志问题.md` - 详细问题分析
+- `esignature/SignatureCallbackController.java` - 回调接口(5种方案)
+- `esignature/SignatureAsyncService.java` - 异步处理服务
+- `esignature/SignatureLogService.java` - 日志记录服务
+- `esignature/SignatureDuplicateLogTest.java` - 测试演示
+- `esignature/database.sql` - 数据库表结构
+
+**问题根源**：
+```java
+// 问题代码
+try {
+    redisLock.tryLock(lockKey);
+    asyncService.processSignature(dto);  // 异步执行
+    return Result.success();
+} finally {
+    redisLock.unlock(lockKey);  // ❌ 立即释放,异步任务未完成!
+}
+```
+
+**推荐解决方案**：
+```sql
+-- 数据库添加唯一索引
+ALTER TABLE signature_log ADD UNIQUE INDEX uk_signature_id (signature_id);
+```
+
+```java
+// 业务代码捕获重复异常
+try {
+    signatureLogMapper.insert(log);
+} catch (DuplicateKeyException e) {
+    log.warn("日志已存在,忽略: {}", signatureId);
+}
+```
+
+**方案对比**：
+| 方案 | 实现难度 | 可靠性 | 性能 | 推荐指数 |
+|------|---------|--------|------|---------|
+| 数据库唯一约束 | ⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| 锁覆盖异步任务 | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ |
+| Token幂等性 | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| 状态机 | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
+
+**最佳实践**：
+```
+多层防护策略:
+第1层: Token幂等性验证 (防止回调重试)
+第2层: Redis分布式锁 (防止并发)
+第3层: 业务状态检查 (先查后插)
+第4层: 数据库唯一约束 (最后防线)
+```
+
+**关键要点**：
+- ✅ 分布式锁要覆盖整个业务逻辑(包括异步任务)
+- ✅ 数据库唯一约束是最简单、最可靠的方案
+- ✅ 第三方回调要考虑重试机制
+- ✅ 多层防护,纵深防御
+- ✅ 完善的监控和日志追踪
+
+---
+
 ## 依赖说明
 
 主要依赖：
@@ -324,6 +402,9 @@ java -cp target/classes com.architecture.ratelimit.TokenBucketRateLimiter
 
 # 雪花算法示例
 java -cp target/classes com.architecture.distributedid.SnowflakeIdGenerator
+
+# 电子签名回调重复日志测试
+java -cp target/classes com.architecture.esignature.SignatureDuplicateLogTest
 ```
 
 ## 技术栈总结
@@ -334,7 +415,7 @@ java -cp target/classes com.architecture.distributedid.SnowflakeIdGenerator
 | 分布式协调 | Redis NX + Redisson + Zookeeper | 定时任务去重、资源互斥 |
 | 异步处理 | 延迟队列 + 时间轮 | 订单超时、延迟重试 |
 | 流量控制 | 令牌桶 + 滑动窗口 | API限流、防刷 |
-| 数据一致性 | Token + 分布式锁 + 状态机 | 防重复提交、幂等性 |
+| 数据一致性 | Token + 分布式锁 + 状态机 + 唯一约束 | 防重复提交、幂等性、防重复日志 |
 | 性能优化 | 多级缓存 + 热点隔离 | 热点数据、缓存击穿 |
 | ID生成 | 雪花算法 | 订单号、用户ID |
 
@@ -363,6 +444,11 @@ java -cp target/classes com.architecture.distributedid.SnowflakeIdGenerator
 5. **缓存一致性**
    - 如何防止缓存击穿、雪崩、穿透？
    - 多级缓存的数据一致性？
+
+6. **异步任务与分布式锁**
+   - 分布式锁的作用范围如何确定？
+   - 异步任务如何避免重复执行？
+   - 如何防止第三方回调重复？
 
 ### 回答模板
 
