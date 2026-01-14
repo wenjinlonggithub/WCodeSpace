@@ -61,7 +61,9 @@
       "Bash(mvn compile:*)",
       "Bash(rd /s /q \"D:\\\\develop\\\\20\\\\WCodeSpace\\\\DataStructure\\\\src\\\\main\\\\resources\\\\archetype-resources\")",
       "Bash(rd /s /q \"D:\\\\develop\\\\20\\\\WCodeSpace\\\\DataStructure\\\\src\\\\main\\\\resources\\\\META-INF\")",
-      "Bash(if exist \"D:\\\\develop\\\\20\\\\WCodeSpace\\\\DataStructure\\\\target\" rd /s /q \"D:\\\\develop\\\\20\\\\WCodeSpace\\\\DataStructure\\\\target\")"
+      "Bash(if exist \"D:\\\\develop\\\\20\\\\WCodeSpace\\\\DataStructure\\\\target\" rd /s /q \"D:\\\\develop\\\\20\\\\WCodeSpace\\\\DataStructure\\\\target\")",
+      "WebSearch",
+      "WebFetch(domain:developers.weixin.qq.com)"
     ],
     "deny": []
   }
