@@ -1,0 +1,62 @@
+# XXL-Job执行器配置
+spring:
+  application:
+    name: xxl-job-executor-sample
+
+# Server配置
+server:
+  port: 8081
+
+# XXL-Job配置
+xxl:
+  job:
+    # 调度中心配置
+    admin:
+      # 调度中心地址,多个地址用逗号分隔
+      addresses: http://localhost:8080/xxl-job-admin
+
+    # 访问令牌(可选)
+    # 如果调度中心配置了访问令牌,执行器也需要配置相同的令牌
+    accessToken:
+
+    # 执行器配置
+    executor:
+      # 执行器AppName,在调度中心配置执行器时需要使用
+      appname: xxl-job-executor-sample
+
+      # 执行器注册地址(可选)
+      # 优先使用该配置作为注册地址
+      # 为空时使用内嵌服务 "IP:PORT" 作为注册地址
+      address:
+
+      # 执行器IP(可选)
+      # 为空时自动获取本机IP
+      ip:
+
+      # 执行器端口(默认9999)
+      # 小于等于0则自动获取可用端口
+      port: 9999
+
+      # 执行器日志文件存储路径
+      # 为空则使用默认路径
+      logpath: ./logs/xxl-job/jobhandler
+
+      # 执行器日志文件保留天数(默认30天)
+      # 大于3时生效,启用日志文件清理功能
+      logretentiondays: 30
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.architecture.xxljob: DEBUG
+    com.xxl.job: INFO
+
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+
+  file:
+    name: ./logs/xxl-job/executor.log
+    max-size: 10MB
+    max-history: 30
