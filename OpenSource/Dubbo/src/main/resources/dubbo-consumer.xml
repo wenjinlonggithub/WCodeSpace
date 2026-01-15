@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:dubbo="http://dubbo.apache.org/schema/dubbo"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://dubbo.apache.org/schema/dubbo
+       http://dubbo.apache.org/schema/dubbo/dubbo.xsd">
+
+    <!-- ========== 应用配置 ========== -->
+    <dubbo:application name="dubbo-consumer-demo">
+        <dubbo:parameter key="app.version" value="1.0.0"/>
+    </dubbo:application>
+
+    <!-- ========== 注册中心配置 ========== -->
+    <dubbo:registry protocol="zookeeper"
+                    address="127.0.0.1:2181"
+                    timeout="5000"/>
+
+    <!-- ========== 消费者全局配置 ========== -->
+    <dubbo:consumer timeout="3000"
+                    retries="2"
+                    check="false"
+                    loadbalance="roundrobin"
+                    cluster="failover"
+                    version="1.0.0"
+                    group="default">
+        <!-- 消费者过滤器 -->
+        <dubbo:parameter key="filter" value="default"/>
+    </dubbo:consumer>
+
+    <!-- ========== 监控中心配置 ========== -->
+    <dubbo:monitor protocol="registry"/>
+
+    <!-- ========== 服务引用配置 ========== -->
+
+    <!-- 引用用户服务 -->
+    <dubbo:reference id="userService"
+                     interface="com.architecture.business.user.UserService"
+                     version="1.0.0"
+                     timeout="3000"
+                     retries="2"
+                     check="false"
+                     loadbalance="roundrobin"
+                     cluster="failover"
+                     connections="100"
+                     lazy="false">
+        <!-- 方法级别配置 -->
+        <dubbo:method name="getUserById" timeout="1000" retries="3"/>
+        <dubbo:method name="login" timeout="2000" retries="0"/>
+
+        <!-- 本地存根（用于客户端参数验证） -->
+        <!--<dubbo:parameter key="stub" value="com.architecture.business.user.UserServiceStub"/>-->
+    </dubbo:reference>
+
+    <!-- 引用订单服务 -->
+    <dubbo:reference id="orderService"
+                     interface="com.architecture.business.order.OrderService"
+                     version="1.0.0"
+                     timeout="5000"
+                     retries="0"
+                     check="false"
+                     loadbalance="leastactive"
+                     async="false">
+        <!-- 异步调用配置 -->
+        <!--<dubbo:method name="createOrder" async="true"/>-->
+        <!--<dubbo:method name="getOrderById" async="false"/>-->
+    </dubbo:reference>
+
+    <!-- 引用支付服务 -->
+    <dubbo:reference id="paymentService"
+                     interface="com.architecture.business.payment.PaymentService"
+                     version="1.0.0"
+                     timeout="10000"
+                     retries="0"
+                     check="false"
+                     loadbalance="random">
+        <!-- 并发控制 -->
+        <dubbo:method name="processPayment" actives="5"/>
+    </dubbo:reference>
+
+    <!-- ========== 直连提供者配置（开发测试用） ========== -->
+    <!-- 直连某个服务提供者，不通过注册中心 -->
+    <!--<dubbo:reference id="userServiceDirect"-->
+    <!--                 interface="com.architecture.business.user.UserService"-->
+    <!--                 url="dubbo://192.168.1.100:20880"-->
+    <!--                 version="1.0.0"/>-->
+
+    <!-- ========== 泛化调用配置 ========== -->
+    <!-- 泛化接口调用，不需要依赖服务提供方的API -->
+    <!--<dubbo:reference id="genericService"-->
+    <!--                 interface="com.architecture.business.user.UserService"-->
+    <!--                 generic="true"-->
+    <!--                 version="1.0.0"/>-->
+
+    <!-- ========== 多版本配置 ========== -->
+    <!-- 同时引用多个版本的服务 -->
+    <!--<dubbo:reference id="userServiceV1"-->
+    <!--                 interface="com.architecture.business.user.UserService"-->
+    <!--                 version="1.0.0"/>-->
+    <!--<dubbo:reference id="userServiceV2"-->
+    <!--                 interface="com.architecture.business.user.UserService"-->
+    <!--                 version="2.0.0"/>-->
+
+    <!-- ========== 分组配置 ========== -->
+    <!-- 引用不同分组的服务 -->
+    <!--<dubbo:reference id="userServiceGroup1"-->
+    <!--                 interface="com.architecture.business.user.UserService"-->
+    <!--                 group="group1"/>-->
+    <!--<dubbo:reference id="userServiceGroup2"-->
+    <!--                 interface="com.architecture.business.user.UserService"-->
+    <!--                 group="group2"/>-->
+    <!--<dubbo:reference id="userServiceMerge"-->
+    <!--                 interface="com.architecture.business.user.UserService"-->
+    <!--                 group="*"-->
+    <!--                 merger="true"/>-->
+
+</beans>
+
+<!--
+消费者配置说明：
+
+1. 消费者全局配置 (dubbo:consumer)
+   - timeout: 调用超时时间
+   - retries: 失败重试次数
+   - check: 启动时检查服务提供者是否存在
+   - loadbalance: 负载均衡策略
+   - cluster: 集群容错模式
+
+2. 服务引用 (dubbo:reference)
+   - interface: 服务接口
+   - version: 服务版本
+   - group: 服务分组
+   - timeout: 调用超时时间
+   - retries: 失败重试次数
+   - check: 启动时检查
+   - lazy: 延迟初始化
+   - connections: 每个提供者的最大连接数
+   - async: 是否异步调用
+
+3. 方法级配置 (dubbo:method)
+   - name: 方法名
+   - timeout: 方法超时时间
+   - retries: 方法重试次数
+   - async: 方法是否异步调用
+   - actives: 最大并发调用数
+
+4. 特殊配置：
+   - 直连: 通过 url 直接指定服务提供者地址
+   - 泛化调用: generic="true" 不需要API依赖
+   - 多版本: 通过 version 区分不同版本
+   - 分组: 通过 group 实现服务分组
+   - 分组聚合: group="*" merger="true"
+
+5. 超时配置优先级：
+   方法级优先 > 接口级优先 > 全局配置
+   消费端配置 > 提供端配置
+
+6. 重试配置建议：
+   - 查询操作: retries > 0 (可重试)
+   - 写入操作: retries = 0 (避免重复)
+   - 幂等操作: 可以重试
+   - 非幂等操作: 不能重试
+
+7. Check配置：
+   - 开发测试: check=false (允许服务延迟启动)
+   - 生产环境: check=true (确保服务可用)
+-->

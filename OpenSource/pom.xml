@@ -13,6 +13,7 @@
     <module>Mybatis</module>
     <module>Redis</module>
     <module>XXL-Job</module>
+    <module>Dubbo</module>
   </modules>
 
   <properties>

@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:dubbo="http://dubbo.apache.org/schema/dubbo"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://dubbo.apache.org/schema/dubbo
+       http://dubbo.apache.org/schema/dubbo/dubbo.xsd">
+
+    <!-- ========== 应用配置 ========== -->
+    <!-- 应用名称，用于服务治理和监控 -->
+    <dubbo:application name="dubbo-provider-demo">
+        <!-- 应用版本 -->
+        <dubbo:parameter key="app.version" value="1.0.0"/>
+        <!-- 应用环境 -->
+        <dubbo:parameter key="environment" value="production"/>
+    </dubbo:application>
+
+    <!-- ========== 注册中心配置 ========== -->
+    <!-- Zookeeper 注册中心 -->
+    <dubbo:registry id="zkRegistry"
+                    protocol="zookeeper"
+                    address="127.0.0.1:2181"
+                    timeout="5000"
+                    session="60000">
+        <!-- 注册中心用户名密码（如果需要） -->
+        <!--<dubbo:parameter key="username" value="admin"/>-->
+        <!--<dubbo:parameter key="password" value="admin"/>-->
+    </dubbo:registry>
+
+    <!-- Nacos 注册中心（可选） -->
+    <dubbo:registry id="nacosRegistry"
+                    protocol="nacos"
+                    address="127.0.0.1:8848"
+                    username="nacos"
+                    password="nacos"
+                    default="false"/>
+
+    <!-- 多注册中心配置 -->
+    <!--<dubbo:registry address="zookeeper://127.0.0.1:2181|zookeeper://127.0.0.2:2181"/>-->
+
+    <!-- ========== 协议配置 ========== -->
+    <!-- Dubbo 协议 -->
+    <dubbo:protocol name="dubbo"
+                    port="20880"
+                    threads="200"
+                    threadpool="fixed"
+                    accepts="1000"
+                    serialization="hessian2">
+        <!-- 协议扩展参数 -->
+        <dubbo:parameter key="heartbeat" value="60000"/>
+        <dubbo:parameter key="payload" value="8388608"/>
+    </dubbo:protocol>
+
+    <!-- HTTP 协议（可选） -->
+    <dubbo:protocol name="rest"
+                    port="8080"
+                    server="netty"
+                    default="false"/>
+
+    <!-- ========== 提供者全局配置 ========== -->
+    <dubbo:provider timeout="3000"
+                    retries="0"
+                    loadbalance="roundrobin"
+                    cluster="failover"
+                    version="1.0.0"
+                    group="default">
+        <!-- 服务过滤器 -->
+        <dubbo:parameter key="filter" value="echo,generic,accesslog"/>
+    </dubbo:provider>
+
+    <!-- ========== 监控中心配置 ========== -->
+    <!-- 监控中心 -->
+    <dubbo:monitor protocol="registry"/>
+
+    <!-- 元数据配置 -->
+    <dubbo:metadata-config address="zookeeper://127.0.0.1:2181"/>
+
+    <!-- ========== 服务暴露配置 ========== -->
+
+    <!-- 用户服务 Bean -->
+    <bean id="userService" class="com.architecture.business.user.UserServiceImpl"/>
+
+    <!-- 暴露用户服务 -->
+    <dubbo:service interface="com.architecture.business.user.UserService"
+                   ref="userService"
+                   version="1.0.0"
+                   group="default"
+                   timeout="3000"
+                   retries="0"
+                   loadbalance="roundrobin"
+                   cluster="failover"
+                   connections="100"
+                   executes="200"
+                   actives="0"
+                   delay="0">
+        <!-- 方法级别配置 -->
+        <dubbo:method name="getUserById" timeout="1000" retries="2"/>
+        <dubbo:method name="createUser" timeout="5000" retries="0"/>
+        <dubbo:method name="login" timeout="2000" retries="0"/>
+
+        <!-- 参数验证 -->
+        <dubbo:parameter key="validation" value="true"/>
+    </dubbo:service>
+
+    <!-- 订单服务 Bean -->
+    <bean id="orderService" class="com.architecture.business.order.OrderServiceImpl">
+        <!-- 注入依赖的服务 -->
+        <property name="userService" ref="userServiceReference"/>
+        <property name="paymentService" ref="paymentServiceReference"/>
+    </bean>
+
+    <!-- 暴露订单服务 -->
+    <dubbo:service interface="com.architecture.business.order.OrderService"
+                   ref="orderService"
+                   version="1.0.0"
+                   timeout="5000"
+                   retries="0"
+                   loadbalance="leastactive"
+                   weight="100">
+        <!-- 异步方法配置 -->
+        <dubbo:method name="createOrder" timeout="10000" async="false"/>
+        <dubbo:method name="payOrder" timeout="15000" async="false"/>
+    </dubbo:service>
+
+    <!-- 支付服务 Bean -->
+    <bean id="paymentService" class="com.architecture.business.payment.PaymentServiceImpl"/>
+
+    <!-- 暴露支付服务 -->
+    <dubbo:service interface="com.architecture.business.payment.PaymentService"
+                   ref="paymentService"
+                   version="1.0.0"
+                   timeout="10000"
+                   retries="0"
+                   loadbalance="random">
+        <!-- 并发控制 -->
+        <dubbo:method name="processPayment" executes="50" actives="10"/>
+    </dubbo:service>
+
+    <!-- ========== 服务引用配置（用于服务间调用） ========== -->
+
+    <!-- 引用用户服务 -->
+    <dubbo:reference id="userServiceReference"
+                     interface="com.architecture.business.user.UserService"
+                     version="1.0.0"
+                     timeout="3000"
+                     check="false"
+                     retries="2"
+                     lazy="false"/>
+
+    <!-- 引用支付服务 -->
+    <dubbo:reference id="paymentServiceReference"
+                     interface="com.architecture.business.payment.PaymentService"
+                     version="1.0.0"
+                     timeout="10000"
+                     check="false"
+                     retries="0"/>
+
+</beans>
+
+<!--
+配置说明：
+
+1. 应用配置 (dubbo:application)
+   - name: 应用名称，建议使用项目名
+   - version: 应用版本
+   - environment: 运行环境
+
+2. 注册中心配置 (dubbo:registry)
+   - protocol: 注册中心协议（zookeeper, nacos, redis等）
+   - address: 注册中心地址
+   - timeout: 连接超时时间
+   - session: 会话超时时间
+
+3. 协议配置 (dubbo:protocol)
+   - name: 协议名称（dubbo, rest, http等）
+   - port: 服务端口
+   - threads: 线程池大小
+   - serialization: 序列化方式（hessian2, fastjson, protobuf等）
+
+4. 提供者配置 (dubbo:provider)
+   - timeout: 超时时间（毫秒）
+   - retries: 重试次数（不包括第一次调用）
+   - loadbalance: 负载均衡策略（random, roundrobin, leastactive等）
+   - cluster: 集群容错策略（failover, failfast, failsafe等）
+
+5. 服务暴露 (dubbo:service)
+   - interface: 服务接口
+   - ref: 服务实现Bean
+   - version: 服务版本
+   - group: 服务分组
+   - delay: 延迟暴露时间（毫秒）
+   - executes: 服务端最大并发执行数
+   - actives: 客户端最大并发调用数
+
+6. 服务引用 (dubbo:reference)
+   - interface: 服务接口
+   - version: 服务版本
+   - check: 启动时检查服务是否可用
+   - lazy: 是否延迟初始化
+   - retries: 失败重试次数
+
+最佳实践：
+- 使用版本号区分不同版本的服务
+- 设置合理的超时时间
+- 非幂等操作设置 retries=0
+- 使用 check=false 允许服务延迟启动
+- 根据业务场景选择合适的负载均衡和集群容错策略
+-->
