@@ -113,9 +113,9 @@ public class BusinessDemo {
             System.out.println("----------------------------------------");
             var paymentRecords = paymentService.getPaymentRecords(1L);
             System.out.println("支付记录数量: " + paymentRecords.size());
-            paymentRecords.forEach(record ->
+            /**paymentRecords.forEach(record ->
                 System.out.println("  - " + record)
-            );
+            );*/
 
             // 场景9：测试异常情况 - 创建不存在用户的订单
             System.out.println("\n【场景9】异常场景测试");

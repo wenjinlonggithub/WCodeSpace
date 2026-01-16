@@ -72,7 +72,7 @@ public interface UserService {
  * 用户实体类
  * 注意：Dubbo 传输的对象必须实现 Serializable 接口
  */
-class User implements Serializable {
+public class User implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Long id;
