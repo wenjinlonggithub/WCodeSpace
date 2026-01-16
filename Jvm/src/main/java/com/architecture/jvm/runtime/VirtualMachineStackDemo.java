@@ -193,7 +193,7 @@ public class VirtualMachineStackDemo {
     }
 
     private static int factorial(int n, int depth) {
-        String indent = "  ".repeat(depth);
+     /*   String indent = "  ".repeat(depth);
         System.out.println(indent + "→ factorial(" + n + ") 入栈");
 
         int result;
@@ -206,7 +206,8 @@ public class VirtualMachineStackDemo {
         }
 
         System.out.println(indent + "← factorial(" + n + ") 出栈");
-        return result;
+        return result;*/
+        return 0;
     }
 
     /**

@@ -1,11 +1,12 @@
 ﻿package com.architecture.business.order;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.List; /**
+import java.util.List;
+
+/**
  * 订单实体类
  */
-public class Order implements Serializable {
+public class Order {
     private static final long serialVersionUID = 1L;
 
     private Long orderId;
@@ -30,8 +31,8 @@ public class Order implements Serializable {
 
     private BigDecimal calculateTotalAmount(List<OrderItem> items) {
         return items.stream()
-            .map(item -> item.getPrice().multiply(new BigDecimal(item.getQuantity())))
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .map(item -> item.getPrice().multiply(new BigDecimal(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     // Getters and Setters
