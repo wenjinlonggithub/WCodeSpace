@@ -104,7 +104,7 @@ public class AQSBasicDemo {
 
         System.out.println("=== AQS基本概念演示 ===\n");
 
-        // 创建10个线程并发执行
+        // 创建100个线程并发执行
         Thread[] threads = new Thread[100];
         for (int i = 0; i < 100; i++) {
             final int threadId = i;
