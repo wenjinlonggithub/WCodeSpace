@@ -8,7 +8,7 @@
     <name>Archetype - SoftwareArchitect</name>
   <url>http://maven.apache.org</url>
     <modules>
-        <module>DDD</module>
+        <module>DomainDrivenDesign</module>
         <module>Case</module>
     </modules>
 </project>
