@@ -131,11 +131,18 @@ WCodeSpace/
 │       ├── jdk/              # JDK核心特性
 │       └── principles/        # 编程原则
 ├── 🔧 JVM/                    # JVM虚拟机深度解析
+│   ├── docs/                 # JVM文档中心
+│   │   ├── JVM_GUIDE.md      # JVM完整指南
+│   │   ├── JVM_DEEP_DIVE.md  # JVM深度剖析与实战
+│   │   ├── JVM_TROUBLESHOOTING_GUIDE.md # JVM故障诊断与调优实战
+│   │   ├── JVM_MONITORING_BEST_PRACTICES.md # JVM性能监控与最佳实践
+│   │   └── README.md         # 文档中心说明
 │   └── src/main/java/com/architecture/jvm/
 │       ├── bytecode/         # 字节码分析
 │       ├── classloader/      # 类加载机制
 │       ├── gc/               # 垃圾回收算法
 │       ├── memory/           # 内存管理
+│       ├── jmm/              # Java内存模型
 │       └── tuning/           # 性能调优
 ├── 🔧 Middleware/             # 中间件技术栈
 │   └── src/main/java/com/architecture/middleware/

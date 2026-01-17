@@ -565,6 +565,16 @@ java -cp target/classes com.architecture.jvm.tuning.ProductionTuningCases
 
 ---
 
+## 📚 扩展阅读
+
+为了更全面地掌握JVM知识，我们还提供了以下扩展文档：
+
+- [JVM深度剖析与实战指南](./docs/JVM_DEEP_DIVE.md) - 涵盖字节码分析、内存模型细节、垃圾收集器深入分析和性能调优实战
+- [JVM故障诊断与调优实战指南](./docs/JVM_TROUBLESHOOTING_GUIDE.md) - 详细介绍常见JVM问题类型、故障排查方法和实际案例分析
+- [JVM性能监控与最佳实践](./docs/JVM_MONITORING_BEST_PRACTICES.md) - 深入讲解JVM性能监控、指标设定和监控体系建设
+
+---
+
 ## 👨‍💻 Author
 Architecture Team
 
