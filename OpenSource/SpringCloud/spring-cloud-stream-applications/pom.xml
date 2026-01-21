@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.architecture</groupId>
+        <artifactId>SpringCloud</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>spring-cloud-stream-applications</artifactId>
+    <packaging>jar</packaging>
+
+    <name>Spring Cloud Stream Applications</name>
+    <description>Spring Cloud Stream Applications source code learning project</description>
+
+    <properties>
+        <spring-cloud-stream.version>4.2.0</spring-cloud-stream.version>
+        <spring-boot.version>3.4.1</spring-boot.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.cloud.stream.app</groupId>
+            <artifactId>stream-applications-core</artifactId>
+            <version>5.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-stream</artifactId>
+            <version>${spring-cloud-stream.version}</version>
+        </dependency>
+    </dependencies>
+</project>

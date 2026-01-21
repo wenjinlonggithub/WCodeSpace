@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.architecture</groupId>
+        <artifactId>SpringCloud</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>spring-cloud-kubernetes</artifactId>
+    <packaging>jar</packaging>
+
+    <name>Spring Cloud Kubernetes</name>
+    <description>Spring Cloud Kubernetes source code learning project</description>
+
+    <properties>
+        <spring-cloud-kubernetes.version>3.1.3</spring-cloud-kubernetes.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-kubernetes-client-all</artifactId>
+            <version>${spring-cloud-kubernetes.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-kubernetes-fabric8-discovery</artifactId>
+            <version>${spring-cloud-kubernetes.version}</version>
+        </dependency>
+    </dependencies>
+</project>
