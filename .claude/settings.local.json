@@ -25,7 +25,14 @@
       "Bash(.gradlew.bat:*)",
       "Bash(./gradlew:*)",
       "WebSearch",
-      "WebFetch(domain:developers.weixin.qq.com)"
+      "WebFetch(domain:developers.weixin.qq.com)",
+      "Bash(for dir in \"D:\\\\develop\\\\20\\\\WCodeSpace\\\\OpenSource\\\\SpringCloud\"/*)",
+      "Bash(do if [ -d \"$dir\" ])",
+      "Bash([ ! -d \"$dir/src\" ])",
+      "Bash([ -f \"$dir/pom.xml\" ])",
+      "Bash(then basename \"$dir\")",
+      "Bash(fi)",
+      "Bash(done)"
     ],
     "deny": []
   }
