@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="60 seconds">
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+    <property name="log.path" value="/mnt"/>
+    <property name="CONSOLE_LOG_PATTERN"
+              value="%yellow(%d{yyyy-MM-dd HH:mm:ss.SSS}) [%X{traceId}] %green([%thread]) %highlight(%-5level) %cyan(%logger{50}) %L - %method %msg %n"/>
+
+    <springProperty scope="context" name="maxHistory" source="log.file.max-history" defaultValue="7"/>
+    <springProperty scope="context" name="totalSizeCap" source="log.file.total-size-cap" defaultValue="30GB"/>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${CONSOLE_LOG_PATTERN}
+            </pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="info-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${log.path}/gateway.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.path}/gateway.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>${maxHistory}</maxHistory>
+            <totalSizeCap>${totalSizeCap}</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            <charset>utf8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="error-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${log.path}/gateway-error.log</file>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>error</level>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.path}/gateway-error.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>${maxHistory}</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            <charset>utf8</charset>
+        </encoder>
+    </appender>
+
+
+    <springProfile name="dev">
+        <logger name="cn.com.yb" level="DEBUG"/>
+        <logger name="com.yfz" level="DEBUG"/>
+        <root level="info">
+            <appender-ref ref="info-appender"/>
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="test,test2">
+        <logger name="cn.com.yb" level="DEBUG"/>
+        <logger name="com.yfz" level="DEBUG"/>
+        <root level="info">
+            <appender-ref ref="info-appender"/>
+            <appender-ref ref="CONSOLE"/>
+            <!--<appender-ref ref="EMAIL"/>-->
+        </root>
+    </springProfile>
+
+
+    <springProfile name="prod">
+        <root level="info">
+            <appender-ref ref="error-appender"/>
+            <appender-ref ref="info-appender"/>
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+</configuration>

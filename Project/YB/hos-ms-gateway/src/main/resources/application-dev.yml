@@ -1,0 +1,15 @@
+spring:
+  cloud:
+    nacos:
+      discovery:
+        namespace: hospital_dev
+        server-addr: 192.168.97.185:8848
+      config:
+        namespace: hospital_dev
+        server-addr: 192.168.97.185:8848
+pass:
+  passport-domain: https://mg.100api.cn/ybmid/middle-auth
+
+
+
+

@@ -1,0 +1,17 @@
+spring:
+  cloud:
+    nacos:
+      discovery:
+        namespace: hospital
+        server-addr: nacos-yfz-prod-cs.middleware.svc.cluster.local:8848
+      config:
+        namespace: hospital
+        server-addr: nacos-yfz-prod-cs.middleware.svc.cluster.local:8848
+      username: nacos
+      password: Zain1qaz2wsx
+pass:
+  passport-domain: https://m-platform.100api.cn/ybmid/middle-auth
+
+
+
+

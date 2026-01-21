@@ -1,0 +1,18 @@
+spring:
+  cloud:
+    nacos:
+      discovery:
+        namespace: hospital_2
+        server-addr: 10.20.5.6:8848
+      config:
+        namespace: hospital
+        server-addr: 10.20.5.6:8848
+      username: nacos
+      password: nacos
+pass:
+  passport-domain: https://mg.test.100api.cn/ybmid/middle-auth
+
+
+
+
+

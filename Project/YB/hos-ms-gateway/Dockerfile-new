@@ -1,0 +1,15 @@
+FROM k8s-ybkj.tencentcloudcr.com/saas/konajdk/konajdk:11-ybkj
+
+WORKDIR /home
+
+COPY target/hos-ms-gateway-1.0-SNAPSHOT.jar /home
+
+EXPOSE 9990
+
+ENV TZ=PRC
+
+ENV LC_ALL zh_CN.utf8
+
+ARG PROJECT_ENV
+
+ENTRYPOINT java -Dspring.profiles.active=test -jar hos-ms-gateway-1.0-SNAPSHOT.jar

@@ -1,0 +1,23 @@
+server:
+  port: 9990
+spring:
+  application:
+    name: hos-gateway
+  profiles:
+    active: test
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+gateway:
+  routes:
+    data-id: routes
+logging:
+  config: classpath:logback-spring.xml
+  level:
+    com.hospital.cms.mapper: debug
+
+
+

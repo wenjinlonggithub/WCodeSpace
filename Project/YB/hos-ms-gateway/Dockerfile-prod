@@ -1,0 +1,36 @@
+FROM k8s-ybkj.tencentcloudcr.com/saas/konajdk/konajdk:11-ybkj
+
+ARG PROFILEENV
+
+ENV PROFILEENV=${PROFILEENV}
+
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories \
+    && apk add --no-cache tzdata ttf-dejavu fontconfig \
+    && rm -rf /var/cache/apk/* \
+    && mkfontscale && mkfontdir && fc-cache \
+    && apk del tzdata
+
+RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && echo 'Asia/Beijing' >/etc/timezone
+
+RUN wget http://192.168.97.244/konajdk/glibc-i18n-2.29-r0.apk
+RUN apk add glibc-i18n-2.29-r0.apk
+
+RUN echo -e "export PATH=/usr/gilbc-compat/bin:$PATH" >> /etc/profile
+
+RUN /usr/glibc-compat/bin/localedef -i zh_CN -f UTF-8 zh_CN.UTF-8
+
+RUN echo -e "export LANG=zh_CN.utf8" > /etc/profile.d/locale.sh
+
+WORKDIR /home
+
+COPY target/hos-ms-gateway-1.0-SNAPSHOT.jar /home
+
+EXPOSE 9990
+
+ENV TZ=PRC
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+ENV LC_ALL zh_CN.utf8
+
+ENTRYPOINT java -XX:+UseContainerSupport -XX:InitialRAMPercentage=20.0 -XX:MaxRAMPercentage=60.0 -Xss256k -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:ParallelGCThreads=8 -XX:ConcGCThreads=4 -XX:+FreeHeapPhysicalMemory -XX:MaxHeapFreeRatio=50 -XX:MinHeapFreeRatio=40 -XX:+UseStringDeduplication -XX:+UnlockExperimentalVMOptions -XX:+UseLargePages -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=60000 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.profiles.active=${PROFILEENV} -jar hos-ms-gateway-1.0-SNAPSHOT.jar

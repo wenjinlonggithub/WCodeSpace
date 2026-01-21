@@ -1,0 +1,21 @@
+spring:
+  cloud:
+    nacos:
+      discovery:
+        namespace: hospital
+        server-addr: nacos-yfz-test-cs.middleware.svc.cluster.local:8848
+      config:
+        namespace: hospital
+        server-addr: nacos-yfz-test-cs.middleware.svc.cluster.local:8848
+      username: nacos
+      password: nacos
+pass:
+  passport-domain: https://mg.test.100api.cn/ybmid/middle-auth
+
+log:
+  file:
+    max-history: 3
+    total-size-cap: 5GB
+
+
+
