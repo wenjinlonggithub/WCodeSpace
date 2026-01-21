@@ -1,0 +1,91 @@
+# 通用配置文件示例
+# 所有服务共享的配置
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+# MyBatis配置
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.architecture.*.domain
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: true
+    lazy-loading-enabled: true
+
+# Resilience4j熔断器配置
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        # 失败率阈值(百分比)
+        failure-rate-threshold: 50
+        # 慢调用阈值(毫秒)
+        slow-call-rate-threshold: 100
+        # 慢调用时间阈值(毫秒)
+        slow-call-duration-threshold: 2000
+        # 滑动窗口类型(COUNT_BASED: 基于次数, TIME_BASED: 基于时间)
+        sliding-window-type: COUNT_BASED
+        # 滑动窗口大小
+        sliding-window-size: 10
+        # 最小调用次数
+        minimum-number-of-calls: 5
+        # OPEN状态等待时间
+        wait-duration-in-open-state: 10s
+        # 半开状态允许调用次数
+        permitted-number-of-calls-in-half-open-state: 3
+        # 自动从OPEN转换到HALF_OPEN
+        automatic-transition-from-open-to-half-open-enabled: true
+
+# Feign配置
+feign:
+  client:
+    config:
+      default:
+        # 连接超时
+        connect-timeout: 5000
+        # 读取超时
+        read-timeout: 10000
+        # 日志级别
+        logger-level: BASIC
+  # 启用熔断器
+  circuitbreaker:
+    enabled: true
+  # 启用压缩
+  compression:
+    request:
+      enabled: true
+      mime-types: text/xml,application/xml,application/json
+      min-request-size: 2048
+    response:
+      enabled: true
+
+# 监控端点
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.architecture: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"

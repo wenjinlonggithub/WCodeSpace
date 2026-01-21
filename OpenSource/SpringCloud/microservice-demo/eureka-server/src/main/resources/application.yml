@@ -1,0 +1,124 @@
+server:
+  port: 8761
+
+spring:
+  application:
+    name: eureka-server
+  # 安全配置
+  security:
+    user:
+      name: admin
+      password: admin123
+
+eureka:
+  instance:
+    # 实例主机名
+    hostname: localhost
+    # 优先使用IP地址
+    prefer-ip-address: true
+    # 实例ID格式: IP:端口
+    instance-id: ${spring.cloud.client.ip-address}:${server.port}
+    # 心跳间隔(默认30秒)
+    lease-renewal-interval-in-seconds: 30
+    # 租期过期时间(默认90秒)
+    lease-expiration-duration-in-seconds: 90
+
+  client:
+    # 是否注册到Eureka(单机模式为false,集群模式为true)
+    register-with-eureka: false
+    # 是否从Eureka获取注册信息(单机模式为false,集群模式为true)
+    fetch-registry: false
+    # Eureka Server地址
+    service-url:
+      defaultZone: http://${spring.security.user.name}:${spring.security.user.password}@${eureka.instance.hostname}:${server.port}/eureka/
+
+  server:
+    # 关闭自我保护(开发环境)
+    # 生产环境建议开启,防止网络故障时误剔除服务
+    enable-self-preservation: false
+    # 清理无效节点的时间间隔(毫秒)
+    eviction-interval-timer-in-ms: 60000
+    # 期望续约数量阈值百分比(默认0.85)
+    renewal-percent-threshold: 0.85
+    # 同步失败重试次数
+    number-of-replication-retries: 3
+    # Eureka Server间的连接超时时间
+    peer-node-connect-timeout-ms: 2000
+    # Eureka Server间的读取超时时间
+    peer-node-read-timeout-ms: 2000
+
+# 监控端点配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,env
+  endpoint:
+    health:
+      show-details: always
+
+# 日志配置
+logging:
+  level:
+    com.netflix.eureka: INFO
+    com.netflix.discovery: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+---
+# 集群配置示例(profile: peer1)
+spring:
+  config:
+    activate:
+      on-profile: peer1
+
+server:
+  port: 8761
+
+eureka:
+  instance:
+    hostname: peer1
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      # 指向其他Eureka Server节点
+      defaultZone: http://admin:admin123@peer2:8762/eureka/,http://admin:admin123@peer3:8763/eureka/
+
+---
+# 集群配置示例(profile: peer2)
+spring:
+  config:
+    activate:
+      on-profile: peer2
+
+server:
+  port: 8762
+
+eureka:
+  instance:
+    hostname: peer2
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://admin:admin123@peer1:8761/eureka/,http://admin:admin123@peer3:8763/eureka/
+
+---
+# 集群配置示例(profile: peer3)
+spring:
+  config:
+    activate:
+      on-profile: peer3
+
+server:
+  port: 8763
+
+eureka:
+  instance:
+    hostname: peer3
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://admin:admin123@peer1:8761/eureka/,http://admin:admin123@peer2:8762/eureka/

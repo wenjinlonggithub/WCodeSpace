@@ -1,0 +1,115 @@
+server:
+  port: 8888
+
+spring:
+  application:
+    name: config-server
+
+  # 安全配置
+  security:
+    user:
+      name: config
+      password: config123
+
+  # Config Server配置
+  cloud:
+    config:
+      server:
+        # Git仓库配置
+        git:
+          # Git仓库地址
+          uri: https://github.com/your-org/config-repo.git
+          # 默认分支
+          default-label: main
+          # 搜索路径(可配置多个)
+          search-paths:
+            - '{application}'
+            - 'common'
+          # Git用户名(私有仓库需要)
+          username: your-username
+          # Git密码或Token(私有仓库需要)
+          password: your-password
+          # 克隆超时时间(秒)
+          timeout: 10
+          # 是否强制拉取
+          force-pull: true
+          # 跳过SSL验证(开发环境)
+          skip-ssl-validation: true
+
+        # 本地文件系统配置(开发环境使用)
+        native:
+          # 配置文件存放路径
+          search-locations: classpath:/config-repo/
+
+        # 加密配置
+        encrypt:
+          # 启用加密
+          enabled: true
+
+# Eureka客户端配置
+eureka:
+  client:
+    service-url:
+      defaultZone: http://admin:admin123@localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.cloud.client.ip-address}:${server.port}
+    # 心跳间隔
+    lease-renewal-interval-in-seconds: 30
+    # 租期过期时间
+    lease-expiration-duration-in-seconds: 90
+
+# 监控端点配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,refresh,bus-refresh
+  endpoint:
+    health:
+      show-details: always
+
+# 日志配置
+logging:
+  level:
+    org.springframework.cloud.config: DEBUG
+    org.springframework.boot: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+---
+# 本地文件系统配置(profile: native)
+spring:
+  config:
+    activate:
+      on-profile: native
+  cloud:
+    config:
+      server:
+        # 使用本地文件系统
+        native:
+          search-locations: file:./config-repo
+
+---
+# 生产环境配置(profile: prod)
+spring:
+  config:
+    activate:
+      on-profile: prod
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/your-org/config-repo-prod.git
+          username: ${GIT_USERNAME}
+          password: ${GIT_PASSWORD}
+  security:
+    user:
+      name: ${CONFIG_USERNAME}
+      password: ${CONFIG_PASSWORD}
+
+eureka:
+  client:
+    service-url:
+      # 生产环境Eureka集群
+      defaultZone: http://admin:admin123@eureka1:8761/eureka/,http://admin:admin123@eureka2:8762/eureka/

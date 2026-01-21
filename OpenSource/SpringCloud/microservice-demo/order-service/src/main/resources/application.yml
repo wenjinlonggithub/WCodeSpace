@@ -1,0 +1,114 @@
+server:
+  port: 8002
+
+spring:
+  application:
+    name: order-service
+
+  # Eureka客户端配置
+  cloud:
+    # 服务发现
+    discovery:
+      enabled: true
+
+# Eureka配置
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    # 从Eureka获取注册信息
+    fetch-registry: true
+    # 注册到Eureka
+    register-with-eureka: true
+    # 获取服务列表间隔(默认30秒)
+    registry-fetch-interval-seconds: 30
+
+  instance:
+    # 实例ID
+    instance-id: ${spring.cloud.client.ip-address}:${spring.application.name}:${server.port}
+    # 优先使用IP地址
+    prefer-ip-address: true
+    # 心跳间隔(默认30秒)
+    lease-renewal-interval-in-seconds: 30
+    # 租约过期时间(默认90秒)
+    lease-expiration-duration-in-seconds: 90
+
+# Feign配置
+feign:
+  # 启用熔断器
+  circuitbreaker:
+    enabled: true
+
+  # HTTP客户端配置
+  httpclient:
+    enabled: true
+    max-connections: 200
+    max-connections-per-route: 50
+
+  # 压缩配置
+  compression:
+    request:
+      enabled: true
+      mime-types: text/xml,application/xml,application/json
+      min-request-size: 2048
+    response:
+      enabled: true
+
+  # 客户端配置
+  client:
+    config:
+      # 默认配置
+      default:
+        connectTimeout: 5000      # 连接超时5秒
+        readTimeout: 10000        # 读取超时10秒
+        loggerLevel: FULL         # 日志级别
+
+      # User Service特定配置
+      user-service:
+        connectTimeout: 3000
+        readTimeout: 5000
+
+      # Product Service特定配置
+      product-service:
+        connectTimeout: 3000
+        readTimeout: 5000
+
+# Resilience4j熔断器配置
+resilience4j:
+  circuitbreaker:
+    instances:
+      # 商品服务熔断器
+      productService:
+        # 失败率阈值(50%)
+        failure-rate-threshold: 50
+        # 慢调用率阈值(100%)
+        slow-call-rate-threshold: 100
+        # 慢调用时间阈值(5秒)
+        slow-call-duration-threshold: 5s
+        # 滑动窗口大小(10次调用)
+        sliding-window-size: 10
+        # 最小调用次数
+        minimum-number-of-calls: 5
+        # 熔断器打开后等待时间(10秒)
+        wait-duration-in-open-state: 10s
+        # 半开状态允许的调用次数
+        permitted-number-of-calls-in-half-open-state: 3
+
+  # 重试配置
+  retry:
+    instances:
+      userService:
+        max-attempts: 3           # 最大重试次数
+        wait-duration: 1s         # 重试间隔
+        retry-exceptions:
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+
+# 日志配置
+logging:
+  level:
+    com.architecture.order: DEBUG
+    org.springframework.cloud.openfeign: DEBUG
+    org.springframework.cloud.loadbalancer: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
