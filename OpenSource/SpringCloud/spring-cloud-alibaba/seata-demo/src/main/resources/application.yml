@@ -1,0 +1,98 @@
+server:
+  port: 8091
+
+spring:
+  application:
+    name: seata-order-service
+
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        namespace: public
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/seata_order?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: root
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+
+# Seata配置
+seata:
+  enabled: true
+  application-id: ${spring.application.name}
+  # 事务分组，需要与Seata Server配置一致
+  tx-service-group: default_tx_group
+
+  # 配置中心
+  config:
+    type: nacos
+    nacos:
+      server-addr: localhost:8848
+      namespace: public
+      group: SEATA_GROUP
+      data-id: seataServer.properties
+
+  # 注册中心
+  registry:
+    type: nacos
+    nacos:
+      application: seata-server
+      server-addr: localhost:8848
+      namespace: public
+      group: SEATA_GROUP
+
+  # 数据源代理模式：AT
+  data-source-proxy-mode: AT
+
+  # 客户端配置
+  client:
+    rm:
+      # 异步提交缓存队列长度
+      async-commit-buffer-limit: 10000
+      # 分支事务重试次数
+      report-retry-count: 5
+      # 表结构检查周期
+      table-meta-check-enable: true
+      # 是否上报执行状态
+      report-success-enable: false
+      # 锁重试策略：指数退避
+      lock-retry-policy-branch-rollback-on-conflict: true
+
+    tm:
+      # 全局事务提交重试次数
+      commit-retry-count: 5
+      # 全局事务回滚重试次数
+      rollback-retry-count: 5
+      # 降级开关
+      degrade-check: false
+      # 降级检查周期
+      degrade-check-period: 2000
+
+    undo:
+      # undo日志表名
+      log-table: undo_log
+      # undo序列化方式：jackson
+      log-serialization: jackson
+      # 是否只保留第一个undo快照
+      only-care-update-columns: true
+
+# Feign配置
+feign:
+  client:
+    config:
+      default:
+        connect-timeout: 5000
+        read-timeout: 5000
+
+# 日志配置
+logging:
+  level:
+    io.seata: debug
+    com.architecture.seata: debug

@@ -1,0 +1,54 @@
+# Nacos服务发现
+server:
+  port: 8081
+
+spring:
+  application:
+    name: nacos-provider
+  cloud:
+    nacos:
+      discovery:
+        # Nacos服务器地址
+        server-addr: 127.0.0.1:8848
+        # 命名空间ID (用于环境隔离)
+        namespace: public
+        # 分组
+        group: DEFAULT_GROUP
+        # 集群名称
+        cluster-name: DEFAULT
+        # 权重 (0-1之间,影响负载均衡)
+        weight: 1.0
+        # 网卡名称,多网卡时指定
+        # network-interface: eth0
+        # IP地址,不配置则自动获取
+        # ip: 192.168.1.100
+        # 元数据
+        metadata:
+          version: 1.0.0
+          region: cn-hangzhou
+        # 是否为临时实例 (临时实例使用心跳,持久化实例使用服务端探测)
+        ephemeral: true
+        # 心跳间隔 (单位:秒)
+        heart-beat-interval: 5
+        # 心跳超时时间 (单位:秒)
+        heart-beat-timeout: 15
+        # IP删除超时时间 (单位:秒)
+        ip-delete-timeout: 30
+
+# 开启actuator端点
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      show-details: always
+
+# 日志配置
+logging:
+  level:
+    com.alibaba.nacos: INFO
+    org.springframework.cloud: DEBUG
+  pattern:
+    console: '%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n'

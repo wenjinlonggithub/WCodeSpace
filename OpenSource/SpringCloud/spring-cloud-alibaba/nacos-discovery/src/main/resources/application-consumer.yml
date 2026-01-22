@@ -1,0 +1,33 @@
+# Nacos服务消费者配置
+server:
+  port: 8082
+
+spring:
+  application:
+    name: nacos-consumer
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+        namespace: public
+        group: DEFAULT_GROUP
+        cluster-name: DEFAULT
+        weight: 1.0
+        metadata:
+          version: 1.0.0
+          region: cn-hangzhou
+        ephemeral: true
+
+    # LoadBalancer配置
+    loadbalancer:
+      nacos:
+        # 启用Nacos负载均衡
+        enabled: true
+
+# 日志配置
+logging:
+  level:
+    com.alibaba.nacos: INFO
+    org.springframework.cloud: DEBUG
+  pattern:
+    console: '%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n'
