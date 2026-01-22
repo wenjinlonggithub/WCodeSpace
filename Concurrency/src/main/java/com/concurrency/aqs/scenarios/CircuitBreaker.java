@@ -1,9 +1,11 @@
+/*
 package com.concurrency.aqs.scenarios;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
+*/
 /**
  * 基于AQS实现的熔断器
  * 用于保护系统免受故障服务的影响
@@ -12,7 +14,8 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
  * - CLOSED（关闭）：正常状态，请求正常通过
  * - OPEN（打开）：熔断状态，请求直接失败
  * - HALF_OPEN（半开）：尝试恢复，允许部分请求通过
- */
+ *//*
+
 public class CircuitBreaker {
 
     private final Sync sync;
@@ -37,9 +40,11 @@ public class CircuitBreaker {
         this.openTime = 0;
     }
 
-    /**
+    */
+/**
      * 熔断器状态
-     */
+     *//*
+
     public enum State {
         CLOSED(0),      // 关闭状态
         OPEN(1),        // 打开状态（熔断）
@@ -61,9 +66,11 @@ public class CircuitBreaker {
         }
     }
 
-    /**
+    */
+/**
      * 同步器实现
-     */
+     *//*
+
     private class Sync extends AbstractQueuedSynchronizer {
 
         @Override
@@ -109,9 +116,11 @@ public class CircuitBreaker {
         }
     }
 
-    /**
+    */
+/**
      * 尝试执行请求
-     */
+     *//*
+
     public boolean tryAcquire() {
         State state = sync.getState();
 
@@ -137,9 +146,11 @@ public class CircuitBreaker {
         }
     }
 
-    /**
+    */
+/**
      * 记录成功
-     */
+     *//*
+
     public void recordSuccess() {
         State state = sync.getState();
 
@@ -158,9 +169,11 @@ public class CircuitBreaker {
         }
     }
 
-    /**
+    */
+/**
      * 记录失败
-     */
+     *//*
+
     public void recordFailure() {
         State state = sync.getState();
 
@@ -182,23 +195,29 @@ public class CircuitBreaker {
         }
     }
 
-    /**
+    */
+/**
      * 获取当前状态
-     */
+     *//*
+
     public State getState() {
         return sync.getState();
     }
 
-    /**
+    */
+/**
      * 获取失败次数
-     */
+     *//*
+
     public int getFailureCount() {
         return failureCount.get();
     }
 
-    /**
+    */
+/**
      * 重置熔断器
-     */
+     *//*
+
     public void reset() {
         sync.setState(State.CLOSED.value);
         failureCount.set(0);
@@ -206,9 +225,11 @@ public class CircuitBreaker {
         openTime = 0;
     }
 
-    /**
+    */
+/**
      * 测试示例
-     */
+     *//*
+
     public static void main(String[] args) throws InterruptedException {
         System.out.println("=== 熔断器测试 ===\n");
 
@@ -307,3 +328,4 @@ public class CircuitBreaker {
         System.out.println("测试完成！");
     }
 }
+*/
