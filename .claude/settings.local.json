@@ -32,7 +32,10 @@
       "Bash([ -f \"$dir/pom.xml\" ])",
       "Bash(then basename \"$dir\")",
       "Bash(fi)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(test -f \"D:\\\\develop\\\\20\\\\WCodeSpace\\\\OpenSource\\\\SpringCloud\\\\microservice-demo\\\\product-service\\\\pom.xml\")",
+      "Bash(test -f \"D:\\\\develop\\\\20\\\\WCodeSpace\\\\OpenSource\\\\SpringCloud\\\\microservice-demo\\\\payment-service\\\\pom.xml\")",
+      "Bash(test -f \"D:\\\\develop\\\\20\\\\WCodeSpace\\\\OpenSource\\\\SpringCloud\\\\microservice-demo\\\\inventory-service\\\\pom.xml\")"
     ],
     "deny": []
   }
