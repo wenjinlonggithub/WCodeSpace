@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: spring-cloud-function
+  cloud:
+    function:
+      # 定义函数定义，多个函数用 | 分隔表示组合
+      definition: uppercase;reverse;timestamp;log;userConverter
+
+server:
+  port: 8080
+
+# 日志配置
+logging:
+  level:
+    org.springframework.cloud.function: DEBUG
+    com.architecture.function: DEBUG
