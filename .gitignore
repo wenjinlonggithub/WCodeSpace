@@ -171,3 +171,5 @@ spring-boot-app.log
 
 # Kubernetes
 *.kubeconfig
+/SoftwareArchitect/Case/nul
+/nul
