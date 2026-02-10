@@ -10,5 +10,6 @@
     <modules>
         <module>DomainDrivenDesign</module>
         <module>Case</module>
+        <module>TDD</module>
     </modules>
 </project>
