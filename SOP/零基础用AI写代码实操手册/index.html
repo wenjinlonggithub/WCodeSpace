@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 写代码实操手册</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;background:#0f0f13;color:#e8e8f0;line-height:1.8;overflow-x:hidden}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:#1a1a24}
+::-webkit-scrollbar-thumb{background:#4a4a6a;border-radius:3px}
+.cover{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px;background:linear-gradient(135deg,#0f0f13 0%,#1a1030 50%,#0f1a2e 100%);position:relative;overflow:hidden}
+.cover::before{content:'';position:absolute;width:600px;height:600px;background:radial-gradient(circle,rgba(99,102,241,.15) 0%,transparent 70%);top:-100px;left:-100px;pointer-events:none}
+.cover::after{content:'';position:absolute;width:400px;height:400px;background:radial-gradient(circle,rgba(16,185,129,.1) 0%,transparent 70%);bottom:-50px;right:-50px;pointer-events:none}
+.cover-badge{display:inline-block;background:rgba(99,102,241,.2);border:1px solid rgba(99,102,241,.4);color:#a5b4fc;font-size:12px;letter-spacing:2px;padding:6px 16px;border-radius:20px;margin-bottom:32px;text-transform:uppercase}
+.cover h1{font-family:'Noto Serif SC',serif;font-size:clamp(32px,8vw,64px);font-weight:700;line-height:1.2;background:linear-gradient(135deg,#fff 0%,#a5b4fc 50%,#6ee7b7 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px}
+.cover-sub{font-size:clamp(14px,3vw,18px);color:#9ca3af;margin-bottom:48px;max-width:480px}
+.cover-flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:56px}
+.flow-item{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);padding:8px 16px;border-radius:8px;font-size:13px;color:#d1d5db}
+.flow-arrow{color:#6366f1;font-size:16px}
+.cover-copyright{font-size:12px;color:#4b5563;border:1px solid #1f2937;padding:10px 20px;border-radius:8px;background:rgba(255,255,255,.02)}
+.scroll-hint{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;color:#4b5563;font-size:12px;animation:bounce 2s infinite}
+.scroll-hint svg{width:20px;height:20px}
+@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(6px)}}
+.nav{position:sticky;top:0;z-index:100;background:rgba(15,15,19,.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.06);padding:0 24px}
+.nav-inner{max-width:900px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:56px}
+.nav-logo{font-size:14px;font-weight:700;color:#a5b4fc;white-space:nowrap}
+.nav-toc-btn{background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);color:#a5b4fc;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit;transition:all .2s}
+.nav-toc-btn:hover{background:rgba(99,102,241,.25)}
+.toc-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200}
+.toc-overlay.open{display:block}
+.toc-drawer{position:fixed;top:0;right:0;width:min(320px,85vw);height:100vh;background:#16161f;border-left:1px solid rgba(255,255,255,.08);z-index:201;overflow-y:auto;transform:translateX(100%);transition:transform .3s ease;padding:24px 20px}
+.toc-drawer.open{transform:translateX(0)}
+.toc-drawer h3{font-size:14px;color:#6b7280;letter-spacing:1px;text-transform:uppercase;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.06)}
+.toc-drawer a{display:block;padding:10px 12px;color:#9ca3af;text-decoration:none;font-size:14px;border-radius:6px;transition:all .2s;margin-bottom:2px}
+.toc-drawer a:hover{background:rgba(99,102,241,.1);color:#a5b4fc}
+.toc-drawer a.chapter{font-weight:500;color:#d1d5db}
+.main{max-width:900px;margin:0 auto;padding:0 24px 80px}
+.chapter{padding:64px 0 32px;border-bottom:1px solid rgba(255,255,255,.05)}
+.chapter:last-child{border-bottom:none}
+.chapter-label{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:#6366f1;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
+.chapter-label::before{content:'';display:block;width:24px;height:2px;background:#6366f1;border-radius:1px}
+.chapter h2{font-family:'Noto Serif SC',serif;font-size:clamp(22px,5vw,32px);font-weight:700;color:#f9fafb;line-height:1.3;margin-bottom:24px}
+.chapter-intro{font-size:16px;color:#9ca3af;line-height:1.9;margin-bottom:40px;padding-left:16px;border-left:3px solid rgba(99,102,241,.4)}
+.section{margin-bottom:40px}
+.section h3{font-size:18px;font-weight:700;color:#e5e7eb;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.06)}
+.section h4{font-size:15px;font-weight:500;color:#a5b4fc;margin:20px 0 10px}
+p{color:#d1d5db;font-size:15px;line-height:1.9;margin-bottom:14px}
+strong{color:#f3f4f6;font-weight:700}
+ul,ol{padding-left:20px;margin-bottom:16px}
+li{color:#d1d5db;font-size:15px;line-height:1.9;margin-bottom:6px}
+li strong{color:#f3f4f6}
+.prompt-card{background:#12121a;border:1px solid rgba(99,102,241,.25);border-radius:12px;margin:24px 0;overflow:hidden}
+.prompt-card-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(99,102,241,.1);border-bottom:1px solid rgba(99,102,241,.15)}
+.prompt-card-title{font-size:12px;color:#a5b4fc;letter-spacing:1px;font-weight:500}
+.copy-btn{background:rgba(99,102,241,.2);border:1px solid rgba(99,102,241,.3);color:#a5b4fc;padding:4px 12px;border-radius:4px;font-size:12px;cursor:pointer;font-family:inherit;transition:all .2s}
+.copy-btn:hover{background:rgba(99,102,241,.35)}
+.copy-btn.copied{color:#6ee7b7;border-color:rgba(110,231,183,.4);background:rgba(110,231,183,.1)}
+.prompt-card pre{padding:20px;font-family:'Courier New','Consolas',monospace;font-size:13px;line-height:1.8;color:#d1d5db;white-space:pre-wrap;word-break:break-word}
+.code-block{background:#0d0d14;border:1px solid rgba(255,255,255,.08);border-radius:10px;margin:20px 0;overflow:hidden}
+.code-block-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.06)}
+.code-lang{font-size:11px;color:#6b7280;letter-spacing:1px;text-transform:uppercase}
+.code-block pre{padding:20px;font-family:'Courier New','Consolas',monospace;font-size:13px;line-height:1.7;color:#e2e8f0;white-space:pre;overflow-x:auto}
+.table-wrap{overflow-x:auto;margin:20px 0;border-radius:10px;border:1px solid rgba(255,255,255,.08)}
+table{width:100%;border-collapse:collapse}
+thead tr{background:rgba(99,102,241,.1)}
+th{padding:12px 16px;text-align:left;font-size:13px;font-weight:600;color:#a5b4fc;white-space:nowrap;border-bottom:1px solid rgba(255,255,255,.08)}
+td{padding:12px 16px;font-size:14px;color:#d1d5db;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(255,255,255,.02)}
+.info-card{background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);border-radius:10px;padding:16px 20px;margin:20px 0;font-size:14px;color:#a7f3d0;line-height:1.8}
+.warn-card{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:16px 20px;margin:20px 0;font-size:14px;color:#fde68a;line-height:1.8}
+.danger-card{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:16px 20px;margin:20px 0;font-size:14px;color:#fca5a5;line-height:1.8}
+.steps{margin:24px 0}
+.step{display:flex;gap:16px;margin-bottom:20px;align-items:flex-start}
+.step-num{flex-shrink:0;width:32px;height:32px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;margin-top:2px}
+.step-content{flex:1}
+.step-content h4{color:#e5e7eb;font-size:15px;margin-bottom:6px}
+.step-content p{margin-bottom:0;font-size:14px}
+.persona-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:24px 0}
+.persona-card{background:#16161f;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:20px;transition:border-color .2s}
+.persona-card:hover{border-color:rgba(99,102,241,.4)}
+.persona-type{font-size:12px;color:#6366f1;letter-spacing:1px;margin-bottom:8px;font-weight:600}
+.persona-card h4{font-size:15px;color:#f3f4f6;margin-bottom:8px}
+.persona-card p{font-size:13px;color:#9ca3af;margin-bottom:12px}
+.persona-stars{color:#fbbf24;font-size:14px}
+.sop-card{background:linear-gradient(135deg,#1a1030 0%,#0f1a2e 100%);border:1px solid rgba(99,102,241,.3);border-radius:16px;padding:32px;margin:32px 0}
+.sop-card h3{text-align:center;font-size:16px;color:#a5b4fc;margin-bottom:24px;letter-spacing:2px}
+.sop-step-row{display:flex;align-items:center;gap:16px;padding:16px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.sop-step-row:last-child{border-bottom:none}
+.sop-step-num{flex-shrink:0;width:40px;height:40px;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#a5b4fc}
+.sop-step-info h4{font-size:15px;color:#e5e7eb;margin-bottom:2px}
+.sop-step-info p{font-size:13px;color:#6b7280;margin:0}
+.price-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:24px 0}
+.price-card{background:#16161f;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:16px}
+.price-card .ptype{font-size:12px;color:#6b7280;margin-bottom:6px}
+.price-card .pname{font-size:14px;color:#e5e7eb;font-weight:500;margin-bottom:8px}
+.price-card .pprice{font-size:18px;font-weight:700;color:#6ee7b7}
+.price-card .plevel{font-size:11px;color:#4b5563;margin-top:4px}
+.planet-section{background:linear-gradient(135deg,#1a1030 0%,#0f1a2e 100%);border:1px solid rgba(99,102,241,.3);border-radius:20px;padding:48px 32px;text-align:center;margin:48px 0;position:relative;overflow:hidden}
+.planet-section::before{content:'';position:absolute;width:300px;height:300px;background:radial-gradient(circle,rgba(99,102,241,.1) 0%,transparent 70%);top:-100px;right:-100px;pointer-events:none}
+.planet-badge{display:inline-block;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);color:#a5b4fc;font-size:12px;padding:4px 14px;border-radius:20px;margin-bottom:20px;letter-spacing:1px}
+.planet-section h3{font-family:'Noto Serif SC',serif;font-size:clamp(20px,4vw,28px);color:#f9fafb;margin-bottom:16px}
+.planet-section>.planet-desc{color:#9ca3af;max-width:480px;margin:0 auto 32px;font-size:15px}
+.planet-features{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:40px;text-align:left}
+.planet-feature{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:14px 16px;font-size:13px;color:#d1d5db}
+.planet-feature::before{content:'✅ '}
+.planet-qr{width:160px;height:160px;background:rgba(255,255,255,.05);border:2px dashed rgba(99,102,241,.3);border-radius:12px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;color:#4b5563;font-size:13px}
+.planet-hint{font-size:13px;color:#6b7280}
+/* 水印 */
+.watermark{position:fixed;bottom:20px;right:20px;z-index:50;display:flex;align-items:center;gap:8px;background:rgba(15,15,19,.85);border:1px solid rgba(99,102,241,.25);border-radius:10px;padding:8px 14px;backdrop-filter:blur(8px);pointer-events:none}
+.watermark-logo{width:28px;height:28px;border-radius:6px;object-fit:cover}
+.watermark-text{font-size:11px;color:#6b7280;line-height:1.4}
+.watermark-text strong{display:block;color:#a5b4fc;font-size:12px}
+/* 公众号引流条 */
+.qr-row{display:flex;gap:28px;justify-content:center;flex-wrap:wrap;margin:40px 0;align-items:flex-start}
+.qr-item{display:flex;flex-direction:column;align-items:center;gap:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:28px 24px;transition:border-color .2s;min-width:200px}
+.qr-item:hover{border-color:rgba(99,102,241,.35)}
+.qr-item-featured{border-color:rgba(99,102,241,.3);background:rgba(99,102,241,.06)}
+.qr-item-featured:hover{border-color:rgba(99,102,241,.6)}
+.qr-item-badge{font-size:11px;color:#6b7280;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);padding:3px 12px;border-radius:20px;letter-spacing:1px}
+.qr-item-badge-featured{color:#a5b4fc;background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.3)}
+.qr-item img{max-width:200px;width:100%;height:auto;border-radius:10px;border:2px solid rgba(255,255,255,.12)}
+.qr-item-featured img{border-color:rgba(99,102,241,.4)}
+.qr-item-info{display:flex;flex-direction:column;align-items:center;gap:5px}
+.qr-item-title{font-size:14px;color:#e5e7eb;font-weight:600}
+.qr-item-desc{font-size:12px;color:#6b7280;text-align:center}
+/* 引流软文 */
+.cta-box{background:linear-gradient(135deg,#1a1030 0%,#0f1a2e 100%);border:1px solid rgba(99,102,241,.3);border-radius:16px;padding:32px;margin:32px 0}
+.cta-box p{color:#9ca3af;font-size:15px;line-height:1.9;margin-bottom:12px}
+.cta-box p:last-child{margin-bottom:0}
+.cta-box strong{color:#e5e7eb}
+.cta-divider{height:1px;background:rgba(255,255,255,.06);margin:20px 0}
+.appendix{background:#12121a;border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:24px;margin:24px 0}
+.appendix h4{font-size:14px;color:#a5b4fc;margin-bottom:16px}
+footer{text-align:center;padding:40px 24px;border-top:1px solid rgba(255,255,255,.05);color:#374151;font-size:13px}
+.divider{height:1px;background:linear-gradient(90deg,transparent,rgba(99,102,241,.3),transparent);margin:32px 0}
+@media(max-width:640px){
+  .cover-flow{gap:6px}
+  .flow-item{font-size:11px;padding:6px 10px}
+  .sop-card{padding:20px 16px}
+  .planet-section{padding:32px 20px}
+  .prompt-card pre{font-size:12px;padding:14px}
+  .code-block pre{font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<section class="cover">
+  <div class="cover-badge">实操手册 · 完整版</div>
+  <h1>AI 写代码<br>实操手册</h1>
+  <p class="cover-sub">零基础也能用 AI 产出可直接运行的代码</p>
+  <div class="cover-flow">
+    <span class="flow-item">模糊想法</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-item">拆解需求</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-item">套提示词</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-item">AI 生成代码</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-item">复制运行</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;justify-content:center">
+    <img src="IP/gongzhonghao.jpg" alt="碳基龙" style="width:36px;height:36px;border-radius:8px;object-fit:cover;border:1px solid rgba(255,255,255,.15)">
+    <span style="font-size:13px;color:#9ca3af">作者：<strong style="color:#a5b4fc">碳基龙</strong> · 公众号同名 · 知识星球：碳基搞钱社</span>
+  </div>
+  <div class="cover-copyright">版权声明：本手册内容受版权保护，购买后仅供个人学习使用，禁止二次转售、截图传播。</div>
+  <div style="margin-top:12px;background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.25);border-radius:10px;padding:12px 20px;font-size:12px;color:#9ca3af;max-width:520px;line-height:1.8;text-align:left">
+    <strong style="color:#a5b4fc;display:block;margin-bottom:4px">关于本手册</strong>
+    本手册由作者持续维护，未来计划推出 2.0、3.0 版本。<br>
+    <strong style="color:#e5e7eb">增值服务</strong>（完整版提示词库、接单案例、一对一答疑等）均在知识星球「碳基搞钱社」，手册是入门基础版，星球是持续深入的地方。
+  </div>
+  <div class="scroll-hint">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+    向下滚动
+  </div>
+</section>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <span class="nav-logo">AI 写代码实操手册</span>
+    <button class="nav-toc-btn" onclick="toggleToc()">☰ 目录</button>
+  </div>
+</nav>
+
+<div class="toc-overlay" id="tocOverlay" onclick="toggleToc()"></div>
+<div class="toc-drawer" id="tocDrawer">
+  <h3>目录</h3>
+  <a href="#preface" class="chapter" onclick="toggleToc()">前言</a>
+  <a href="#ch1" class="chapter" onclick="toggleToc()">第一章：适用人群自查</a>
+  <a href="#ch2" class="chapter" onclick="toggleToc()">第二章：前置准备工具清单</a>
+  <a href="#ch3" class="chapter" onclick="toggleToc()">第三章：AI 写代码 5 步 SOP</a>
+  <a href="#ch4" class="chapter" onclick="toggleToc()">第四章：多场景提示词库</a>
+  <a href="#ch5" class="chapter" onclick="toggleToc()">第五章：代码调试 &amp; 纠错 SOP</a>
+  <a href="#ch6" class="chapter" onclick="toggleToc()">第六章：副业接单交付 SOP</a>
+  <a href="#ch7" class="chapter" onclick="toggleToc()">第七章：常见问题 FAQ</a>
+  <a href="#ch8" class="chapter" onclick="toggleToc()">第八章：新手避坑红线</a>
+  <a href="#ch9" class="chapter" onclick="toggleToc()">第九章：进阶升级 &amp; 一对一指导</a>
+  <a href="#appendix" onclick="toggleToc()">附录：常用命令速查</a>
+</div>
+
+<main class="main">
+
+<!-- 前言 -->
+<section class="chapter" id="preface">
+  <div class="chapter-label">前言</div>
+  <h2>这本手册能帮你做什么</h2>
+  <p class="chapter-intro">很多人买了 AI 工具，用了一段时间之后发现——让 AI 写代码，写出来的东西要么跑不起来，要么跑起来了但不是自己想要的，要么改了三四轮还是一团乱麻，最后放弃了。</p>
+  <div class="section">
+    <p>问题不在 AI 不够聪明，问题在于<strong>你不知道怎么跟 AI 说话</strong>。</p>
+    <p>这本手册就是解决这个问题的。我不会教你编程语法，不会让你背什么 Python 基础，也不会讲什么计算机原理。这本手册只做一件事：</p>
+    <p><strong>给你一套标准化的流程 + 可以直接复制的提示词模板，让你照着做就能让 AI 产出可以直接运行的代码。</strong></p>
+    <p>你需要的不是学会编程，你需要的是学会<strong>指挥 AI 编程</strong>。学编程要几个月甚至几年，学会指挥 AI 编程，认真看完这本手册，今天就能上手。</p>
+    <h3>手册的核心逻辑</h3>
+    <div class="code-block">
+      <div class="code-block-header"><span class="code-lang">流程</span></div>
+      <pre>模糊想法 → 拆解需求 → 套提示词模板 → AI 生成代码 → 复制运行 → 微调优化</pre>
+    </div>
+    <h3>适合的场景</h3>
+    <ul>
+      <li>自动化处理 Excel 表格、批量重命名文件、定时发邮件</li>
+      <li>写一个简单的数据统计脚本、生成图表</li>
+      <li>做一个简单的网页、工具页面</li>
+      <li>接外包单子，用 AI 帮你快速交付</li>
+      <li>公司内部用的小工具、自动化流程</li>
+    </ul>
+    <h3>不适合的场景</h3>
+    <div class="warn-card">
+      开发大型商业软件、做复杂 App、学习编程本身——这些超出本手册范围，请知悉。
+    </div>
+  </div>
+</section>
+
+<!-- 第一章 -->
+<section class="chapter" id="ch1">
+  <div class="chapter-label">第一章</div>
+  <h2>适用人群自查</h2>
+  <p class="chapter-intro">在开始之前，先做个简单的自查，确认这本手册对你有没有用。</p>
+
+  <div class="section">
+    <h3>1.1 你是哪种人？</h3>
+    <div class="persona-grid">
+      <div class="persona-card">
+        <div class="persona-type">类型 A</div>
+        <h4>零基础小白</h4>
+        <p>完全不会编程，但有具体需求，想自动化处理 Excel、做个小工具。</p>
+        <div class="persona-stars">★★★★★ 最适合</div>
+      </div>
+      <div class="persona-card">
+        <div class="persona-type">类型 B</div>
+        <h4>在职程序员</h4>
+        <p>会写代码，但想用 AI 提速，减少重复劳动，少加班。</p>
+        <div class="persona-stars">★★★★☆ 非常适合</div>
+      </div>
+      <div class="persona-card">
+        <div class="persona-type">类型 C</div>
+        <h4>想靠 AI 接单</h4>
+        <p>想在闲鱼、猪八戒等平台接代码类单子，用 AI 快速交付。</p>
+        <div class="persona-stars">★★★★★ 最适合</div>
+      </div>
+      <div class="persona-card">
+        <div class="persona-type">类型 D</div>
+        <h4>职场办公人</h4>
+        <p>不是程序员，但工作中有大量重复性操作，需要自动化。</p>
+        <div class="persona-stars">★★★★★ 最适合</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>1.2 你需要提前准备什么基础？</h3>
+    <p>说实话，<strong>几乎不需要</strong>。你只需要：</p>
+    <ul>
+      <li>会用电脑（会打字、会复制粘贴）</li>
+      <li>有一个 AI 工具账号（第二章会告诉你用哪个）</li>
+      <li>能安装一个代码运行工具（第二章有图文步骤）</li>
+    </ul>
+    <p>就这些，真的就这些。</p>
+  </div>
+
+  <div class="section">
+    <h3>1.3 学完能达到什么水平？</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>能力</th><th>能否达到</th></tr></thead>
+        <tbody>
+          <tr><td>让 AI 写出能运行的 Python 脚本</td><td>✅ 能</td></tr>
+          <tr><td>自动化处理 Excel/CSV 文件</td><td>✅ 能</td></tr>
+          <tr><td>写简单的网页工具</td><td>✅ 能</td></tr>
+          <tr><td>看懂 AI 写的代码大概在做什么</td><td>✅ 能（不需要精通）</td></tr>
+          <tr><td>让 AI 修复报错</td><td>✅ 能</td></tr>
+          <tr><td>开发复杂的商业 App</td><td>❌ 不能（超出范围）</td></tr>
+          <tr><td>成为专业程序员</td><td>❌ 不能（这不是目标）</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 第二章 -->
+<section class="chapter" id="ch2">
+  <div class="chapter-label">第二章</div>
+  <h2>前置准备——必备工具清单</h2>
+  <p class="chapter-intro">工欲善其事，必先利其器。这一章把你需要的工具全部列清楚，每个工具怎么选、怎么装、怎么用，一次说清楚。</p>
+
+  <div class="section">
+    <h3>2.1 AI 模型选择</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>AI 工具</th><th>推荐程度</th><th>特点</th><th>费用</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Claude（Anthropic）</strong></td><td>★★★★★</td><td>写代码最稳，逻辑清晰，少出错</td><td>有免费额度，Pro 版约 $20/月</td></tr>
+          <tr><td><strong>ChatGPT（OpenAI）</strong></td><td>★★★★☆</td><td>最知名，生态好，插件多</td><td>有免费版，Plus 版约 $20/月</td></tr>
+          <tr><td><strong>Gemini（Google）</strong></td><td>★★★☆☆</td><td>免费额度大，适合入门</td><td>有免费版</td></tr>
+          <tr><td><strong>通义千问</strong></td><td>★★★☆☆</td><td>中文理解好，免费</td><td>免费</td></tr>
+          <tr><td><strong>文心一言</strong></td><td>★★★☆☆</td><td>百度出品，中文场景好</td><td>有免费版</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="info-card"><strong>新手首选推荐：Claude 或 ChatGPT。</strong>如果主要写中文需求、预算有限，用通义千问也完全够用。</div>
+  </div>
+
+  <div class="section">
+    <h3>2.2 代码运行工具安装</h3>
+    <h4>场景 A：运行 Python 脚本（最常用）</h4>
+    <p>安装 Python + VS Code，这是最推荐的组合。</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h4>安装 Python</h4>
+          <p>搜索「Python 官网下载」，下载 3.11 或 3.12 版本。安装时<strong>一定要勾选「Add Python to PATH」</strong>，这一步很多人忘了。安装完后打开 cmd，输入 <code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px;font-family:monospace">python --version</code>，看到版本号就成功了。</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h4>安装 VS Code</h4>
+          <p>搜索「VS Code 下载」，安装后在扩展里搜索「Python」安装微软官方扩展，再搜索「Chinese」安装中文语言包（可选）。</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h4>运行第一个脚本</h4>
+          <p>新建 <code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px;font-family:monospace">test.py</code>，输入 <code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px;font-family:monospace">print("Hello, World!")</code>，点右上角运行按钮，终端出现 Hello, World! 就成功了。</p>
+        </div>
+      </div>
+    </div>
+    <h4>场景 B：只处理 Excel，不想装太多东西</h4>
+    <p>用 <strong>Google Colab</strong>（在线，不用安装任何东西）。打开 colab.research.google.com，用 Google 账号登录，新建笔记本，把 AI 写的代码粘贴进去点运行即可。</p>
+    <h4>场景 C：做网页</h4>
+    <p>不需要安装额外工具，AI 写的 HTML/CSS/JS 代码，直接保存成 <code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px;font-family:monospace">.html</code> 文件，用浏览器打开就能看效果。</p>
+  </div>
+
+  <div class="section">
+    <h3>2.3 文件夹规范</h3>
+    <p>养成好习惯，代码文件统一管理，避免以后找不到。</p>
+    <div class="code-block">
+      <div class="code-block-header"><span class="code-lang">推荐目录结构</span></div>
+      <pre>AI代码项目/
+├── 01_Excel自动化/
+│   ├── 需求说明.txt
+│   ├── 脚本.py
+│   └── 测试数据.xlsx
+├── 02_数据分析/
+│   ├── 需求说明.txt
+│   └── 分析脚本.py
+├── 03_网页工具/
+│   ├── index.html
+│   └── style.css
+└── 提示词记录/
+    └── 好用的提示词.txt</pre>
+    </div>
+  </div>
+</section>
+
+<!-- 第三章 -->
+<section class="chapter" id="ch3">
+  <div class="chapter-label">第三章</div>
+  <h2>AI 写代码通用标准 5 步 SOP</h2>
+  <p class="chapter-intro">这一章是整本手册最重要的部分。很多人用 AI 写代码失败，根本原因是提需求的方式不对。标准 5 步 SOP 就是解决这个问题的。</p>
+
+  <div class="sop-card">
+    <h3>5 步 SOP 速查卡</h3>
+    <div class="sop-step-row">
+      <div class="sop-step-num">1</div>
+      <div class="sop-step-info"><h4>需求拆解</h4><p>功能 + 场景 + 限制条件，三件事想清楚再开口</p></div>
+    </div>
+    <div class="sop-step-row">
+      <div class="sop-step-num">2</div>
+      <div class="sop-step-info"><h4>套提示词模板</h4><p>用本手册的万能模板填写需求，不要随意发散</p></div>
+    </div>
+    <div class="sop-step-row">
+      <div class="sop-step-num">3</div>
+      <div class="sop-step-info"><h4>AI 生成代码</h4><p>要求完整代码 + 中文注释，不接受省略版</p></div>
+    </div>
+    <div class="sop-step-row">
+      <div class="sop-step-num">4</div>
+      <div class="sop-step-info"><h4>复制运行自测</h4><p>先装依赖，再运行，对照检查清单逐项验证</p></div>
+    </div>
+    <div class="sop-step-row">
+      <div class="sop-step-num">5</div>
+      <div class="sop-step-info"><h4>微调优化</h4><p>用固定句式让 AI 改 bug / 加注释 / 简化代码</p></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>第一步：需求拆解</h3>
+    <p>在跟 AI 说话之前，先自己想清楚三件事：</p>
+    <ul>
+      <li><strong>功能是什么？</strong>——不好的描述：「帮我处理一下 Excel」；好的描述：「读取 Excel，把 A 列重复行删掉，按 B 列数字从大到小排序，保存成新文件」</li>
+      <li><strong>场景是什么？</strong>——操作系统、文件格式、数据量、运行方式</li>
+      <li><strong>限制条件是什么？</strong>——不能用某些库、输出格式要求、性能要求</li>
+    </ul>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">需求拆解练习模板</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-decompose').textContent)">复制</button>
+      </div>
+      <pre id="tpl-decompose">【功能描述】：我要做什么
+（例：批量把文件夹里所有 .txt 文件合并成一个文件）
+
+【输入是什么】：数据从哪里来，是什么格式
+（例：D盘/文本文件夹/ 下的所有 .txt 文件）
+
+【输出是什么】：结果长什么样，保存在哪里
+（例：合并后保存为 D盘/合并结果.txt，每个文件内容之间用分隔线隔开）
+
+【运行环境】：什么系统，用什么语言
+（例：Windows 10，用 Python）
+
+【特殊要求】：有没有额外限制
+（例：文件按文件名字母顺序合并，不是按修改时间）</pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>第二步：套用万能提示词模板</h3>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">通用代码生成提示词模板</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-universal').textContent)">复制</button>
+      </div>
+      <pre id="tpl-universal">你是一个专业的 [Python/JavaScript/其他语言] 开发者。
+
+请帮我写一段代码，实现以下功能：
+
+【功能描述】
+[填写你要做什么]
+
+【输入说明】
+[填写输入数据的格式、来源、示例]
+
+【输出说明】
+[填写期望的输出结果、格式、保存位置]
+
+【运行环境】
+操作系统：[Windows/Mac/Linux]
+语言版本：[Python 3.11 / Node.js 18 等]
+
+【特殊要求】
+[填写任何额外限制，没有就写"无"]
+
+要求：
+1. 代码要完整，可以直接复制运行，不要省略任何部分
+2. 关键步骤加上中文注释，方便我理解
+3. 如果需要安装第三方库，在代码开头注明安装命令
+4. 代码要有基本的错误处理，遇到问题给出友好提示</pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>第三步：AI 生成代码示例</h3>
+    <p>填好提示词发给 AI，你会得到类似这样的完整代码：</p>
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-lang">Python</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('code-example').textContent)">复制</button>
+      </div>
+      <pre id="code-example"># 安装依赖：pip install openpyxl pandas
+import pandas as pd
+import os
+
+def filter_high_sales(input_file, output_file, threshold=10000):
+    """筛选销售额大于指定阈值的记录"""
+    # 检查输入文件是否存在
+    if not os.path.exists(input_file):
+        print(f"错误：找不到文件 {input_file}，请检查路径是否正确")
+        return
+
+    # 读取 Excel 文件
+    print("正在读取文件...")
+    df = pd.read_excel(input_file)
+
+    # 筛选销售额大于阈值的行
+    filtered_df = df[df['销售额'] > threshold]
+    print(f"共找到 {len(filtered_df)} 条销售额大于 {threshold} 的记录")
+
+    # 保存到新文件
+    filtered_df.to_excel(output_file, index=False)
+    print(f"已保存到：{output_file}")
+
+# 运行
+filter_high_sales(
+    input_file=r"D:/数据/销售数据.xlsx",
+    output_file=r"D:/数据/高销售额记录.xlsx"
+)</pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>第四步：复制运行自测</h3>
+    <div class="info-card">
+      <strong>自测检查清单：</strong><br>
+      ☐ 代码有没有报错？<br>
+      ☐ 输出结果是不是我想要的？<br>
+      ☐ 输出文件有没有生成？<br>
+      ☐ 数据有没有丢失或者乱码？<br>
+      ☐ 边界情况：如果输入文件是空的，会怎样？
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>第五步：微调优化固定句式</h3>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">改 bug 话术</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-fix').textContent)">复制</button>
+      </div>
+      <pre id="tpl-fix">上面的代码运行后报了这个错误：
+[把错误信息完整粘贴过来]
+请帮我修复这个问题，给出完整的修改后代码。</pre>
+    </div>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">加注释话术</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-comment').textContent)">复制</button>
+      </div>
+      <pre id="tpl-comment">请给上面的代码每一个关键步骤加上中文注释，
+让完全不懂编程的人也能看懂每一行在做什么。</pre>
+    </div>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">简化代码话术</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-simplify').textContent)">复制</button>
+      </div>
+      <pre id="tpl-simplify">上面的代码能不能简化一下？
+我只需要核心功能，不需要那么多复杂的处理，
+尽量让代码短一点、简单一点。</pre>
+    </div>
+  </div>
+</section>
+
+<!-- 第四章 -->
+<section class="chapter" id="ch4">
+  <div class="chapter-label">第四章</div>
+  <h2>多场景专用提示词库</h2>
+  <p class="chapter-intro">这一章是提示词大全，按场景分类，直接复制、填入你的具体信息就能用。每个提示词都经过测试，能让 AI 一次性输出可运行的代码。</p>
+
+  <div class="section">
+    <h3>4.1 Python 自动化脚本</h3>
+    <h4>批量重命名文件</h4>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">提示词 · 批量重命名</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-rename').textContent)">复制</button>
+      </div>
+      <pre id="tpl-rename">你是一个专业的 Python 开发者。
+
+请帮我写一个批量重命名文件的脚本，要求如下：
+
+【功能】
+把指定文件夹里所有 [填写文件类型，如 .jpg] 文件按顺序重命名，
+格式为：[填写前缀，如 photo]_001.jpg、photo_002.jpg……以此类推
+
+【输入】
+文件夹路径：[填写你的文件夹路径，如 D:/图片/]
+
+【要求】
+1. 按文件的修改时间排序，最早的排第一
+2. 重命名前先预览一下会改成什么名字，让我确认后再执行
+3. 原文件名备份到一个 txt 文件里，方便以后还原
+4. 代码完整可运行，加中文注释
+5. Windows 系统，Python 3.11</pre>
+    </div>
+
+    <h4>定时自动执行任务</h4>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">提示词 · 定时任务</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-schedule').textContent)">复制</button>
+      </div>
+      <pre id="tpl-schedule">你是一个专业的 Python 开发者。
+
+请帮我写一个定时任务脚本，要求如下：
+
+【功能】
+每天 [填写时间，如 早上9点] 自动执行以下操作：
+[填写具体操作，如：读取 D:/数据/今日数据.xlsx，统计总销售额，
+把结果追加写入 D:/数据/每日汇总.txt]
+
+【要求】
+1. 程序在后台持续运行，不需要每次手动启动
+2. 每次执行后在控制台打印执行时间和结果
+3. 如果执行出错，把错误信息记录到日志文件
+4. 使用 schedule 库实现定时功能
+5. 代码完整可运行，加中文注释，Windows 系统</pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>4.2 Excel / 表格批量处理</h3>
+    <h4>合并多个 Excel 文件</h4>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">提示词 · 合并 Excel</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-merge').textContent)">复制</button>
+      </div>
+      <pre id="tpl-merge">你是一个专业的 Python 开发者，擅长用 pandas 处理 Excel。
+
+请帮我写一个合并 Excel 文件的脚本：
+
+【功能】
+把 [填写文件夹路径] 里所有的 .xlsx 文件合并成一个文件
+
+【合并规则】
+- 所有文件的表头（第一行列名）是一样的
+- 合并后保留所有数据行，不去重
+- 在合并后的数据里新增一列"来源文件"，记录每行数据来自哪个文件
+
+【输出】
+保存到：[填写输出路径，如 D:/合并结果.xlsx]
+
+【要求】
+1. 如果某个文件格式不对读取失败，跳过并打印提示，不要崩溃
+2. 合并完成后打印总共合并了多少行数据
+3. 代码完整可运行，加中文注释，Windows 系统</pre>
+    </div>
+
+    <h4>Excel 数据清洗</h4>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">提示词 · 数据清洗</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-clean').textContent)">复制</button>
+      </div>
+      <pre id="tpl-clean">你是一个专业的 Python 开发者，擅长用 pandas 处理数据。
+
+请帮我写一个 Excel 数据清洗脚本：
+
+【输入文件】[填写路径]
+
+【需要做的清洗操作】（勾选你需要的）
+- 删除完全重复的行
+- 删除指定列为空的行（列名：[填写列名]）
+- 把 [填写列名] 列的数据格式统一成 [填写格式，如 YYYY-MM-DD]
+- 把 [填写列名] 列里的空值填充为 [填写默认值，如 0 或 "未知"]
+- 删除 [填写列名] 列中包含 [填写关键词] 的行
+
+【输出文件】[填写路径]
+
+【要求】
+1. 清洗前后分别打印数据行数，方便对比
+2. 代码完整可运行，加中文注释</pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>4.3 数据分析 + 可视化图表</h3>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">提示词 · 数据分析图表</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-chart').textContent)">复制</button>
+      </div>
+      <pre id="tpl-chart">你是一个专业的 Python 数据分析师，擅长用 pandas 和 matplotlib。
+
+请帮我写一个数据分析脚本：
+
+【数据文件】[填写路径，支持 .xlsx 或 .csv]
+
+【分析内容】
+1. 基础统计：每一列的数据类型、非空数量、均值、最大最小值
+2. 画一张 [填写图表类型，如 柱状图/折线图/饼图]，
+   X 轴是 [填写列名]，Y 轴是 [填写列名]
+3. [可选：其他分析需求]
+
+【输出】
+- 统计结果打印到控制台
+- 图表保存为 [填写路径]/分析图表.png
+
+【要求】
+1. 图表标题、坐标轴标签用中文
+2. 图表样式清晰，适合放进报告
+3. 代码完整可运行，加中文注释，Windows 系统</pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>4.4 简单网页工具</h3>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">提示词 · 单页工具网页</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-webpage').textContent)">复制</button>
+      </div>
+      <pre id="tpl-webpage">你是一个前端开发者，擅长写简洁实用的 HTML/CSS/JavaScript。
+
+请帮我做一个单页工具网页，要求如下：
+
+【工具功能】
+[填写功能，如：输入一段文字，点击按钮，自动统计字数、行数、段落数，
+结果显示在页面上]
+
+【页面要求】
+- 简洁大方，不需要花哨的设计
+- 手机和电脑都能正常显示（响应式）
+- 不依赖任何外部框架，纯 HTML+CSS+JS，一个文件搞定
+
+【要求】
+1. 所有代码写在一个 .html 文件里，直接用浏览器打开就能用
+2. 代码加中文注释
+3. 界面文字用中文</pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>4.5 爬虫 · 批量采集（合规版）</h3>
+    <div class="warn-card">注意：爬虫只用于采集公开数据，遵守网站 robots.txt 规则，不用于商业竞争或侵权用途。</div>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">提示词 · 公开网页数据采集</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-spider').textContent)">复制</button>
+      </div>
+      <pre id="tpl-spider">你是一个专业的 Python 开发者，擅长写爬虫。
+
+请帮我写一个网页数据采集脚本：
+
+【目标网页】
+URL：[填写网址]
+这是一个公开的 [填写网站类型，如 新闻列表页/商品列表页]
+
+【需要采集的数据】
+[填写字段，如：标题、发布时间、链接、摘要]
+
+【输出】
+保存为 CSV 文件，路径：[填写路径]
+
+【要求】
+1. 每次请求之间随机等待 1-3 秒，避免请求过于频繁
+2. 如果某条数据采集失败，跳过继续，不要整个程序崩溃
+3. 采集完成后打印总共采集了多少条
+4. 使用 requests + BeautifulSoup，代码完整可运行，加中文注释
+5. Windows 系统，Python 3.11</pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>4.6 职场办公自动化</h3>
+    <h4>自动发送邮件</h4>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">提示词 · 自动发邮件</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-email').textContent)">复制</button>
+      </div>
+      <pre id="tpl-email">你是一个专业的 Python 开发者。
+
+请帮我写一个自动发送邮件的脚本：
+
+【功能】
+读取 Excel 文件里的收件人列表，给每个人发送个性化邮件
+
+【Excel 文件格式】
+列名：姓名、邮箱、[其他个性化字段，如 订单号、金额]
+路径：[填写路径]
+
+【邮件内容模板】
+主题：[填写主题，如 您的订单已发货]
+正文：
+尊敬的 {姓名}，
+您的订单 {订单号} 已于今日发货，金额为 {金额} 元。
+如有问题请回复此邮件。
+
+【发件人信息】
+邮箱：[填写你的邮箱]
+使用 SMTP 发送（我会自己填入密码，代码里用变量占位）
+
+【要求】
+1. 每封邮件发送后打印发送状态
+2. 发送失败的记录到日志文件
+3. 代码完整可运行，加中文注释，密码用变量 EMAIL_PASSWORD 占位</pre>
+    </div>
+
+    <h4>自动整理下载文件夹</h4>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">提示词 · 文件自动分类</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-organize').textContent)">复制</button>
+      </div>
+      <pre id="tpl-organize">你是一个专业的 Python 开发者。
+
+请帮我写一个自动整理文件夹的脚本：
+
+【功能】
+扫描 [填写文件夹路径，如 D:/Downloads/] 里的所有文件，
+按文件类型自动分类移动到对应子文件夹
+
+【分类规则】
+- 图片（.jpg .png .gif .webp）→ 移动到 图片/ 子文件夹
+- 文档（.pdf .docx .xlsx .pptx .txt）→ 移动到 文档/ 子文件夹
+- 视频（.mp4 .avi .mkv .mov）→ 移动到 视频/ 子文件夹
+- 压缩包（.zip .rar .7z）→ 移动到 压缩包/ 子文件夹
+- 其他文件 → 移动到 其他/ 子文件夹
+
+【要求】
+1. 如果目标子文件夹不存在，自动创建
+2. 如果目标位置已有同名文件，在文件名后加 _1、_2 避免覆盖
+3. 移动完成后打印每个分类移动了多少个文件
+4. 代码完整可运行，加中文注释，Windows 系统</pre>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- 第五章 -->
+<section class="chapter" id="ch5">
+  <div class="chapter-label">第五章</div>
+  <h2>代码调试 &amp; 纠错 SOP</h2>
+  <p class="chapter-intro">AI 写的代码不是每次都能一次跑通，遇到报错很正常。这一章教你怎么快速定位问题、让 AI 帮你修复。</p>
+
+  <div class="section">
+    <h3>5.1 常见报错类型快速识别</h3>
+    <p>拿到报错信息，先看最后几行，那里是最关键的错误描述。</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>报错关键词</th><th>含义</th><th>常见原因</th></tr></thead>
+        <tbody>
+          <tr><td><code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px;font-family:monospace">ModuleNotFoundError</code></td><td>找不到模块</td><td>没有安装对应的库</td></tr>
+          <tr><td><code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px;font-family:monospace">FileNotFoundError</code></td><td>找不到文件</td><td>文件路径写错了</td></tr>
+          <tr><td><code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px;font-family:monospace">PermissionError</code></td><td>没有权限</td><td>文件被其他程序占用</td></tr>
+          <tr><td><code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px;font-family:monospace">SyntaxError</code></td><td>语法错误</td><td>代码复制不完整</td></tr>
+          <tr><td><code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px;font-family:monospace">KeyError</code></td><td>找不到键</td><td>Excel 列名写错了</td></tr>
+          <tr><td><code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px;font-family:monospace">ValueError</code></td><td>数值错误</td><td>数据格式不对</td></tr>
+          <tr><td><code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px;font-family:monospace">UnicodeDecodeError</code></td><td>编码错误</td><td>文件编码不是 UTF-8，中文乱码</td></tr>
+          <tr><td><code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px;font-family:monospace">IndexError</code></td><td>索引越界</td><td>数据比预期的少</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="info-card">
+      <strong>最常见两个问题的快速解决：</strong><br><br>
+      <strong>ModuleNotFoundError</strong>：在终端运行 pip install 库名。安装慢可换国内镜像加 -i https://pypi.tuna.tsinghua.edu.cn/simple<br><br>
+      <strong>FileNotFoundError</strong>：检查文件路径，Windows 用正斜杠 /，路径含中文或空格时加 r 前缀，如 r"D:/我的文件/数据.xlsx"
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>5.2 让 AI 自动排查 bug 的固定句式</h3>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">报错修复请求模板</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-bugreport').textContent)">复制</button>
+      </div>
+      <pre id="tpl-bugreport">我运行了你之前写的代码，出现了以下报错：
+
+--- 报错信息（完整复制）---
+[把终端里的报错信息完整粘贴在这里，从第一行到最后一行]
+---
+
+我的运行环境：
+- 操作系统：Windows 10
+- Python 版本：3.11
+- 文件路径：[填写你的实际文件路径]
+
+请帮我：
+1. 分析报错原因（用大白话解释）
+2. 给出修复后的完整代码
+3. 说明改了哪里，为什么这样改</pre>
+    </div>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">结果不对（无报错）修复模板</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-wrongresult').textContent)">复制</button>
+      </div>
+      <pre id="tpl-wrongresult">代码运行没有报错，但结果不是我想要的。
+
+我期望的结果：[描述你想要什么]
+实际得到的结果：[描述实际输出了什么]
+
+原始代码：
+[粘贴代码]
+
+请帮我找出问题并修复，给出完整的修改后代码。</pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>5.3 代码精简、注释、易懂版本话术</h3>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">让 AI 解释代码逻辑</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-explain').textContent)">复制</button>
+      </div>
+      <pre id="tpl-explain">请帮我解释下面这段代码是怎么工作的。
+
+要求：
+- 整体说明这段代码的目的
+- 按顺序解释每个主要步骤在做什么
+- 用比喻或者生活中的例子来解释，不要用专业术语
+
+代码：
+[粘贴代码]</pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>5.4 低配置电脑优化 / 中文乱码修复</h3>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">大文件性能优化模板</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-perf').textContent)">复制</button>
+      </div>
+      <pre id="tpl-perf">下面这段代码在处理大文件时很慢，或者内存占用太高。
+
+我的电脑配置：
+- 内存：[填写，如 8GB]
+- 需要处理的数据量：[填写，如 10万行 Excel 数据]
+
+请帮我优化这段代码，要求：
+1. 减少内存占用（可以考虑分批读取数据）
+2. 提高运行速度
+3. 保持功能不变
+4. 给出优化后的完整代码，并说明做了哪些优化
+
+代码：
+[粘贴代码]</pre>
+    </div>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">中文乱码修复模板</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-encoding').textContent)">复制</button>
+      </div>
+      <pre id="tpl-encoding">我的代码在读取/写入中文文件时出现乱码问题。
+
+文件类型：[填写，如 .txt / .csv]
+操作系统：Windows 10
+
+请帮我修改代码，解决中文乱码问题。
+通常需要指定编码为 utf-8 或 gbk，请根据情况处理。
+
+原始代码：
+[粘贴代码]</pre>
+    </div>
+  </div>
+</section>
+
+<!-- 第六章 -->
+<section class="chapter" id="ch6">
+  <div class="chapter-label">第六章</div>
+  <h2>副业接单专属——代码交付标准化 SOP</h2>
+  <p class="chapter-intro">这一章专门为想靠 AI 写代码接外包单子的人写的。从接单到交付，每个环节都有标准话术，照着做就行。</p>
+
+  <div class="section">
+    <h3>6.1 客户需求问询固定话术</h3>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">初次接触客户话术</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-inquiry').textContent)">复制</button>
+      </div>
+      <pre id="tpl-inquiry">您好，我看了您的需求，基本了解了。
+
+为了确保我能准确实现您想要的功能，麻烦您帮我确认几个细节：
+
+1. 【输入数据】：程序需要处理的数据是什么格式？
+   （比如：Excel 文件、CSV 文件、还是直接输入文字？）
+
+2. 【输出结果】：您希望最终得到什么？
+   （比如：生成一个新文件、在屏幕上显示结果、还是发送邮件？）
+
+3. 【运行环境】：您的电脑是 Windows 还是 Mac？
+   Python 有没有安装过？
+
+4. 【数据量】：大概需要处理多少数据？
+   （比如：几百行、几万行？）
+
+5. 【特殊要求】：有没有什么特别的限制或者要求？
+
+确认好这些之后，我可以给您一个准确的报价和完成时间。</pre>
+    </div>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">需求确认复述话术（防扯皮）</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-confirm').textContent)">复制</button>
+      </div>
+      <pre id="tpl-confirm">根据您的描述，我理解您需要的是：
+
+【功能】：[复述功能]
+【输入】：[复述输入格式]
+【输出】：[复述输出格式]
+【运行环境】：[复述环境]
+【特殊要求】：[复述要求]
+
+如果以上理解没有问题，我会按照这个需求开发。
+后续如果需求有变化，可能需要额外沟通费用，请您知悉。
+
+请确认：以上理解是否正确？</pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>6.2 报价参考区间</h3>
+    <div class="price-grid">
+      <div class="price-card"><div class="ptype">低复杂度</div><div class="pname">简单脚本</div><div class="pprice">50-150元</div><div class="plevel">批量重命名、合并文件等</div></div>
+      <div class="price-card"><div class="ptype">低-中复杂度</div><div class="pname">Excel 自动化</div><div class="pprice">100-300元</div><div class="plevel">数据处理、清洗、汇总</div></div>
+      <div class="price-card"><div class="ptype">中复杂度</div><div class="pname">数据分析图表</div><div class="pprice">200-500元</div><div class="plevel">统计分析 + 可视化</div></div>
+      <div class="price-card"><div class="ptype">中复杂度</div><div class="pname">简单爬虫</div><div class="pprice">200-500元</div><div class="plevel">静态页面数据采集</div></div>
+      <div class="price-card"><div class="ptype">中复杂度</div><div class="pname">简单网页工具</div><div class="pprice">300-800元</div><div class="plevel">单页工具、数据展示</div></div>
+      <div class="price-card"><div class="ptype">高复杂度</div><div class="pname">复杂数据系统</div><div class="pprice">500-2000元</div><div class="plevel">多功能报表系统</div></div>
+    </div>
+    <div class="info-card">报价原则：需求越模糊报价越高；时间越紧加急费 20%-50%；需要售后维护单独报价。</div>
+  </div>
+
+  <div class="section">
+    <h3>6.3 代码打包规范</h3>
+    <div class="code-block">
+      <div class="code-block-header"><span class="code-lang">标准交付包结构</span></div>
+      <pre>交付文件夹/
+├── 源代码/
+│   └── 脚本名称.py
+├── 使用说明.txt
+├── 安装依赖.bat
+└── 示例数据/
+    └── 测试用的示例文件</pre>
+    </div>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">使用说明.txt 模板</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-readme').textContent)">复制</button>
+      </div>
+      <pre id="tpl-readme">【程序名称】[填写]
+【功能说明】[一句话描述功能]
+【开发日期】[填写日期]
+
+=== 运行环境要求 ===
+- 操作系统：Windows 10 或以上
+- Python 版本：3.8 或以上
+
+=== 安装步骤 ===
+1. 确认已安装 Python（不知道怎么安装请联系我）
+2. 双击运行 "安装依赖.bat"，等待安装完成
+3. 按照下面的使用步骤操作
+
+=== 使用步骤 ===
+1. [填写第一步]
+2. [填写第二步]
+3. [填写第三步]
+
+=== 注意事项 ===
+- [填写注意事项]
+- 如果遇到问题，请截图报错信息联系我
+
+=== 联系方式 ===
+[填写你的联系方式]</pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>6.4 交付话术 &amp; 售后边界</h3>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">交付时的话术</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-delivery').textContent)">复制</button>
+      </div>
+      <pre id="tpl-delivery">您好，程序已开发完成，附件是交付文件。
+
+里面包含：
+- 源代码文件
+- 详细使用说明（请先阅读）
+- 一键安装依赖脚本
+
+按照使用说明操作即可。如果遇到问题，请截图报错信息发给我。
+
+【售后说明】
+本次交付包含 3 天免费售后（安装问题、使用问题）。
+如果是新增功能需求，需要重新报价。</pre>
+    </div>
+    <div class="info-card">
+      <strong>免费售后范围：</strong>程序按需求运行但出现 bug、安装和运行环境问题、使用方法不清楚的问题。<br><br>
+      <strong>不在免费售后范围：</strong>新增原需求之外的功能、因客户电脑环境特殊导致的兼容问题、超过 3 天后的问题。
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>6.5 避免反复改稿的沟通 SOP</h3>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">改稿边界话术</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-scope').textContent)">复制</button>
+      </div>
+      <pre id="tpl-scope">您好，您提到的这个需求（[描述新需求]）不在我们最初确认的范围内。
+
+原需求是：[复述原需求]
+新需求是：[描述新需求]
+
+这个修改需要额外的开发时间，报价是 [填写金额] 元，
+您看是否需要？</pre>
+    </div>
+  </div>
+</section>
+
+<!-- 第七章 -->
+<section class="chapter" id="ch7">
+  <div class="chapter-label">第七章</div>
+  <h2>常见问题 FAQ</h2>
+  <p class="chapter-intro">新手最容易遇到的问题，这里集中解答。每个问题都给了具体的操作步骤，不是泛泛而谈。</p>
+
+  <div class="section">
+    <h3>Q1：AI 生成的代码不能运行怎么办？</h3>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h4>看报错信息</h4>
+          <p>运行代码后，终端会显示红色的报错信息。把最后几行复制下来，这是最关键的部分。</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h4>对照报错类型表</h4>
+          <p>看报错关键词，快速判断是什么问题：有 ModuleNotFoundError 先装库；有 FileNotFoundError 检查路径；有 SyntaxError 代码复制不完整，重新复制。</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h4>把报错发给 AI</h4>
+          <p>用第五章的「报错修复请求」模板，把完整报错信息发给 AI，让它帮你修复。<strong>90% 的情况，这三步就能解决。</strong></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Q2：代码太复杂看不懂，怎么简化？</h3>
+    <p>两个方法：</p>
+    <ul>
+      <li><strong>方法一：让 AI 加注释</strong>——用第五章的「让 AI 加详细注释」提示词，让 AI 给每一行加上中文解释。</li>
+      <li><strong>方法二：让 AI 重新写简单版本</strong>——发送「上面的代码对我来说太复杂了，请帮我写一个功能完全一样但更简单的版本，去掉所有高级特性，用最基础的方式实现，代码行数尽量少，每行都加注释。」</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h3>Q3：如何让 AI 写出更稳定、少报错的代码？</h3>
+    <p>在提示词里加上这几句话，效果明显：</p>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">稳定性增强附加要求</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-stable').textContent)">复制</button>
+      </div>
+      <pre id="tpl-stable">额外要求：
+1. 代码要有完善的错误处理，任何可能出错的地方都要用 try-except 捕获
+2. 文件操作前先检查文件是否存在
+3. 关键步骤打印进度提示，让我知道程序在做什么
+4. 不要用可能在不同系统上行为不一致的写法
+5. 代码要能在 Python 3.8 到 3.12 的任意版本上运行</pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Q4：不懂语法，怎么判断 AI 写的代码靠不靠谱？</h3>
+    <ul>
+      <li><strong>让 AI 自己解释</strong>——发送「请用大白话解释这段代码的工作流程，不要用专业术语」，如果解释和你的需求对得上，代码大概率是对的。</li>
+      <li><strong>用小数据测试</strong>——先用少量数据（比如 5 行 Excel）测试，确认结果正确后再用全量数据。</li>
+      <li><strong>让 AI 列出风险</strong>——发送「这段代码有没有什么潜在的问题或者风险？比如数据丢失、文件被覆盖、处理结果不准确等，请列出来并说明如何避免。」</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h3>Q5：AI 每次给的代码都不一样，哪个版本对？</h3>
+    <p>AI 有一定的随机性，同样的提示词可能给出不同的实现方式。判断哪个版本更好：代码更短更简单的通常更好维护；有错误处理的比没有的更可靠；用常见库（pandas、requests）的比用冷门库的更稳定。</p>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">让 AI 对比两个版本</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-compare').textContent)">复制</button>
+      </div>
+      <pre id="tpl-compare">你给了我两个版本的代码，请对比一下这两个版本，
+哪个更适合我的场景（[描述你的场景]）？为什么？</pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Q6：代码运行很慢，怎么加速？</h3>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">速度优化请求模板</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-speed').textContent)">复制</button>
+      </div>
+      <pre id="tpl-speed">这段代码处理 [填写数据量] 的数据需要 [填写时间]，太慢了。
+
+请帮我优化速度，可以考虑：
+1. 使用更高效的数据处理方式
+2. 避免不必要的循环
+3. 如果数据量大，考虑分批处理
+
+给出优化后的完整代码，并说明做了哪些改动。
+
+原始代码：
+[粘贴代码]</pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Q7：代码在我电脑上能跑，发给别人就不行了？</h3>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">打包依赖说明模板</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-package').textContent)">复制</button>
+      </div>
+      <pre id="tpl-package">我的代码在我电脑上能正常运行，但发给别人就报错。
+
+请帮我：
+1. 列出这段代码需要的所有依赖库和版本
+2. 写一个 requirements.txt 文件内容
+3. 写一个安装说明，让完全不懂编程的人也能按步骤安装运行
+
+代码：
+[粘贴代码]</pre>
+    </div>
+  </div>
+</section>
+
+<!-- 第八章 -->
+<section class="chapter" id="ch8">
+  <div class="chapter-label">第八章</div>
+  <h2>新手避坑红线</h2>
+  <p class="chapter-intro">这一章说的是「不能做的事」，比「能做什么」更重要。</p>
+
+  <div class="section">
+    <h3>8.1 禁止做的高风险代码场景</h3>
+    <div class="danger-card">
+      以下场景坚决不碰，不管客户出多少钱：<br><br>
+      ❌ <strong>涉及他人隐私数据的爬虫</strong>——爬取用户手机号、身份证、地址等，涉及违法。<br>
+      ❌ <strong>绕过验证码、模拟登录的脚本</strong>——很多平台明确禁止，轻则封号，重则法律风险。<br>
+      ❌ <strong>批量注册账号、刷量、刷评论</strong>——本质是作弊，涉及不正当竞争。<br>
+      ❌ <strong>破解、逆向、绕过付费验证</strong>——侵权行为，不碰。<br>
+      ❌ <strong>涉及金融交易的自动化脚本</strong>——没有专业背景的情况下，一个 bug 可能造成重大损失。
+    </div>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">婉拒高风险需求话术</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-refuse').textContent)">复制</button>
+      </div>
+      <pre id="tpl-refuse">您好，这个需求涉及到 [简单说明原因，如 用户隐私数据/平台规则限制]，
+我这边没办法接这类单子，抱歉。
+
+如果您有其他需求，欢迎继续沟通。</pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>8.2 避免过度依赖 AI 完全不动脑</h3>
+    <div class="warn-card">
+      <strong>AI 是工具，不是大脑。有几件事你必须自己做：</strong><br><br>
+      ① <strong>需求要自己想清楚</strong>——AI 不知道你的业务场景，需求模糊，代码就会跑偏。<br>
+      ② <strong>结果要自己验证</strong>——AI 写的代码可能有逻辑错误但不会报错，必须用已知数据验证结果是否正确。<br>
+      ③ <strong>不要把 AI 的代码直接用于生产环境</strong>——涉及真实数据的脚本，一定要先在测试数据上跑通。<br>
+      ④ <strong>重要数据操作前先备份</strong>——任何会修改或删除文件的脚本，运行前先备份原始数据。
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>8.3 接单避坑：客户无理需求怎么婉拒</h3>
+    <ul>
+      <li><strong>坑一：需求无限扩展</strong>——每次改动前确认是否在原需求范围内，超出范围的额外报价。</li>
+      <li><strong>坑二：要求「包教会」</strong>——明确说明编程教学不在服务范围内。</li>
+      <li><strong>坑三：要求「永久维护」</strong>——明确说明售后期限（3 天或 7 天），超出期限的维护需要额外付费。</li>
+      <li><strong>坑四：先做后付</strong>——新客户不要先做后付，至少收 50% 定金再开始。</li>
+      <li><strong>坑五：需求描述极其模糊</strong>——客户说「帮我做个系统」但说不清楚具体要什么，这种单子不接或者先收需求分析费。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 第九章 -->
+<section class="chapter" id="ch9">
+  <div class="chapter-label">第九章</div>
+  <h2>进阶升级 &amp; 一对一指导</h2>
+  <p class="chapter-intro">恭喜你看到这里。如果你认真把前面的内容过了一遍，现在你应该已经能用标准 5 步 SOP 让 AI 写出可运行的代码，遇到报错知道怎么排查，有完整的提示词库可以直接复制。这已经比 90% 的人强了。</p>
+
+  <div class="section">
+    <h3>9.1 高阶提示词进阶写法</h3>
+    <h4>技巧一：分步骤拆解复杂需求</h4>
+    <p>复杂需求不要一次性全部丢给 AI，分步骤来：</p>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">分步骤开发话术</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-stepdev').textContent)">复制</button>
+      </div>
+      <pre id="tpl-stepdev">第一步：先帮我写数据读取和清洗的部分
+第二步：数据读取没问题后，再写数据分析的部分
+第三步：分析逻辑确认后，再写输出和报表的部分</pre>
+    </div>
+    <h4>技巧二：给 AI 提供示例数据</h4>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">提供示例数据话术</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-sampledata').textContent)">复制</button>
+      </div>
+      <pre id="tpl-sampledata">我的数据格式如下（这是示例，真实数据有几千行）：
+
+日期,销售员,产品,销售额
+2024-01-01,张三,产品A,15000
+2024-01-01,李四,产品B,8000
+2024-01-02,张三,产品C,22000
+
+请根据这个格式写代码。</pre>
+    </div>
+    <h4>技巧三：让 AI 先设计方案再写代码</h4>
+    <div class="prompt-card">
+      <div class="prompt-card-header">
+        <span class="prompt-card-title">先方案后代码话术</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('tpl-planfirst').textContent)">复制</button>
+      </div>
+      <pre id="tpl-planfirst">在写代码之前，先告诉我你打算怎么实现这个功能，
+列出主要步骤和用到的库，我确认方案没问题后再写代码。</pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>9.2 AI 代码副业完整接单渠道</h3>
+    <p>目前最适合接代码类外包的平台：</p>
+    <ul>
+      <li><strong>闲鱼</strong>：发布「Python 脚本定制」「Excel 自动化」等关键词的商品，流量大，入门门槛低</li>
+      <li><strong>猪八戒网</strong>：专业外包平台，客单价更高，适合有案例积累后入驻</li>
+      <li><strong>程序员客栈</strong>：面向开发者的接单平台，需求质量较高</li>
+      <li><strong>微信群/朋友圈</strong>：熟人介绍，信任度高，转化率好，是最值得经营的渠道</li>
+    </ul>
+    <div class="info-card">
+      <strong>定价策略：</strong>新手期低价接单积累评价和案例 → 成长期用案例展示能力逐步提价 → 成熟期专注高价值需求拒绝低价单
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>9.3 全套可复用代码模板库</h3>
+    <p>随着你接的单子越来越多，你会积累一套自己的代码模板库。每次做完一个项目，把核心代码整理成模板保存，下次遇到类似需求直接复用，效率翻倍。</p>
+    <div class="code-block">
+      <div class="code-block-header"><span class="code-lang">建议的模板库结构</span></div>
+      <pre>代码模板库/
+├── Excel处理/
+│   ├── 合并多个Excel.py
+│   ├── 数据清洗通用版.py
+│   └── 自动生成报表.py
+├── 文件操作/
+│   ├── 批量重命名.py
+│   ├── 文件分类整理.py
+│   └── 批量格式转换.py
+├── 数据分析/
+│   ├── 基础统计分析.py
+│   └── 可视化图表生成.py
+├── 网页工具/
+│   ├── 单页工具模板.html
+│   └── 数据展示表格.html
+└── 提示词库/
+    └── 各场景提示词.txt</pre>
+    </div>
+  </div>
+
+  <div class="planet-section">
+    <div class="planet-badge">增值服务 · 进阶学习 &amp; 一对一指导</div>
+    <h3>增值服务在知识星球，手册只是起点</h3>
+    <p class="planet-desc">这本手册是精简入门版，作者会持续维护并推出 2.0、3.0 版本。真正值钱的东西——完整模板库、接单案例、一对一答疑——都在知识星球「碳基搞钱社」。</p>
+
+    <div class="cta-box" style="text-align:left;margin-bottom:24px">
+      <p><strong>渠道一：公众号「碳基龙」</strong></p>
+      <p>搜索公众号「碳基龙」，关注后直接私信。适合：手册里某个步骤看不懂、遇到具体报错不知道怎么处理、想了解更多 AI 变现和副业搞钱的思路。</p>
+      <p style="color:#6b7280;font-size:13px">我不保证每条都回，但真正有价值的问题我会认真答。</p>
+      <div class="cta-divider"></div>
+      <p><strong>渠道二：知识星球「碳基搞钱社」——所有增值服务在这里</strong></p>
+      <p><strong style="color:#a5b4fc">手册是基础入门版，知识星球是增值服务的核心阵地。</strong>星球里有：完整版提示词模板库（持续扩充）、真实接单案例复盘、AI 变现实操干货、成员专属一对一答疑、不定期直播，以及手册 2.0/3.0 版本更新第一时间通知。进来的都是想认真搞钱的人，不欢迎白嫖。</p>
+    </div>
+
+    <div class="qr-row">
+      <div class="qr-item">
+        <div class="qr-item-badge">免费关注</div>
+        <img src="IP/gongzhonghao.jpg" alt="碳基龙公众号二维码">
+        <div class="qr-item-info">
+          <span class="qr-item-title">公众号：碳基龙</span>
+          <span class="qr-item-desc">问题私信 · AI 变现干货</span>
+        </div>
+      </div>
+      <div class="qr-item qr-item-featured">
+        <div class="qr-item-badge qr-item-badge-featured">增值服务</div>
+        <img src="IP/知识星球.jpg" alt="碳基搞钱社知识星球二维码">
+        <div class="qr-item-info">
+          <span class="qr-item-title">知识星球：碳基搞钱社</span>
+          <span class="qr-item-desc">完整模板库 · 接单案例 · 一对一答疑</span>
+        </div>
+      </div>
+    </div>
+
+    <p class="planet-hint">增值服务在知识星球，手册只是起点。作者持续维护此文档，2.0、3.0 版本陆续推出。懂的人自然懂。</p>
+  </div>
+</section>
+
+<!-- 附录 -->
+<section class="chapter" id="appendix">
+  <div class="chapter-label">附录</div>
+  <h2>常用命令速查</h2>
+
+  <div class="section">
+    <h3>Python 常用命令</h3>
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-lang">终端命令</span>
+        <button class="copy-btn" onclick="copyText(this, document.getElementById('code-cmds').textContent)">复制</button>
+      </div>
+      <pre id="code-cmds"># 查看 Python 版本
+python --version
+
+# 安装库（国内镜像加速）
+pip install 库名 -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+# 安装多个库
+pip install pandas openpyxl requests beautifulsoup4
+
+# 查看已安装的库
+pip list
+
+# 运行 Python 脚本
+python 脚本名.py</pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>常用库速查</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>库名</th><th>用途</th><th>安装命令</th></tr></thead>
+        <tbody>
+          <tr><td>pandas</td><td>Excel/CSV 数据处理</td><td><code style="font-family:monospace;font-size:12px">pip install pandas openpyxl</code></td></tr>
+          <tr><td>requests</td><td>网络请求、爬虫</td><td><code style="font-family:monospace;font-size:12px">pip install requests</code></td></tr>
+          <tr><td>beautifulsoup4</td><td>网页解析</td><td><code style="font-family:monospace;font-size:12px">pip install beautifulsoup4</code></td></tr>
+          <tr><td>matplotlib</td><td>数据可视化图表</td><td><code style="font-family:monospace;font-size:12px">pip install matplotlib</code></td></tr>
+          <tr><td>schedule</td><td>定时任务</td><td><code style="font-family:monospace;font-size:12px">pip install schedule</code></td></tr>
+          <tr><td>PyPDF2</td><td>PDF 处理</td><td><code style="font-family:monospace;font-size:12px">pip install PyPDF2</code></td></tr>
+          <tr><td>Pillow</td><td>图片处理</td><td><code style="font-family:monospace;font-size:12px">pip install Pillow</code></td></tr>
+          <tr><td>pyautogui</td><td>鼠标键盘自动化</td><td><code style="font-family:monospace;font-size:12px">pip install pyautogui</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <p>AI 写代码实操手册 · v1.0 · 2026年5月 · 作者：碳基龙 · 本文档持续维护，2.0/3.0 版本陆续推出</p>
+  <p style="margin-top:8px">版权所有，购买后仅供个人学习使用，禁止二次转售、截图传播</p>
+  <p style="margin-top:12px;color:#1f2937">公众号：碳基龙 · 知识星球：碳基搞钱社</p>
+</footer>
+
+<!-- 固定水印 -->
+<div class="watermark">
+  <img src="IP/gongzhonghao.jpg" alt="碳基龙" class="watermark-logo">
+  <div class="watermark-text">
+    <strong>碳基龙</strong>
+    公众号同名
+  </div>
+</div>
+
+<script>
+function toggleToc(){
+  document.getElementById('tocOverlay').classList.toggle('open');
+  document.getElementById('tocDrawer').classList.toggle('open');
+}
+function copyText(btn, text){
+  var clean = text.replace(/^\n/, '');
+  navigator.clipboard.writeText(clean).then(function(){
+    btn.textContent = '已复制 ✓';
+    btn.classList.add('copied');
+    setTimeout(function(){ btn.textContent = '复制'; btn.classList.remove('copied'); }, 2000);
+  }).catch(function(){
+    var ta = document.createElement('textarea');
+    ta.value = clean;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent = '已复制 ✓';
+    btn.classList.add('copied');
+    setTimeout(function(){ btn.textContent = '复制'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+</script>
+</body>
+</html>
